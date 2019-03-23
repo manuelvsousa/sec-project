@@ -1,4 +1,4 @@
-# SEC Project
+# SEC Project - Group 6
 blalbaballbalba
 
 
