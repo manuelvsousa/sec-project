@@ -14,6 +14,7 @@ buildNumber.properties
 #Idea general
 .idea/
 */target/**
+*.iml
 
 #serialization objects
 *.ser
