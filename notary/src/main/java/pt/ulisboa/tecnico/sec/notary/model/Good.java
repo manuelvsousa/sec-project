@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 
-//@XmlRootElement       //only needed if we also want to generate XML
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Good implements Serializable {
 

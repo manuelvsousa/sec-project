@@ -8,7 +8,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-//@XmlRootElement       //only needed if we also want to generate XML
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class User implements Serializable {
     private String userID;

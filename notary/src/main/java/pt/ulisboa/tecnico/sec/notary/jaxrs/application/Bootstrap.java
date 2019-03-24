@@ -26,14 +26,11 @@ public class Bootstrap implements ServletContextListener {
 
         try {
             ObjectInput in = new ObjectInputStream(new FileInputStream(serializeFileName));
-            Notary notary = (Notary) in.readObject();
             in.close();
 
             System.out.println("Object has been deserialized ");
         } catch (IOException ex) {
             System.out.println("IOException is caught");
-        } catch (ClassNotFoundException ex) {
-            System.out.println("ClassNotFoundException is caught");
         }
         User asd1 = new User("user1", "public1");
         asd1.addGood(new Good("good1", false));

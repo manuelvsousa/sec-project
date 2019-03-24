@@ -54,7 +54,7 @@ public class GoodsResource {
             throw new NotFoundExceptionResponse(e2.getMessage());
         } catch (UserDoesNotOwnGood e3) {
             throw new UserDoesNotOwnResourceExceptionResponse(e3.getMessage());
-        } catch(InvalidTransactionException e4){
+        } catch (InvalidTransactionException e4) {
             throw new InvalidTransactionExceptionResponse(e4.getMessage());
         } catch (Exception e) {
             throw e;

@@ -2,7 +2,6 @@ package pt.ulisboa.tecnico.sec.notary.model;
 
 import java.io.Serializable;
 
-//@XmlRootElement       //only needed if we also want to generate XML
 public class Transaction implements Serializable {
 
     private Good good;

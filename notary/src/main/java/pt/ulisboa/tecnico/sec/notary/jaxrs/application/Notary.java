@@ -61,8 +61,8 @@ public class Notary implements Serializable {
     }
 
     public void setIntentionToSell(String goodID, String sellerID) {
-        if(!this.getUser(sellerID).getGoods().contains(this.getGood(goodID))){
-            throw new UserDoesNotOwnGood(sellerID,goodID);
+        if (!this.getUser(sellerID).getGoods().contains(this.getGood(goodID))) {
+            throw new UserDoesNotOwnGood(sellerID, goodID);
         }
     }
 
