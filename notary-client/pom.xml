@@ -21,41 +21,6 @@
         <mainclass>pt.ulisboa.tecnico.sec.notaryclient.Application</mainclass>
     </properties>
 
-    <repositories>
-
-        <repository>
-            <id>java.net-Public</id>
-            <name>Maven Java Net Snapshots and Releases</name>
-            <url>https://maven.java.net/content/groups/public/</url>
-            <layout>default</layout>
-        </repository>
-
-        <repository>
-            <id>Central</id>
-            <name>Maven Repository</name>
-            <url>http://repo1.maven.org/maven2</url>
-            <layout>default</layout>
-        </repository>
-
-        <repository>
-            <id>central</id>
-            <name>Central Repository</name>
-            <url>http://repo.maven.apache.org/maven2</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <url>http://download.eclipse.org/rt/eclipselink/maven.repo/</url>
-            <id>eclipselink</id>
-            <layout>default</layout>
-            <name>Repository for library EclipseLink (JPA 2.0)</name>
-        </repository>
-
-    </repositories>
-
     <dependencies>
 
         <dependency>

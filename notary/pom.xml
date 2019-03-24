@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>pt.ulisboa.tecnico.sec</groupId>
@@ -22,41 +21,6 @@
         <mainclass>pt.ulisboa.tecnico.sec.notary.jaxrs.application.Main</mainclass>
     </properties>
 
-    <repositories>
-
-        <repository>
-            <id>java.net-Public</id>
-            <name>Maven Java Net Snapshots and Releases</name>
-            <url>https://maven.java.net/content/groups/public/</url>
-            <layout>default</layout>
-        </repository>
-
-        <repository>
-            <id>Central</id>
-            <name>Maven Repository</name>
-            <url>http://repo1.maven.org/maven2</url>
-            <layout>default</layout>
-        </repository>
-
-        <repository>
-            <id>central</id>
-            <name>Central Repository</name>
-            <url>http://repo.maven.apache.org/maven2</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <url>http://download.eclipse.org/rt/eclipselink/maven.repo/</url>
-            <id>eclipselink</id>
-            <layout>default</layout>
-            <name>Repository for library EclipseLink (JPA 2.0)</name>
-        </repository>
-
-    </repositories>
-
     <dependencies>
 
         <dependency>
@@ -73,13 +37,6 @@
             <artifactId>jersey-container-servlet</artifactId>
             <version>${version.jersey}</version>
         </dependency>
-        <!-- do not use jettison, prefer jackson
-		<dependency>
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-json-jettison</artifactId>
-            <version>${version.jersey}</version>
-        </dependency>
-		-->
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
@@ -100,14 +57,6 @@
             <artifactId>jersey-media-sse</artifactId>
             <version>${version.jersey}</version>
         </dependency>
-        <!-- if you are using Jersey client specific features -->
-        <!--
-        <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-client</artifactId>
-            <version>${version.jersey}</version>
-        </dependency>
-        -->
 
     </dependencies>
 
