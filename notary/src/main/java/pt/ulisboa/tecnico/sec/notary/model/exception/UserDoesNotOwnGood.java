@@ -1,7 +1,7 @@
 package pt.ulisboa.tecnico.sec.notary.model.exception;
 
 public class UserDoesNotOwnGood extends RuntimeException {
-    public UserDoesNotOwnGood() {
-        super("User Does Not own Good");
+    public UserDoesNotOwnGood(String user, String good) {
+        super("User: " + user + " does not own good: " + good);
     }
 }

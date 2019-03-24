@@ -61,14 +61,9 @@ public class Notary implements Serializable {
     }
 
     public void setIntentionToSell(String goodID, String sellerID) {
-        for (Good g : this.getUser(sellerID).getGoods()) {
-            if (g.getID().equals(goodID)) {
-                g.setOnSale(true);
-                this.save();
-                return;
-            }
+        if(!this.getUser(sellerID).getGoods().contains(this.getGood(goodID))){
+            throw new UserDoesNotOwnGood(sellerID,goodID);
         }
-        throw new UserDoesNotOwnGood();
     }
 
     private Good getGood(String goodID) {
@@ -88,7 +83,7 @@ public class Notary implements Serializable {
                 return u;
             }
         }
-        throw new UserNotFoundException();
+        throw new UserNotFoundException(userID);
     }
 
     public State getStateOfGood(String goodID) {
