@@ -1,3 +1,6 @@
+#Idea general
+.idea/
+
 #serialization objects
 *.ser
 
