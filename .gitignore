@@ -1,6 +1,7 @@
 #Idea general
 .idea/
 target/
+notary/target/
 
 #serialization objects
 *.ser
