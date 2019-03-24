@@ -5,6 +5,7 @@ import pt.ulisboa.tecnico.sec.model.Good;
 import pt.ulisboa.tecnico.sec.model.Status;
 import pt.ulisboa.tecnico.sec.model.Transaction;
 import pt.ulisboa.tecnico.sec.model.User;
+import pt.ulisboa.tecnico.sec.model.exception.GroupNotFoundException;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public class Notary implements Serializable {
     }
 
     public Status getGoodStatus(String goodID) {
+
         for (User u : users) {
             for (Good g : u.getGoods()) {
                 if (g.getID().equals(goodID)) {
@@ -46,8 +48,8 @@ public class Notary implements Serializable {
                 }
             }
         }
-        //throw NOT FOUND;
-        return null;
+        throw new GroupNotFoundException();
+
     }
 
     protected Object readResolve() {

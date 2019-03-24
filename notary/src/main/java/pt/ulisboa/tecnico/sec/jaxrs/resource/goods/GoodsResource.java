@@ -5,6 +5,9 @@ import javax.ws.rs.core.MediaType;
 
 import pt.ulisboa.tecnico.sec.jaxrs.application.Notary;
 import pt.ulisboa.tecnico.sec.model.Status;
+import pt.ulisboa.tecnico.sec.model.exception.GroupNotFoundException;
+
+import java.util.concurrent.ExecutionException;
 
 @Path("/goods")
 public class GoodsResource {
@@ -14,10 +17,15 @@ public class GoodsResource {
     @Produces({MediaType.APPLICATION_JSON})
     //add MediaType.APPLICATION_XML if you want XML as well (don't forget @XmlRootElement)
     public Status getPerson(@QueryParam("id") String id) {
-        //Notary.getInstance().addUser(u);
-        //return Response.ok().entity(p).build();
-        System.out.println(Notary.getInstance().getGoodStatus(id).toString());
-        return Notary.getInstance().getGoodStatus(id);
+        Status s;
+        try {
+            s = Notary.getInstance().getGoodStatus(id);
+        } catch (GroupNotFoundException e) {
+            throw new WebApplicationException(404);
+        } catch (Exception e) {
+            throw e;
+        }
+        return s;
     }
 
 //    @POST
