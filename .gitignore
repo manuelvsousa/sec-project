@@ -1,3 +1,6 @@
+#serialization objects
+*.ser
+
 #mac os
 .DS_Store
 
