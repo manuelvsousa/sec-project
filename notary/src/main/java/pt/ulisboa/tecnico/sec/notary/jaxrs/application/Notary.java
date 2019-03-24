@@ -1,10 +1,13 @@
-package pt.ulisboa.tecnico.sec.jaxrs.application;
+package pt.ulisboa.tecnico.sec.notary.jaxrs.application;
 
-import pt.ulisboa.tecnico.sec.model.Good;
-import pt.ulisboa.tecnico.sec.model.Status;
-import pt.ulisboa.tecnico.sec.model.Transaction;
-import pt.ulisboa.tecnico.sec.model.User;
-import pt.ulisboa.tecnico.sec.model.exception.*;
+import pt.ulisboa.tecnico.sec.notary.model.Good;
+import pt.ulisboa.tecnico.sec.notary.model.State;
+import pt.ulisboa.tecnico.sec.notary.model.Transaction;
+import pt.ulisboa.tecnico.sec.notary.model.User;
+import pt.ulisboa.tecnico.sec.notary.model.exception.GoodNotFoundException;
+import pt.ulisboa.tecnico.sec.notary.model.exception.InvalidTransactionException;
+import pt.ulisboa.tecnico.sec.notary.model.exception.UserDoesNotOwnGood;
+import pt.ulisboa.tecnico.sec.notary.model.exception.UserNotFoundException;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -26,6 +29,22 @@ public class Notary implements Serializable {
             uniqueInstance = new Notary();
         }
         return uniqueInstance;
+    }
+
+    public static void save() {
+
+        try {
+            Notary notary = Notary.getInstance();
+            ObjectOutput out = null;
+
+            out = new ObjectOutputStream(new FileOutputStream(SERIALIZE_FILE_NAME));
+            out.writeObject(notary);
+            out.close();
+
+            System.out.println("Object has been serialized");
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
     }
 
     public void addUser(User u) {
@@ -52,37 +71,36 @@ public class Notary implements Serializable {
         throw new UserDoesNotOwnGood();
     }
 
-    private Good getGood(String id) {
+    private Good getGood(String goodID) {
         for (User u : users) {
             for (Good g : u.getGoods()) {
-                if (g.getID().equals(id)) {
+                if (g.getID().equals(goodID)) {
                     return g;
                 }
             }
         }
-        throw new GoodNotFoundException();
+        throw new GoodNotFoundException(goodID);
     }
 
-    private User getUser(String id) {
+    private User getUser(String userID) {
         for (User u : users) {
-            if (u.getID().equals(id)) {
+            if (u.getID().equals(userID)) {
                 return u;
             }
         }
         throw new UserNotFoundException();
     }
 
-
-    public Status getGoodStatus(String goodID) {
+    public State getStateOfGood(String goodID) {
 
         for (User u : users) {
             for (Good g : u.getGoods()) {
                 if (g.getID().equals(goodID)) {
-                    return new Status(u, g.onSale());
+                    return new State(u.getID(), g.onSale());
                 }
             }
         }
-        throw new GroupNotFoundException();
+        throw new GoodNotFoundException(goodID);
 
     }
 
@@ -93,22 +111,6 @@ public class Notary implements Serializable {
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
         ois.defaultReadObject();
         uniqueInstance = this;
-    }
-
-    public static void save() {
-
-        try {
-            Notary notary = Notary.getInstance();
-            ObjectOutput out = null;
-
-            out = new ObjectOutputStream(new FileOutputStream(SERIALIZE_FILE_NAME));
-            out.writeObject(notary);
-            out.close();
-
-            System.out.println("Object has been serialized");
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
     }
 
 }

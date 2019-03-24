@@ -1,18 +1,16 @@
-package pt.ulisboa.tecnico.sec.jaxrs.application;
+package pt.ulisboa.tecnico.sec.notary.jaxrs.application;
 
-import javafx.util.Pair;
-import pt.ulisboa.tecnico.sec.jaxrs.provider.MyJacksonJsonProvider;
-import pt.ulisboa.tecnico.sec.jaxrs.resource.goods.GoodsResource;
+import pt.ulisboa.tecnico.sec.notary.jaxrs.provider.MyJacksonJsonProvider;
+import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.GoodsResource;
 
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-
-@ApplicationPath("/service")
+@ApplicationPath("/notary")
 public class ApplicationConfig extends Application {
 
     @Override

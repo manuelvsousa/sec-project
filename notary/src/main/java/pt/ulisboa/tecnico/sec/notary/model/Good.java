@@ -1,15 +1,18 @@
-package pt.ulisboa.tecnico.sec.model;
+package pt.ulisboa.tecnico.sec.notary.model;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
-import java.util.Date;
 
 //@XmlRootElement       //only needed if we also want to generate XML
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Good implements Serializable {
 
     private String goodID;
     private boolean onSale = false;
 
-    public Good(String goodID, boolean onSale) {
+    public Good(@JsonProperty("goodID") String goodID, @JsonProperty("onSale") boolean onSale) {
         this.goodID = goodID;
         this.onSale = onSale;
     }

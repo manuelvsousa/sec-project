@@ -4,11 +4,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>pt.ulisboa.tecnico.sec</groupId>
-    <artifactId>notary</artifactId>
+    <artifactId>notary-client</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>notary</name>
+    <name>notary-client</name>
     <packaging>war</packaging>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -18,7 +17,7 @@
         <version.jersey>2.15</version.jersey>
         <version.servlet.api>3.1.0
         </version.servlet.api>  <!-- use 3.0.1 for Tomcat 7 or Java EE 6 (i.e. Glassfish 3.x) -->
-        <mainclass>pt.ulisboa.tecnico.sec.notary.jaxrs.application.Main</mainclass>
+        <mainclass>pt.ulisboa.tecnico.sec.notaryclient.Application</mainclass>
     </properties>
 
     <repositories>
@@ -99,14 +98,16 @@
             <artifactId>jersey-media-sse</artifactId>
             <version>${version.jersey}</version>
         </dependency>
-        <!-- if you are using Jersey client specific features -->
-        <!--
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
             <version>${version.jersey}</version>
         </dependency>
-        -->
+        <dependency>
+            <groupId>pt.ulisboa.tecnico.sec</groupId>
+            <artifactId>notary</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
 
     </dependencies>
 

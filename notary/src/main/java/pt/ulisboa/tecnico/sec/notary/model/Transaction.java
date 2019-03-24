@@ -1,7 +1,6 @@
-package pt.ulisboa.tecnico.sec.model;
+package pt.ulisboa.tecnico.sec.notary.model;
 
 import java.io.Serializable;
-import java.util.Date;
 
 //@XmlRootElement       //only needed if we also want to generate XML
 public class Transaction implements Serializable {

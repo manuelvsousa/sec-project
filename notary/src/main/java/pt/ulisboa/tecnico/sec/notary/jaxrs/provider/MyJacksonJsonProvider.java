@@ -1,11 +1,11 @@
-package pt.ulisboa.tecnico.sec.jaxrs.provider;
-
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
+package pt.ulisboa.tecnico.sec.notary.jaxrs.provider;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import javax.ws.rs.ext.ContextResolver;
+import javax.ws.rs.ext.Provider;
 
 /**
  * Jackson JSON processor could be controlled via providing a custom Jackson ObjectMapper instance.

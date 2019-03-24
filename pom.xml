@@ -1,34 +1,35 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>pt.ulisboa.tecnico.sec</groupId>
-	<artifactId>hds</artifactId>
-	<version>1.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
+    <groupId>pt.ulisboa.tecnico.sec</groupId>
+    <artifactId>hds</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-	<properties>
+    <properties>
 
-	</properties>
+    </properties>
 
-	<profiles>
-	</profiles>
+    <profiles>
+    </profiles>
 
-	<build>
-	</build>
+    <build>
+    </build>
 
-	<dependencies>
-		<dependency>
-		    <groupId>com.googlecode.slf4j-maven-plugin-log</groupId>
-		    <artifactId>slf4j-maven-plugin-log</artifactId>
-		    <version>1.0.0</version>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.googlecode.slf4j-maven-plugin-log</groupId>
+            <artifactId>slf4j-maven-plugin-log</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
 
-	<modules>
-		<module>notary</module>
-	</modules>
+    <modules>
+        <module>notary</module>
+        <module>notary-client</module>
+    </modules>
 
 </project>
 

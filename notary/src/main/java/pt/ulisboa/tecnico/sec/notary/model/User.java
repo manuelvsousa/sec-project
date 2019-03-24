@@ -1,12 +1,15 @@
-package pt.ulisboa.tecnico.sec.model;
+package pt.ulisboa.tecnico.sec.notary.model;
 
-import pt.ulisboa.tecnico.sec.jaxrs.application.Notary;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import pt.ulisboa.tecnico.sec.notary.jaxrs.application.Notary;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 //@XmlRootElement       //only needed if we also want to generate XML
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class User implements Serializable {
     private String userID;
 
@@ -14,7 +17,7 @@ public class User implements Serializable {
 
     private String publicKey;
 
-    public User(String userID, String publicKey) {
+    public User(@JsonProperty("userID") String userID, @JsonProperty("publicKey") String publicKey) {
         this.userID = userID;
         this.publicKey = publicKey;
     }
@@ -23,7 +26,7 @@ public class User implements Serializable {
         return this.userID;
     }
 
-    public void addGood(Good g) {
+    public void addGood(@JsonProperty("good") Good g) {
         goods.add(g);
         Notary.getInstance().save();
     }

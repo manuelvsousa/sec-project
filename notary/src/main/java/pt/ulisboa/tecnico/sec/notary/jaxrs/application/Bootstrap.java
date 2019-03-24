@@ -1,12 +1,15 @@
-package pt.ulisboa.tecnico.sec.jaxrs.application;
+package pt.ulisboa.tecnico.sec.notary.jaxrs.application;
 
 
-import pt.ulisboa.tecnico.sec.model.Good;
-import pt.ulisboa.tecnico.sec.model.User;
+import pt.ulisboa.tecnico.sec.notary.model.Good;
+import pt.ulisboa.tecnico.sec.notary.model.User;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 
 
 public class Bootstrap implements ServletContextListener {
