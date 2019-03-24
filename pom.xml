@@ -27,7 +27,7 @@
 	</dependencies>
 
 	<modules>
-		<module>server</module>
+		<module>notary</module>
 	</modules>
 
 </project>
