@@ -3,8 +3,6 @@ package pt.ulisboa.tecnico.sec.jaxrs.application;
 import javafx.util.Pair;
 import pt.ulisboa.tecnico.sec.jaxrs.provider.MyJacksonJsonProvider;
 import pt.ulisboa.tecnico.sec.jaxrs.resource.goods.GoodsResource;
-import pt.ulisboa.tecnico.sec.jaxrs.resource.transactions.TransactionsResource;
-import pt.ulisboa.tecnico.sec.model.User;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,7 +32,6 @@ public class ApplicationConfig extends Application {
         //instead let's do it manually:
         resources.add(MyJacksonJsonProvider.class);
         resources.add(GoodsResource.class);
-        resources.add(TransactionsResource.class);
         //==> we could also choose packages, see below getProperties()
 
         System.out.println("REST configuration ended successfully.");

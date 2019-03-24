@@ -19,7 +19,7 @@ public class User implements Serializable {
         this.publicKey = publicKey;
     }
 
-    public String getUserID() {
+    public String getID() {
         return this.userID;
     }
 

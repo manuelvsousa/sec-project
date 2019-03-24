@@ -1,11 +1,10 @@
 package pt.ulisboa.tecnico.sec.jaxrs.application;
 
-import javafx.util.Pair;
 import pt.ulisboa.tecnico.sec.model.Good;
 import pt.ulisboa.tecnico.sec.model.Status;
 import pt.ulisboa.tecnico.sec.model.Transaction;
 import pt.ulisboa.tecnico.sec.model.User;
-import pt.ulisboa.tecnico.sec.model.exception.GroupNotFoundException;
+import pt.ulisboa.tecnico.sec.model.exception.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -34,10 +33,45 @@ public class Notary implements Serializable {
         this.save();
     }
 
-    public void addTransaction(Transaction t) {
-        transactions.add(t);
+    public void addTransaction(String goodID, String buyerID, String sellerID) {
+        if (sellerID.equals(buyerID)) {
+            throw new InvalidTransactionException("Buyer and Seller cant be the same");
+        }
+        transactions.add(new Transaction(this.getGood(goodID), this.getUser(buyerID), this.getUser(sellerID)));
         this.save();
     }
+
+    public void setIntentionToSell(String goodID, String sellerID) {
+        for (Good g : this.getUser(sellerID).getGoods()) {
+            if (g.getID().equals(goodID)) {
+                g.setOnSale(true);
+                this.save();
+                return;
+            }
+        }
+        throw new UserDoesNotOwnGood();
+    }
+
+    private Good getGood(String id) {
+        for (User u : users) {
+            for (Good g : u.getGoods()) {
+                if (g.getID().equals(id)) {
+                    return g;
+                }
+            }
+        }
+        throw new GoodNotFoundException();
+    }
+
+    private User getUser(String id) {
+        for (User u : users) {
+            if (u.getID().equals(id)) {
+                return u;
+            }
+        }
+        throw new UserNotFoundException();
+    }
+
 
     public Status getGoodStatus(String goodID) {
 
