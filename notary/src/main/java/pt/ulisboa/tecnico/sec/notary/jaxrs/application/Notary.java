@@ -4,10 +4,7 @@ import pt.ulisboa.tecnico.sec.notary.model.Good;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notary.model.Transaction;
 import pt.ulisboa.tecnico.sec.notary.model.User;
-import pt.ulisboa.tecnico.sec.notary.model.exception.GoodNotFoundException;
-import pt.ulisboa.tecnico.sec.notary.model.exception.InvalidTransactionException;
-import pt.ulisboa.tecnico.sec.notary.model.exception.UserDoesNotOwnGood;
-import pt.ulisboa.tecnico.sec.notary.model.exception.UserNotFoundException;
+import pt.ulisboa.tecnico.sec.notary.model.exception.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -56,7 +53,12 @@ public class Notary implements Serializable {
         if (sellerID.equals(buyerID)) {
             throw new InvalidTransactionException("Buyer and Seller cant be the same");
         }
-        transactions.add(new Transaction(this.getGood(goodID), this.getUser(buyerID), this.getUser(sellerID)));
+        for(Transaction  t : this.transactions){
+            if(t.getGood().getID().equals(goodID) && t.getBuyer().getID().equals(buyerID) && t.getSeller().getID().equals(sellerID)){
+                throw new TransactionAlreadyExistsException(goodID,buyerID,sellerID);
+            }
+        }
+        transactions.add(new Transaction(this.getGood(goodID), this.getUser(sellerID), this.getUser(buyerID)));
         this.save();
     }
 

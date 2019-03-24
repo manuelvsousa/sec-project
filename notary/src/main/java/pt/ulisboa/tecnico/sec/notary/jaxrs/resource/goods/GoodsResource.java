@@ -5,10 +5,7 @@ import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.InvalidTrans
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.NotFoundExceptionResponse;
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.UserDoesNotOwnResourceExceptionResponse;
 import pt.ulisboa.tecnico.sec.notary.model.State;
-import pt.ulisboa.tecnico.sec.notary.model.exception.GoodNotFoundException;
-import pt.ulisboa.tecnico.sec.notary.model.exception.InvalidTransactionException;
-import pt.ulisboa.tecnico.sec.notary.model.exception.UserDoesNotOwnGood;
-import pt.ulisboa.tecnico.sec.notary.model.exception.UserNotFoundException;
+import pt.ulisboa.tecnico.sec.notary.model.exception.*;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -54,8 +51,10 @@ public class GoodsResource {
             throw new NotFoundExceptionResponse(e2.getMessage());
         } catch (UserDoesNotOwnGood e3) {
             throw new UserDoesNotOwnResourceExceptionResponse(e3.getMessage());
-        } catch (InvalidTransactionException e4) {
+        } catch (TransactionAlreadyExistsException e4) {
             throw new InvalidTransactionExceptionResponse(e4.getMessage());
+        } catch (InvalidTransactionException e5) {
+            throw new InvalidTransactionExceptionResponse(e5.getMessage());
         } catch (Exception e) {
             throw e;
         }

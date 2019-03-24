@@ -33,23 +33,6 @@ public class NotaryClient {
         throw new RuntimeException("Unknown Error");
     }
 
-//    public Response transferGood(String goodID,String buyerID,String sellerID) {
-//        try {
-//            State s = client.target(REST_URI + "/goods/getStatus").queryParam("goodID", id).request(MediaType.APPLICATION_JSON).get(State.class);
-//            return s;
-//        } catch (NotFoundException e) {
-//            String cause = e.getResponse().readEntity(String.class);
-//            if (cause == null) {
-//                throw new RuntimeException("Cause of error 404 is null");
-//            }
-//            if (cause.toLowerCase().contains("good".toLowerCase())) {
-//                throw new GoodNotFoundException(cause);
-//            }
-//        }
-//        throw new RuntimeException("Unknown Error");
-//    }
-
-
     public void transferGood(String goodID, String buyerID, String sellerID) {
         try {
             Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).request(MediaType.APPLICATION_JSON).get();
