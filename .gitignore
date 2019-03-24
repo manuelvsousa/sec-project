@@ -1,6 +1,6 @@
 #Idea general
 .idea/
-.target/
+target/
 
 #serialization objects
 *.ser
