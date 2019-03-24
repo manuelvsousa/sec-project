@@ -14,22 +14,25 @@ public class User implements Serializable {
 
     private String publicKey;
 
-    public User(String userID, String publicKey){
+    public User(String userID, String publicKey) {
         this.userID = userID;
         this.publicKey = publicKey;
     }
 
-    public String getUserID(){
+    public String getUserID() {
         return this.userID;
     }
-    public void addGood(Good g){
+
+    public void addGood(Good g) {
         goods.add(g);
         Notary.getInstance().save();
     }
-    public String getPublicKey(){
+
+    public String getPublicKey() {
         return publicKey;
     }
-    public List<Good> getGoods(){
+
+    public List<Good> getGoods() {
         return this.goods;
     }
 }

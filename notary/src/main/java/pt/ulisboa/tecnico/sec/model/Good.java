@@ -9,25 +9,25 @@ public class Good implements Serializable {
     private String goodID;
     private boolean onSale = false;
 
-    public Good(String goodID, boolean onSale){
+    public Good(String goodID, boolean onSale) {
         this.goodID = goodID;
         this.onSale = onSale;
     }
 
-    public Good(String goodID){
+    public Good(String goodID) {
         this.goodID = goodID;
     }
 
-    public boolean onSale(){
+    public boolean onSale() {
         return onSale;
     }
 
 
-    public String getID(){
+    public String getID() {
         return goodID;
     }
 
-    public void setOnSale(boolean s){
+    public void setOnSale(boolean s) {
         onSale = s;
     }
 

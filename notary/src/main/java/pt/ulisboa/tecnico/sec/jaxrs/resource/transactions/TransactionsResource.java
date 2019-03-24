@@ -13,14 +13,14 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/message")
 public class TransactionsResource {
-    
+
     @GET
     @Path("ping")
     public String getServerTime() {
         System.out.println("RESTful Service 'MessageService' is running ==> ping");
-        return "received ping on "+new Date().toString();
+        return "received ping on " + new Date().toString();
     }
-    
+
 //    @GET
 //    @Produces({MediaType.APPLICATION_JSON})  //add MediaType.APPLICATION_XML if you want XML as well (don't forget @XmlRootElement)
 //    public List<Message> getAllMessages() throws Exception{
@@ -50,5 +50,5 @@ public class TransactionsResource {
 //
 //        return "ok";
 //    }
-      
+
 }

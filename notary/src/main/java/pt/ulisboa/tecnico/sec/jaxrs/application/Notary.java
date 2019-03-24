@@ -11,13 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Notary implements Serializable {
+    private final static String SERIALIZE_FILE_NAME = "notary.ser";
 
     private static Notary uniqueInstance;
 
     private List<User> users = new ArrayList<>();
     private List<Transaction> transactions = new ArrayList<>();
 
-    private Notary() {}
+    private Notary() {
+    }
 
     public static Notary getInstance() {
         if (uniqueInstance == null) {
@@ -26,27 +28,28 @@ public class Notary implements Serializable {
         return uniqueInstance;
     }
 
-    public void addUser(User u){
+    public void addUser(User u) {
         users.add(u);
         this.save();
     }
 
-    public void addTransaction(Transaction t){
+    public void addTransaction(Transaction t) {
         transactions.add(t);
         this.save();
     }
 
-    public Status getGoodStatus(String goodID){
+    public Status getGoodStatus(String goodID) {
         for (User u : users) {
             for (Good g : u.getGoods()) {
-                if(g.getID().equals(goodID)){
-                    return new Status(u,g.onSale());
+                if (g.getID().equals(goodID)) {
+                    return new Status(u, g.onSale());
                 }
             }
         }
         //throw NOT FOUND;
         return null;
     }
+
     protected Object readResolve() {
         return getInstance();
     }
@@ -56,19 +59,18 @@ public class Notary implements Serializable {
         uniqueInstance = this;
     }
 
-    public static void save(){
-        String serializeFileName = "notary.ser";
+    public static void save() {
 
         try {
             Notary notary = Notary.getInstance();
             ObjectOutput out = null;
 
-            out = new ObjectOutputStream(new FileOutputStream(serializeFileName));
+            out = new ObjectOutputStream(new FileOutputStream(SERIALIZE_FILE_NAME));
             out.writeObject(notary);
             out.close();
 
             System.out.println("Object has been serialized");
-        } catch(IOException ioe) {
+        } catch (IOException ioe) {
             ioe.printStackTrace();
         }
     }

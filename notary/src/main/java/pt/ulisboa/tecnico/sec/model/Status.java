@@ -4,7 +4,7 @@ public class Status {
     private User owner;
     private Boolean onSale;
 
-    public Status(User user,Boolean onSale){
+    public Status(User user, Boolean onSale) {
         this.owner = user;
         this.onSale = onSale;
     }

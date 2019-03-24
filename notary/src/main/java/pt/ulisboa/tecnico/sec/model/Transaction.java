@@ -10,7 +10,7 @@ public class Transaction implements Serializable {
     private User seller;
     private User buyer;
 
-    public Transaction(Good good,User seller,User buyer){
+    public Transaction(Good good, User seller, User buyer) {
         this.good = good;
         this.seller = seller;
         this.buyer = buyer;

@@ -32,8 +32,8 @@ public class Bootstrap implements ServletContextListener {
         } catch (ClassNotFoundException ex) {
             System.out.println("ClassNotFoundException is caught");
         }
-        User asd = new User("asd","olaaaaaaaa");
+        User asd = new User("asd", "olaaaaaaaa");
         Notary.getInstance().addUser(asd);
-        asd.addGood(new Good("asd",true));
+        asd.addGood(new Good("asd", true));
     }
 }

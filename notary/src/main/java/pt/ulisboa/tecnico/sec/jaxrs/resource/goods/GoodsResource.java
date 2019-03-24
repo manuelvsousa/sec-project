@@ -11,14 +11,15 @@ public class GoodsResource {
 
     @Path("/getStatus")
     @GET
-    @Produces({MediaType.APPLICATION_JSON})  //add MediaType.APPLICATION_XML if you want XML as well (don't forget @XmlRootElement)
-    public Status getPerson(@QueryParam("id") String id){
+    @Produces({MediaType.APPLICATION_JSON})
+    //add MediaType.APPLICATION_XML if you want XML as well (don't forget @XmlRootElement)
+    public Status getPerson(@QueryParam("id") String id) {
         //Notary.getInstance().addUser(u);
         //return Response.ok().entity(p).build();
         System.out.println(Notary.getInstance().getGoodStatus(id).toString());
         return Notary.getInstance().getGoodStatus(id);
     }
-    
+
 //    @POST
 //    @Consumes({MediaType.APPLICATION_JSON})
 //    @Produces({MediaType.TEXT_PLAIN})
