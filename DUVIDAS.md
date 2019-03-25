@@ -1,2 +1,3 @@
 - "obtain the status of any good, i.e. its owner and whether it is on sale;" How is this satus asked? by giving an ID? an object?
 - What happens when multiple equal transactions are submited to the server
+- How do users know the public key of Citizen Card?

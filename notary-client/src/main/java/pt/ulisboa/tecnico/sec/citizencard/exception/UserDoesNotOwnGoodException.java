@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.sec.notaryclient.exception;
+package pt.ulisboa.tecnico.sec.citizencard.exception;
 
 
 public class UserDoesNotOwnGoodException extends RuntimeException {

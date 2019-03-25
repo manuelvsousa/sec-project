@@ -5,9 +5,9 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>pt.ulisboa.tecnico.sec</groupId>
-    <artifactId>notary-client</artifactId>
+    <artifactId>citizen-card</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>notary-client</name>
+    <name>citizen-card</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -16,28 +16,27 @@
         <version.mvn.war.plugin>2.6</version.mvn.war.plugin>
         <version.jersey>2.15</version.jersey>
         <version.servlet.api>3.1.0
-        </version.servlet.api>  <!-- use 3.0.1 for Tomcat 7 or Java EE 6 (i.e. Glassfish 3.x) -->
+        </version.servlet.api>
         <mainclass>pt.ulisboa.tecnico.sec.citizencard.Application</mainclass>
     </properties>
 
     <dependencies>
 
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${version.servlet.api}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>pt.ulisboa.tecnico.sec</groupId>
-            <artifactId>notary</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
+
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
         <plugins>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.1</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -49,4 +48,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

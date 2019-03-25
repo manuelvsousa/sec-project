@@ -57,7 +57,11 @@
             <artifactId>jersey-media-sse</artifactId>
             <version>${version.jersey}</version>
         </dependency>
-
+        <dependency>
+            <groupId>pt.ulisboa.tecnico.sec</groupId>
+            <artifactId>citizen-card</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
