@@ -24,9 +24,8 @@
     <modules>
         <module>notary</module>
         <module>notary-client</module>
-        <module>citizen-card</module>
         <module>user</module>
-        <module>user-cli</module>
+        <module>user-client</module>
     </modules>
 
 </project>
