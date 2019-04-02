@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.sec.citizencard.exception;
+package pt.ulisboa.tecnico.sec.notaryclient.exception;
 
 
 public class InvalidTransactionException extends RuntimeException {

@@ -18,7 +18,7 @@
         <version.jersey>2.15</version.jersey>
         <version.servlet.api>3.1.0
         </version.servlet.api>  <!-- use 3.0.1 for Tomcat 7 or Java EE 6 (i.e. Glassfish 3.x) -->
-        <mainclass>pt.ulisboa.tecnico.sec.citizencard.Application</mainclass>
+        <mainclass>pt.ulisboa.tecnico.sec.notaryclient.Application</mainclass>
     </properties>
 
     <dependencies>

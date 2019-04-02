@@ -25,7 +25,7 @@
         <module>notary</module>
         <module>notary-client</module>
         <module>citizen-card</module>
-        <module>user-ws</module>
+        <module>user</module>
         <module>user-cli</module>
     </modules>
 

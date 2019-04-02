@@ -1,9 +1,9 @@
-package pt.ulisboa.tecnico.sec.citizencard;
+package pt.ulisboa.tecnico.sec.notaryclient;
 
 import pt.ulisboa.tecnico.sec.notary.model.State;
-import pt.ulisboa.tecnico.sec.citizencard.exception.GoodNotFoundException;
-import pt.ulisboa.tecnico.sec.citizencard.exception.UserDoesNotOwnGoodException;
-import pt.ulisboa.tecnico.sec.citizencard.exception.UserNotFoundException;
+import pt.ulisboa.tecnico.sec.notaryclient.exception.GoodNotFoundException;
+import pt.ulisboa.tecnico.sec.notaryclient.exception.UserDoesNotOwnGoodException;
+import pt.ulisboa.tecnico.sec.notaryclient.exception.UserNotFoundException;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;

@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.sec.usercli;
 
-import pt.ulisboa.tecnico.sec.citizencard.NotaryClient;
+import pt.ulisboa.tecnico.sec.notaryclient.NotaryClient;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 /** TODO Fazer import?*/
 

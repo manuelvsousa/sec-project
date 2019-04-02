@@ -20,9 +20,20 @@
         </version.servlet.api>  <!-- use 3.0.1 for Tomcat 7 or Java EE 6 (i.e. Glassfish 3.x) -->
         <mainclass>pt.ulisboa.tecnico.sec.notary.jaxrs.application.Main</mainclass>
     </properties>
-
+    <repositories>
+        <repository>
+            <id>repo</id>
+            <url>${project.basedir}/lib/</url>
+        </repository>
+    </repositories>
     <dependencies>
-
+            <dependency>
+                <groupId>pteidlibj</groupId>
+                <artifactId>pteidlibj</artifactId>
+                <version>1.0</version>
+                <scope>system</scope>
+                <systemPath>${project.basedir}/lib/pteidlibj.jar</systemPath>
+            </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -57,16 +68,10 @@
             <artifactId>jersey-media-sse</artifactId>
             <version>${version.jersey}</version>
         </dependency>
-        <!--dependency>
-            <groupId>pt.ulisboa.tecnico.sec</groupId>
-            <artifactId>citizen-card</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency-->
     </dependencies>
 
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -76,7 +81,6 @@
                     <target>${version.jdk}</target>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
@@ -95,6 +99,9 @@
                 <version>2.2</version>
                 <configuration>
                     <port>9091</port>
+                    <systemProperties>
+                        <java.library.path>${basedir}/lib/pteidlibj.jar</java.library.path>
+                    </systemProperties>
                 </configuration>
             </plugin>
         </plugins>

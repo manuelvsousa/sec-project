@@ -1,11 +1,10 @@
-package pt.ulisboa.tecnico.sec.citizencard;
+package pt.ulisboa.tecnico.sec.notary.util;
 
 import pteidlib.PTEID_Certif;
 import pteidlib.PteidException;
 import pteidlib.pteid;
 import sun.security.pkcs11.wrapper.*;
 
-import javax.crypto.Cipher;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -13,8 +12,6 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-
-import static javax.xml.bind.DatatypeConverter.printHexBinary;
 
 
 public class CitizenCard {
@@ -34,7 +31,10 @@ public class CitizenCard {
         try {
 
             System.out.println("            //Load the PTEidlibj");
-
+            String javaLibPath = System.getProperty("java.library.path");
+//            System.load("/usr/local/lib/libpteidlibj.dylib");
+//            System.out.print("dasdsaadsdad");
+            System.out.println(javaLibPath);
             System.loadLibrary("pteidlibj");
             pteid.Init(""); // Initializes the eID Lib
             pteid.SetSODChecking(false); // Don't check the integrity of the ID, address and photo (!)

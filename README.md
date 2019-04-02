@@ -14,3 +14,10 @@ blalbaballbalba
 # Report
 
 https://docs.google.com/document/d/1lBuShvxhQHOjTxnslglhPNr0ehEu8zmIEtWuo1vYikQ/edit?fbclid=IwAR2yDkyI8WGWJ5W3L5HjGCctBo7Awmy24aFmX5PCelwEC-1q_QDYBKV4fUI
+
+
+# Run instructions
+
+1. Open Terminal && `cd notary`
+2. Paste `export MAVEN_OPTS=-Djava.library.path=/usr/local/lib`
+3. mvn clean install tomcat7:run

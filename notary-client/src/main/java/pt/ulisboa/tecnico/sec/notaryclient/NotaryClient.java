@@ -1,4 +1,4 @@
-package pt.ulisboa.tecnico.sec.citizencard;
+package pt.ulisboa.tecnico.sec.notaryclient;
 
 import pt.ulisboa.tecnico.sec.notary.model.State;
 
@@ -23,5 +23,4 @@ public class NotaryClient {
         na.intentionToSell(goodID,this.userID);
         return true;
     }
-//TODO what do I sign
 }
