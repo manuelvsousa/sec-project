@@ -36,14 +36,16 @@ public class GoodsResource {
 
     @GET
     @Path("/transfer")
-    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID) throws Exception {
+    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID,@QueryParam("signature") String sig) throws Exception {
         System.out.println(goodID + " " + buyerID + " " + sellerID);
-        if (goodID == null || goodID == null || sellerID == null) {
+        if (goodID == null || goodID == null || sellerID == null || sig == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("goodID and/or goodID and/or sellerID are null").build());
+                    .entity("goodID and/or goodID and/or sellerID and/or signature are null").build());
         }
-
         try {
+
+
+
             Notary.getInstance().addTransaction(goodID, buyerID, sellerID);
         } catch (GoodNotFoundException e1) {
             throw new NotFoundExceptionResponse(e1.getMessage());

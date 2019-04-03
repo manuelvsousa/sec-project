@@ -26,6 +26,7 @@
         <module>notary-client</module>
         <module>user</module>
         <module>user-client</module>
+        <module>util</module>
     </modules>
 
 </project>

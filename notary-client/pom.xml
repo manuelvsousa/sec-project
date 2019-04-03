@@ -20,9 +20,7 @@
         </version.servlet.api>  <!-- use 3.0.1 for Tomcat 7 or Java EE 6 (i.e. Glassfish 3.x) -->
         <mainclass>pt.ulisboa.tecnico.sec.notaryclient.Application</mainclass>
     </properties>
-
     <dependencies>
-
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>

@@ -80,7 +80,7 @@ public class Notary implements Serializable {
         throw new GoodNotFoundException(goodID);
     }
 
-    private User getUser(String userID) {
+    public User getUser(String userID) {
         for (User u : users) {
             if (u.getID().equals(userID)) {
                 return u;

@@ -8,7 +8,6 @@ import sun.security.pkcs11.wrapper.*;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -91,7 +90,6 @@ public class CitizenCard {
             String osName = System.getProperty("os.name");
             String javaVersion = System.getProperty("java.version");
             System.out.println("Java version: " + javaVersion);
-            java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
             String libName = "libpteidpkcs11.so";
 
             // access the ID and Address data via the pteidlib
@@ -153,27 +151,6 @@ public class CitizenCard {
         }
         return sig;
 
-    }
-
-    public boolean checkSignature(byte[] contentToSign,byte[] sigFromCC, X509Certificate cert2){
-        boolean result = false;
-        try{
-            Signature signature1 = Signature.getInstance("SHA1withRSA");
-            java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
-
-            System.out.println("            //signature my public key:" + encoder.encode(sigFromCC));
-
-            signature1.initVerify(cert2);
-            signature1.update(contentToSign);
-            result = signature1.verify(sigFromCC);
-        } catch(Exception e){
-            e.printStackTrace();
-        }
-        if(result){
-            return true;
-        } else {
-            return false;
-        }
     }
 
     private void terminate(){

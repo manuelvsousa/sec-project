@@ -27,22 +27,19 @@
         </repository>
     </repositories>
     <dependencies>
-            <dependency>
-                <groupId>pteidlibj</groupId>
-                <artifactId>pteidlibj</artifactId>
-                <version>1.0</version>
-                <scope>system</scope>
-                <systemPath>${project.basedir}/lib/pteidlibj.jar</systemPath>
-            </dependency>
+        <dependency>
+            <groupId>pteidlibj</groupId>
+            <artifactId>pteidlibj</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/pteidlibj.jar</systemPath>
+        </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>${version.servlet.api}</version>
             <scope>provided</scope>
         </dependency>
-
-
-        <!-- Jersey -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
@@ -67,6 +64,11 @@
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-sse</artifactId>
             <version>${version.jersey}</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ulisboa.tecnico.sec</groupId>
+            <artifactId>util</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -99,9 +101,9 @@
                 <version>2.2</version>
                 <configuration>
                     <port>9091</port>
-                    <systemProperties>
-                        <java.library.path>${basedir}/lib/pteidlibj.jar</java.library.path>
-                    </systemProperties>
+                    <!--<systemProperties>-->
+                        <!--<java.library.path>/Users/mvs/repo/projetos/sec-project/util/lib/pteidlibj.jar</java.library.path>-->
+                    <!--</systemProperties>-->
                 </configuration>
             </plugin>
         </plugins>
