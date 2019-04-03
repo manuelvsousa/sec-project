@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.sec.notary.model.User;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.io.*;
+import java.security.cert.X509Certificate;
 
 
 public class Bootstrap implements ServletContextListener {
@@ -39,6 +40,9 @@ public class Bootstrap implements ServletContextListener {
         Notary.getInstance().addUser(new User("user2", "public2"));
         Notary.getInstance().addUser(new User("user3", "public3"));
         CitizenCard cc = CitizenCard.getInstance();
-        cc.sign();
+        byte[] sig = cc.sign("THE_CONTENT_THAT_IS_BEING_SIGNED".getBytes());
+        System.out.print("Signature: " + sig);
+        X509Certificate ccpub = cc.getCertificate();
+        System.out.print(cc.checkSignature("THE_CONTENT_THAT_IS_BEING_SIGNED".getBytes(),sig,ccpub));
     }
 }
