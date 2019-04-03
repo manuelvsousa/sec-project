@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 public class UserClientApp {
     public static void main(String[] args) throws GeneralSecurityException, IOException{
-        if(args.length == 0) {
+        if(args.length != 1) {
             System.err.println("Argument(s) missing!");
             System.err.println("Usage: java " + UserClient.class.getName() + " userID");
             return;
@@ -59,7 +59,7 @@ public class UserClientApp {
                     case "1":
                         if (arr.length == 2) {
                             System.out.println("intentionToSell: " + arr[1]);
-                            //System.out.println(userClient.intentionToSell(arr[1]));
+                            System.out.println(userClient.intentionToSell(arr[1]));
                         }
                         else {
                             System.out.println("Please insert the correct parameters");
@@ -68,7 +68,7 @@ public class UserClientApp {
                     case "2":
                         if (arr.length == 2) {
                             System.out.println("getStateOfGood: " + arr[1]);
-                            //System.out.println(userClient.intentionToSell(arr[1]));
+                            System.out.println(userClient.intentionToSell(arr[1]));
                         }
                         else {
                             System.out.println("Please insert the correct parameters");
@@ -77,7 +77,7 @@ public class UserClientApp {
                     case "3":
                         if(arr.length == 3) {
                             System.out.println("transferGood: " + arr[1] + ", " + arr[2]);
-                            //System.out.println(userClient.transferGood(arr[1], arr[2]);
+                            System.out.println(userClient.transferGood(arr[1], arr[2]));
                         }
                         else {
                             System.out.println("Please insert the correct parameters");
