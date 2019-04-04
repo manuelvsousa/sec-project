@@ -3,6 +3,10 @@ package pt.ulisboa.tecnico.sec.user.jaxrs.application;
 //import pt.ulisboa.tecnico.sec.notary.jaxrs.provider.MyJacksonJsonProvider;
 //import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.GoodsResource;
 
+import pt.ulisboa.tecnico.sec.notary.jaxrs.provider.MyJacksonJsonProvider;
+import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.GoodsResource;
+import pt.ulisboa.tecnico.sec.user.jaxrs.resource.TransferResource;
+
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 import java.util.Collections;
@@ -28,10 +32,8 @@ public class ApplicationConfig extends Application {
 
 
         //instead let's do it manually:
-
-        /**TODO**/
-        //resources.add(MyJacksonJsonProvider.class);
-        //resources.add(GoodsResource.class);
+        resources.add(MyJacksonJsonProvider.class);
+        resources.add(TransferResource.class);
         //==> we could also choose packages, see below getProperties()
 
         System.out.println("REST configuration ended successfully.");
@@ -54,7 +56,7 @@ public class ApplicationConfig extends Application {
         //see https://jersey.java.net/nonav/documentation/latest/user-guide.html#d0e9020 for details
         properties.put("jersey.config.server.wadl.disableWadl", true);
 
-        //we could also use something like this instead of adding each of our resources
+        //we could also use something like this instead of adding each of our resource
         //explicitly in getClasses():
         //properties.put("jersey.config.server.provider.packages", "com.nabisoft.tutorials.mavenstruts.service");
 

@@ -14,6 +14,7 @@ import java.util.Scanner;
 
 public class UserClientApp {
     public static void main(String[] args) throws GeneralSecurityException, IOException{
+        /**TODO Pôr as mensagens recebidas mais bonitas e excepções???**/
         if(args.length != 1) {
             System.err.println("Argument(s) missing!");
             System.err.println("Usage: java " + UserClient.class.getName() + " userID");
@@ -41,14 +42,17 @@ public class UserClientApp {
         }
 
         UserClient userClient = new UserClient(userID);
+        userClient.addGood("good1");
+        userClient.printGoods();
         flag = true;
         Scanner scanner = new Scanner(System.in);
-
+        
         while(flag) {
             System.out.println("Choose an operation (number + parameters): \n" +
                     "1 - intentionToSell: goodID\n" +
                     "2 - getStateOfGood: goodID\n" +
-                    "3 - transferGood: goodID buyerID\n" +
+                    "3 - buyGood: goodID sellerID\n" +
+                    "4 - listGoods\n" +
                     "Press Q to quit");
 
             String method = scanner.nextLine();
@@ -76,12 +80,15 @@ public class UserClientApp {
                         break;
                     case "3":
                         if(arr.length == 3) {
-                            System.out.println("transferGood: " + arr[1] + ", " + arr[2]);
-                            System.out.println(userClient.transferGood(arr[1], arr[2]));
+                            System.out.println("buyGood: " + arr[1] + ", " + arr[2]);
+                            System.out.println(userClient.buyGood(arr[1], userID, arr[2]));
                         }
                         else {
                             System.out.println("Please insert the correct parameters");
                         }
+                        break;
+                    case "4":
+                        userClient.printGoods();
                         break;
                     case "q":
                     case "Q":
@@ -96,7 +103,6 @@ public class UserClientApp {
             }
 
         }
-        //System.out.println(userClient.getStateOfgood("good1"));
     }
 
     public static Boolean verifyID(String userID, String password, byte[] encoded, byte[] salt) throws GeneralSecurityException, IOException, BadPaddingException{

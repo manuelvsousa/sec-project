@@ -14,7 +14,7 @@ import javax.ws.rs.core.Response;
 
 class NotaryAbstract {
 
-    private static final String REST_URI = "http://localhost:9091/notary/notary";
+    private static final String REST_URI = "http://localhost:9090/notary/notary";
     private Client client = ClientBuilder.newClient();
 
     public State getStateOfGood(String id) {
