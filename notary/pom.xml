@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>pt.ulisboa.tecnico.sec</groupId>
@@ -27,22 +27,19 @@
         </repository>
     </repositories>
     <dependencies>
-            <dependency>
-                <groupId>pteidlibj</groupId>
-                <artifactId>pteidlibj</artifactId>
-                <version>1.0</version>
-                <scope>system</scope>
-                <systemPath>${project.basedir}/lib/pteidlibj.jar</systemPath>
-            </dependency>
+        <dependency>
+            <groupId>pteidlibj</groupId>
+            <artifactId>pteidlibj</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/pteidlibj.jar</systemPath>
+        </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>${version.servlet.api}</version>
             <scope>provided</scope>
         </dependency>
-
-
-        <!-- Jersey -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
@@ -67,6 +64,11 @@
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-sse</artifactId>
             <version>${version.jersey}</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.ulisboa.tecnico.sec</groupId>
+            <artifactId>util</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -102,6 +104,9 @@
                     <systemProperties>
                         <java.library.path>${basedir}/lib/pteidlibj.jar</java.library.path>
                     </systemProperties>
+                    <!--<systemProperties>-->
+                    <!--<java.library.path>/Users/mvs/repo/projetos/sec-project/util/lib/pteidlibj.jar</java.library.path>-->
+                    <!--</systemProperties>-->
                 </configuration>
             </plugin>
         </plugins>

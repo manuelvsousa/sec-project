@@ -1,9 +1,10 @@
 package pt.ulisboa.tecnico.sec.usercli;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
+
 import pt.ulisboa.tecnico.sec.notaryclient.NotaryClient;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 
+import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +15,9 @@ public class UserClient {
     public List<String> goods = new ArrayList<>();
     //EXCEPÇÕES
 
-    public UserClient(String userID) {
-        this.notaryClient = new NotaryClient(userID);
+
+    public UserClient(String userID, PrivateKey privKey) {
+        this.notaryClient = new NotaryClient(userID, privKey);
     }
 
     public Boolean getStateOfgood(String goodID) {
@@ -28,7 +30,7 @@ public class UserClient {
     }
 
     /**TODO Tirar isto daqui**/
-    public Boolean transferGood(String goodID, String buyerID) {
+    public Boolean transferGood(String goodID, String buyerID) throws Exception {
         return this.notaryClient.transferGood(goodID, buyerID);
     }
 
@@ -44,7 +46,7 @@ public class UserClient {
 
     public void printGoods() {
         System.out.println("Goods");
-        for(String goodID : this.goods){
+        for (String goodID : this.goods) {
             System.out.println(goodID);
         }
     }

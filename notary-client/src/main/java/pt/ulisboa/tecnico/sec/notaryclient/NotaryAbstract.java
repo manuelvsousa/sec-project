@@ -4,18 +4,26 @@ import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.GoodNotFoundException;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.UserDoesNotOwnGoodException;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.UserNotFoundException;
+import pt.ulisboa.tecnico.sec.util.Crypto;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.security.PrivateKey;
+import java.util.Base64;
 
 
 class NotaryAbstract {
 
     private static final String REST_URI = "http://localhost:9090/notary/notary";
     private Client client = ClientBuilder.newClient();
+    private PrivateKey privateKey;
+
+    public NotaryAbstract(PrivateKey privateKey) {
+        this.privateKey = privateKey;
+    }
 
     public State getStateOfGood(String id) {
         try {
@@ -33,10 +41,14 @@ class NotaryAbstract {
         throw new RuntimeException("Unknown Error");
     }
 
-    public void transferGood(String goodID, String buyerID, String sellerID) {
+    public void transferGood(String goodID, String buyerID, String sellerID) throws Exception {
         try {
-            Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).request(MediaType.APPLICATION_JSON).get();
-            this.verifyResponse(r);
+            String type =
+                    Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
+            byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
+            String sig = Crypto.getInstance().sign(privateKey, toSign);
+            //Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
+            //this.verifyResponse(r);
             return;
         } catch (Exception e) {
             throw e;

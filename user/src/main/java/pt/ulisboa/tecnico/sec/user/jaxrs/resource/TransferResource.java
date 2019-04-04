@@ -32,7 +32,9 @@ public class TransferResource {
         } catch (UserNotFoundException e) {
             throw new NotFoundException(e);
         }
-        NotaryClient notaryClient = new NotaryClient(sellerID);
+
+        /**TODO CORRIGIR PrivateKey**/
+        NotaryClient notaryClient = new NotaryClient(sellerID, null);
         notaryClient.transferGood(goodID, buyerID);
         return Response.ok().build();
     }

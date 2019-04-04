@@ -8,7 +8,6 @@ import sun.security.pkcs11.wrapper.*;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -53,9 +52,9 @@ public class CitizenCard {
         return cert;
     }
 
-    public X509Certificate getCertificate(){
+    public X509Certificate getCertificate() {
         X509Certificate cert = null;
-        try{
+        try {
             System.out.println("[CITIZENCARD] PTEidlibj Loading...");
             String javaLibPath = System.getProperty("java.library.path");
             System.out.println(javaLibPath);
@@ -67,16 +66,16 @@ public class CitizenCard {
             // access the ID and Address data via the pteidlib
             System.out.println("            -- accessing the ID  data via the pteidlib interface");
 
-             cert = getCertFromByteArray(getCertificateInBytes(0));
+            cert = getCertFromByteArray(getCertificateInBytes(0));
             this.terminate();
             return cert;
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return cert;
     }
 
-    public byte[] sign(byte[] contentToSign){
+    public byte[] sign(byte[] contentToSign) {
         byte[] sig = null;
         try {
 
@@ -91,7 +90,6 @@ public class CitizenCard {
             String osName = System.getProperty("os.name");
             String javaVersion = System.getProperty("java.version");
             System.out.println("Java version: " + javaVersion);
-            java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
             String libName = "libpteidpkcs11.so";
 
             // access the ID and Address data via the pteidlib
@@ -155,31 +153,10 @@ public class CitizenCard {
 
     }
 
-    public boolean checkSignature(byte[] contentToSign,byte[] sigFromCC, X509Certificate cert2){
-        boolean result = false;
-        try{
-            Signature signature1 = Signature.getInstance("SHA1withRSA");
-            java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
-
-            System.out.println("            //signature my public key:" + encoder.encode(sigFromCC));
-
-            signature1.initVerify(cert2);
-            signature1.update(contentToSign);
-            result = signature1.verify(sigFromCC);
-        } catch(Exception e){
-            e.printStackTrace();
-        }
-        if(result){
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private void terminate(){
-        try{
+    private void terminate() {
+        try {
             pteid.Exit(pteid.PTEID_EXIT_LEAVE_CARD);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

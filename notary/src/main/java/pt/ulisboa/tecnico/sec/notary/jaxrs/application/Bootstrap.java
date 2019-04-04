@@ -1,14 +1,12 @@
 package pt.ulisboa.tecnico.sec.notary.jaxrs.application;
 
 
-import pt.ulisboa.tecnico.sec.notary.util.CitizenCard;
-import pt.ulisboa.tecnico.sec.notary.model.Good;
-import pt.ulisboa.tecnico.sec.notary.model.User;
-
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import java.io.*;
-import java.security.cert.X509Certificate;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 
 
 public class Bootstrap implements ServletContextListener {
@@ -29,20 +27,35 @@ public class Bootstrap implements ServletContextListener {
             in.close();
 
             System.out.println("Object has been deserialized ");
+//
+//            System.out.println("User 0 created");
+//            System.out.print(KeyReader.getInstance().readPublicKey("user1"));
+//            User user1 = new User("user1", KeyReader.getInstance().readPublicKey("user1"));
+//            user1.addGood(new Good("good1", true));
+//            user1.addGood(new Good("good2", false));
+//            Notary.getInstance().addUser(user1);
+//            System.out.println("User 1 created");
+//
+//            User user2 = new User("user2", KeyReader.getInstance().readPublicKey("user2"));
+//            user2.addGood(new Good("good3", true));
+//            Notary.getInstance().addUser(user2);
+//            System.out.println("User 2 created");
+
+//            Notary.getInstance().addUser(new User("user3", KeyReader.getInstance().readPublicKey("user3")));
+//    System.out.print(Notary.getInstance().getUser("user1").getPublicKey());
+//                System.out.println("User 3 created");
+
+//        CitizenCard cc = CitizenCard.getInstance();
+//        byte[] sig = cc.sign("THE_CONTENT_THAT_IS_BEING_SIGNED".getBytes());
+//        System.out.print("Signature: " + sig);
+//        X509Certificate ccpub = cc.getCertificate();
+
         } catch (IOException ex) {
             System.out.println("IOException is caught");
         } catch (ClassNotFoundException ex) {
-            System.out.println("ClassNotFoundException is caught");
+            System.out.println("GeneralSecurityException is caught");
         }
-        User asd1 = new User("user1", "public1");
-        asd1.addGood(new Good("good1", true));
-        Notary.getInstance().addUser(asd1);
-        Notary.getInstance().addUser(new User("user2", "public2"));
-        Notary.getInstance().addUser(new User("user3", "public3"));
-        CitizenCard cc = CitizenCard.getInstance();
-        byte[] sig = cc.sign("THE_CONTENT_THAT_IS_BEING_SIGNED".getBytes());
-        System.out.print("Signature: " + sig);
-        X509Certificate ccpub = cc.getCertificate();
-        System.out.print(cc.checkSignature("THE_CONTENT_THAT_IS_BEING_SIGNED".getBytes(),sig,ccpub));
+
+
     }
 }

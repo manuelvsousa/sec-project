@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import pt.ulisboa.tecnico.sec.notary.jaxrs.application.Notary;
 
 import java.io.Serializable;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,9 +15,9 @@ public class User implements Serializable {
 
     private List<Good> goods = new ArrayList<>();
 
-    private String publicKey;
+    private PublicKey publicKey;
 
-    public User(@JsonProperty("userID") String userID, @JsonProperty("publicKey") String publicKey) {
+    public User(@JsonProperty("userID") String userID, @JsonProperty("publicKey") PublicKey publicKey) {
         this.userID = userID;
         this.publicKey = publicKey;
     }
@@ -30,7 +31,7 @@ public class User implements Serializable {
         Notary.getInstance().save();
     }
 
-    public String getPublicKey() {
+    public PublicKey getPublicKey() {
         return publicKey;
     }
 
