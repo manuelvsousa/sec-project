@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>pt.ulisboa.tecnico.sec</groupId>
@@ -102,7 +102,7 @@
                 <configuration>
                     <port>9091</port>
                     <!--<systemProperties>-->
-                        <!--<java.library.path>/Users/mvs/repo/projetos/sec-project/util/lib/pteidlibj.jar</java.library.path>-->
+                    <!--<java.library.path>/Users/mvs/repo/projetos/sec-project/util/lib/pteidlibj.jar</java.library.path>-->
                     <!--</systemProperties>-->
                 </configuration>
             </plugin>
