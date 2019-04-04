@@ -6,10 +6,12 @@ import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.NotFoundExce
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.UserDoesNotOwnResourceExceptionResponse;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notary.model.exception.*;
+import pt.ulisboa.tecnico.sec.util.Crypto;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Base64;
 
 @Path("/goods")
 public class GoodsResource {
@@ -36,15 +38,20 @@ public class GoodsResource {
 
     @GET
     @Path("/transfer")
-    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID,@QueryParam("signature") String sig) throws Exception {
+    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig) throws Exception {
         System.out.println(goodID + " " + buyerID + " " + sellerID);
         if (goodID == null || goodID == null || sellerID == null || sig == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
                     .entity("goodID and/or goodID and/or sellerID and/or signature are null").build());
         }
         try {
-
-
+            String type =
+                    Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
+            byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
+            if(!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(sellerID).getPublicKey(),toSign,sig)){
+                throw new WebApplicationException(Response.status(400) // 400 Bad Request
+                        .entity("Signature was forged").build());
+            }
 
             Notary.getInstance().addTransaction(goodID, buyerID, sellerID);
         } catch (GoodNotFoundException e1) {

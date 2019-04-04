@@ -19,11 +19,12 @@ class NotaryAbstract {
 
     private static final String REST_URI = "http://localhost:9091/notary/notary";
     private Client client = ClientBuilder.newClient();
-private PrivateKey privateKey;
+    private PrivateKey privateKey;
 
-    public NotaryAbstract(PrivateKey privateKey){
-        this.privateKey=privateKey;
+    public NotaryAbstract(PrivateKey privateKey) {
+        this.privateKey = privateKey;
     }
+
     public State getStateOfGood(String id) {
         try {
             State s = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).request(MediaType.APPLICATION_JSON).get(State.class);
@@ -45,7 +46,7 @@ private PrivateKey privateKey;
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
-            String sig = Crypto.getInstance().sign(privateKey,toSign);
+            String sig = Crypto.getInstance().sign(privateKey, toSign);
             //Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
             //this.verifyResponse(r);
             return;

@@ -1,20 +1,17 @@
+import javax.crypto.Cipher;
+import javax.crypto.EncryptedPrivateKeyInfo;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.security.GeneralSecurityException;
 import java.io.IOException;
-import java.security.Key;
-import java.security.PrivateKey;
-import java.security.Security;
-import java.security.SecureRandom;
-import javax.crypto.spec.PBEParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.SecretKey;
-import javax.crypto.Cipher;
 import java.security.AlgorithmParameters;
-import javax.crypto.EncryptedPrivateKeyInfo;
+import java.security.GeneralSecurityException;
+import java.security.Key;
+import java.security.SecureRandom;
 
 
 public class EncryptPrivKey {
@@ -29,11 +26,11 @@ public class EncryptPrivKey {
 
         //path: users/user1.key
         String keyPath = args[0];
-        String keyoutput = args [1];
+        String keyoutput = args[1];
         String password = args[2];
 
 
-        Key privKey =  read(keyPath);
+        Key privKey = read(keyPath);
         byte[] encodedprivKey = privKey.getEncoded();
         String PBEALG = "PBEWithSHA1AndDESede";
 
@@ -76,9 +73,9 @@ public class EncryptPrivKey {
         return new SecretKeySpec(encoded, "RSA");
     }
 
-    public static void write(String keyPath, byte[] salt, EncryptedPrivateKeyInfo encinfo) throws IOException{
+    public static void write(String keyPath, byte[] salt, EncryptedPrivateKeyInfo encinfo) throws IOException {
         byte[] encryptedPkcs8 = encinfo.getEncoded();
-        System.out.println("Writing Private key to '" + keyPath + "' ..." );
+        System.out.println("Writing Private key to '" + keyPath + "' ...");
         FileOutputStream privFos = new FileOutputStream(keyPath);
         privFos.write(encryptedPkcs8);
         privFos.close();

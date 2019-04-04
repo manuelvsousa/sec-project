@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.sec.usercli;
 
-import pt.ulisboa.tecnico.sec.notaryclient.NotaryClient;
-
 import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
@@ -13,8 +11,8 @@ import java.util.Scanner;
 //mvn exec:java -Dexec.args="user1"
 
 public class UserClientApp {
-    public static void main(String[] args) throws GeneralSecurityException, IOException{
-        if(args.length != 1) {
+    public static void main(String[] args) throws GeneralSecurityException, IOException {
+        if (args.length != 1) {
             System.err.println("Argument(s) missing!");
             System.err.println("Usage: java " + UserClient.class.getName() + " userID");
             return;
@@ -34,8 +32,7 @@ public class UserClientApp {
             try {
                 verifyID(userID, password, encoded, salt);
                 flag = false;
-            }
-            catch(BadPaddingException e) {
+            } catch (BadPaddingException e) {
                 System.out.println("Wrong password ");
             }
         }
@@ -44,7 +41,7 @@ public class UserClientApp {
         flag = true;
         Scanner scanner = new Scanner(System.in);
 
-        while(flag) {
+        while (flag) {
             System.out.println("Choose an operation (number + parameters): \n" +
                     "1 - intentionToSell: goodID\n" +
                     "2 - getStateOfGood: goodID\n" +
@@ -54,14 +51,13 @@ public class UserClientApp {
             String method = scanner.nextLine();
             String arr[] = method.split(" ");
 
-            if(arr.length > 0) {
+            if (arr.length > 0) {
                 switch (arr[0]) {
                     case "1":
                         if (arr.length == 2) {
                             System.out.println("intentionToSell: " + arr[1]);
                             System.out.println(userClient.intentionToSell(arr[1]));
-                        }
-                        else {
+                        } else {
                             System.out.println("Please insert the correct parameters");
                         }
                         break;
@@ -69,17 +65,15 @@ public class UserClientApp {
                         if (arr.length == 2) {
                             System.out.println("getStateOfGood: " + arr[1]);
                             System.out.println(userClient.intentionToSell(arr[1]));
-                        }
-                        else {
+                        } else {
                             System.out.println("Please insert the correct parameters");
                         }
                         break;
                     case "3":
-                        if(arr.length == 3) {
+                        if (arr.length == 3) {
                             System.out.println("transferGood: " + arr[1] + ", " + arr[2]);
                             System.out.println(userClient.transferGood(arr[1], arr[2]));
-                        }
-                        else {
+                        } else {
                             System.out.println("Please insert the correct parameters");
                         }
                         break;
@@ -90,8 +84,7 @@ public class UserClientApp {
                     default:
                         System.out.println("Please insert a valid method");
                 }
-            }
-            else {
+            } else {
                 System.out.println("Wrong input: You didn't select any method");
             }
 
@@ -99,7 +92,7 @@ public class UserClientApp {
         //System.out.println(userClient.getStateOfgood("good1"));
     }
 
-    public static Boolean verifyID(String userID, String password, byte[] encoded, byte[] salt) throws GeneralSecurityException, IOException, BadPaddingException{
+    public static Boolean verifyID(String userID, String password, byte[] encoded, byte[] salt) throws GeneralSecurityException, IOException, BadPaddingException {
 
         EncryptedPrivateKeyInfo encinfo = new EncryptedPrivateKeyInfo(encoded);
         byte[] encrypPrivKey = encinfo.getEncryptedData();
@@ -118,7 +111,7 @@ public class UserClientApp {
         //Initialize PBE cipher with key and parameters
         pbeCipher.init(Cipher.DECRYPT_MODE, pbeKey, pbeParamSpec);
 
-        byte[] encodedPrivKey =  pbeCipher.doFinal(encrypPrivKey);
+        byte[] encodedPrivKey = pbeCipher.doFinal(encrypPrivKey);
 
         //Key privKey = new SecretKeySpec(encodedPrivKey, "RSA");
 

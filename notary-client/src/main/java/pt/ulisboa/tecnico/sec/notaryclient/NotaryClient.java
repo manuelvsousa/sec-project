@@ -10,22 +10,23 @@ public class NotaryClient {
     private NotaryAbstract na;
     private PrivateKey privateKey;
 
-    public NotaryClient(String userID,PrivateKey privateKey){
+    public NotaryClient(String userID, PrivateKey privateKey) {
         this.userID = userID;
         this.privateKey = privateKey;
         this.na = new NotaryAbstract(privateKey);
     }
+
     public State getStateOfGood(String id) {
         return na.getStateOfGood(id);
     }
 
     public boolean transferGood(String goodID, String buyerID) throws Exception {
-        na.transferGood(goodID,buyerID,this.userID);
+        na.transferGood(goodID, buyerID, this.userID);
         return true;
     }
 
     public boolean intentionToSell(String goodID) {
-        na.intentionToSell(goodID,this.userID);
+        na.intentionToSell(goodID, this.userID);
         return true;
     }
 }

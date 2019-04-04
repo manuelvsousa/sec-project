@@ -52,9 +52,9 @@ public class CitizenCard {
         return cert;
     }
 
-    public X509Certificate getCertificate(){
+    public X509Certificate getCertificate() {
         X509Certificate cert = null;
-        try{
+        try {
             System.out.println("[CITIZENCARD] PTEidlibj Loading...");
             String javaLibPath = System.getProperty("java.library.path");
             System.out.println(javaLibPath);
@@ -66,16 +66,16 @@ public class CitizenCard {
             // access the ID and Address data via the pteidlib
             System.out.println("            -- accessing the ID  data via the pteidlib interface");
 
-             cert = getCertFromByteArray(getCertificateInBytes(0));
+            cert = getCertFromByteArray(getCertificateInBytes(0));
             this.terminate();
             return cert;
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return cert;
     }
 
-    public byte[] sign(byte[] contentToSign){
+    public byte[] sign(byte[] contentToSign) {
         byte[] sig = null;
         try {
 
@@ -153,10 +153,10 @@ public class CitizenCard {
 
     }
 
-    private void terminate(){
-        try{
+    private void terminate() {
+        try {
             pteid.Exit(pteid.PTEID_EXIT_LEAVE_CARD);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

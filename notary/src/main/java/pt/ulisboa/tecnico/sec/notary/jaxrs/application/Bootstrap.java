@@ -1,19 +1,12 @@
 package pt.ulisboa.tecnico.sec.notary.jaxrs.application;
 
 
-import pt.ulisboa.tecnico.sec.notary.model.Good;
-import pt.ulisboa.tecnico.sec.notary.model.User;
-import pt.ulisboa.tecnico.sec.notary.util.CitizenCard;
-import pt.ulisboa.tecnico.sec.util.KeyReader;
-
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
-import java.security.GeneralSecurityException;
-import java.security.cert.X509Certificate;
 
 
 public class Bootstrap implements ServletContextListener {
@@ -26,7 +19,7 @@ public class Bootstrap implements ServletContextListener {
     }
 
     @Override
-    public void contextInitialized(ServletContextEvent sce){
+    public void contextInitialized(ServletContextEvent sce) {
 
         try {
             ObjectInput in = new ObjectInputStream(new FileInputStream(serializeFileName));

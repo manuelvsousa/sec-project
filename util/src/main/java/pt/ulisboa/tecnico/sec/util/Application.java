@@ -1,8 +1,5 @@
 package pt.ulisboa.tecnico.sec.util;
 
-import java.io.File;
-import java.security.KeyPair;
-
 public class Application {
     public static void main(String[] args) throws Exception {
 //        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
