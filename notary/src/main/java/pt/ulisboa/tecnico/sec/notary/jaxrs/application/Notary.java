@@ -20,7 +20,6 @@ public class Notary implements Serializable {
 
     private List<User> users = new ArrayList<>();
     private List<Transaction> transactions = new ArrayList<>();
-    private boolean signWithCC = false;
     private PrivateKey privatekey;
 
     public PrivateKey getPrivateKey(){
@@ -34,10 +33,6 @@ public class Notary implements Serializable {
         this.privatekey = privatekey;
     }
 
-    public void setSignWithCC(boolean decision){
-        this.signWithCC = decision;
-    }
-
     private Notary() {
     }
 
@@ -49,7 +44,7 @@ public class Notary implements Serializable {
     }
 
     public String sign(byte[] toSign) throws Exception {
-        if(this.signWithCC){
+        if(this.getPrivateKey() == null){
             return Crypto.getInstance().byteToHex(CitizenCard.getInstance().sign(toSign));
         }
         return Crypto.getInstance().sign(this.getPrivateKey(),toSign);
