@@ -1,5 +1,9 @@
 package pt.ulisboa.tecnico.sec.util;
 
+import java.io.File;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
 public class Application {
     public static void main(String[] args) throws Exception {
 //        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
@@ -11,7 +15,14 @@ public class Application {
 //        CitizenCard.getInstance().getCertificate();
 //        CitizenCard.getInstance().getCertificate();
         //System.out.println(KeyReader.getInstance().readPublicKey("user4"));
-        System.out.println(KeyReader.getInstance().readPublicKey("user4"));
-        System.out.println(KeyReader.getInstance().readPrivateKey("user4","123"));
+
+
+
+        PrivateKey privateKey = KeyReader.getInstance().readPrivateKey("user1","password1");
+        PublicKey publicKey = KeyReader.getInstance().readPublicKey("user1");
+        String sig = Crypto.getInstance().sign(privateKey,"L2dvb2RzL3RyYW5zZmVy||good1||user2||user1".getBytes());
+        System.out.print(sig);
+        Boolean correct = Crypto.getInstance().checkSignature(publicKey,("L2dvb2RzL3RyYW5zZmVy||good1||user2||user1").getBytes(),sig);
+        System.out.println(correct);
     }
 }

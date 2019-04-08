@@ -25,7 +25,7 @@ public class NotaryClient {
         return true;
     }
 
-    public boolean intentionToSell(String goodID) {
+    public boolean intentionToSell(String goodID) throws Exception {
         na.intentionToSell(goodID, this.userID);
         return true;
     }

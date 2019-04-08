@@ -36,10 +36,12 @@ public class GoodsResource {
         return s;
     }
 
+
+
     @GET
     @Path("/transfer")
     public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig) throws Exception {
-        System.out.println(goodID + " " + buyerID + " " + sellerID);
+        System.out.println(goodID + " " + buyerID + " " + sellerID + "" + sig);
         if (goodID == null || goodID == null || sellerID == null || sig == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
                     .entity("goodID and/or goodID and/or sellerID and/or signature are null").build());
@@ -49,10 +51,8 @@ public class GoodsResource {
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
             if(!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(sellerID).getPublicKey(),toSign,sig)){
-                throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                        .entity("Signature was forged").build());
+                throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
             }
-
             Notary.getInstance().addTransaction(goodID, buyerID, sellerID);
         } catch (GoodNotFoundException e1) {
             throw new NotFoundExceptionResponse(e1.getMessage());
@@ -72,13 +72,19 @@ public class GoodsResource {
 
     @GET
     @Path("/intention")
-    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID) {
+    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig) {
         System.out.println(goodID + " " + sellerID + " ");
-        if (goodID == null || sellerID == null) {
+        if (goodID == null || sellerID == null || sig == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("goodID and/or sellerID are null").build());
+                    .entity("goodID and/or sellerID  and/or signature are null").build());
         }
         try {
+            String type =
+                    Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
+            byte[] toSign = (type + "||" + goodID + "||" + sellerID).getBytes();
+            if(!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(sellerID).getPublicKey(),toSign,sig)){
+                throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
+            }
             Notary.getInstance().setIntentionToSell(goodID, sellerID);
         } catch (GoodNotFoundException e1) {
             throw new NotFoundExceptionResponse(e1.getMessage());

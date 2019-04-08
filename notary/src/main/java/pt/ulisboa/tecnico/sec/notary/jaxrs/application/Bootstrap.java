@@ -36,7 +36,6 @@ public class Bootstrap implements ServletContextListener {
             System.out.println("Object has been deserialized ");
 
             System.out.println("User 0 created");
-            System.out.print(KeyReader.getInstance().readPublicKey("user1"));
             User user1 = new User("user1", KeyReader.getInstance().readPublicKey("user1"));
             user1.addGood(new Good("good1", true));
             user1.addGood(new Good("good2", false));
@@ -49,7 +48,6 @@ public class Bootstrap implements ServletContextListener {
             System.out.println("User 2 created");
 
             notary.addUser(new User("user3", KeyReader.getInstance().readPublicKey("user3")));
-            System.out.print(Notary.getInstance().getUser("user3").getPublicKey());
             System.out.println("User 3 created");
 
 //        CitizenCard cc = CitizenCard.getInstance();
@@ -59,6 +57,7 @@ public class Bootstrap implements ServletContextListener {
 
         } catch (IOException ex) {
             System.out.println("IOException is caught");
+            ex.printStackTrace();
         } catch (ClassNotFoundException ex) {
             System.out.println("ClassNotFoundException is caught");
         } catch (GeneralSecurityException gse){

@@ -5,13 +5,16 @@ import pt.ulisboa.tecnico.sec.notaryclient.exception.GoodNotFoundException;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.UserDoesNotOwnGoodException;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.util.Crypto;
+import pt.ulisboa.tecnico.sec.util.KeyReader;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.security.MessageDigest;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Base64;
 
 
@@ -41,14 +44,15 @@ class NotaryAbstract {
         throw new RuntimeException("Unknown Error");
     }
 
+
     public void transferGood(String goodID, String buyerID, String sellerID) throws Exception {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            //Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
-            //this.verifyResponse(r);
+            Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
+            this.verifyResponse(r);
             return;
         } catch (Exception e) {
             throw e;
@@ -79,9 +83,13 @@ class NotaryAbstract {
         }
     }
 
-    public void intentionToSell(String goodID, String sellerID) {
+    public void intentionToSell(String goodID, String sellerID) throws Exception {
         try {
-            Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).request(MediaType.APPLICATION_JSON).get();
+            String type =
+                    Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
+            byte[] toSign = (type + "||" + goodID + "||" + sellerID).getBytes();
+            String sig = Crypto.getInstance().sign(privateKey, toSign);
+            Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
             this.verifyResponse(r);
             return;
         } catch (Exception e) {
