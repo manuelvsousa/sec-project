@@ -25,7 +25,7 @@ public class UserClient {
         return state.getOnSale();
     }
 
-    public Boolean intentionToSell(String goodID) {
+    public Boolean intentionToSell(String goodID) throws Exception {
         return this.notaryClient.intentionToSell(goodID);
     }
 
