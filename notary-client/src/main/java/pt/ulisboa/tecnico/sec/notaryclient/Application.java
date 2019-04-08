@@ -27,8 +27,11 @@ public class Application {
 //        CitizenCard.getInstance().getCertificate();
 
 
-PrivateKey pk = KeyReader.getInstance().readPrivateKey("user1","password1");
-NotaryClient nc = new NotaryClient("user1",pk);
-System.out.println(nc.transferGood("good1","user2"));
+
+
+        PrivateKey pk = KeyReader.getInstance().readPrivateKey("user1","password1");
+        NotaryClient nc = new NotaryClient("user1",pk);
+        System.out.println(nc.getStateOfGood("good1").getOwnerID());
+
     }
 }

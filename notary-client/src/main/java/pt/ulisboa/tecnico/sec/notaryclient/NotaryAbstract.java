@@ -31,14 +31,15 @@ class NotaryAbstract {
         this.privateKey = privateKey;
     }
 
-    public State getStateOfGood(String id) {
+    public State getStateOfGood(String id,String userID) throws Exception {
         try {
-            Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).request(MediaType.APPLICATION_JSON).get();
-            State s = r.readEntity(State.class);
             String type =
-                        Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-            byte[] toSign = (type + "||" + s.getOwnerID() + "||" + s.getOnSale()).getBytes();
+                    Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
+            byte[] toSign = (type + "||" + id + "||" + userID).getBytes();
+            String sig = Crypto.getInstance().sign(privateKey, toSign);
+            Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
             this.verifyResponse(r,toSign);
+            State s = r.readEntity(State.class);
             return s;
         } catch (NotFoundException e) {
             String cause = e.getResponse().readEntity(String.class);
@@ -57,6 +58,9 @@ class NotaryAbstract {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
+
+            long unixTime = System.currentTimeMillis() / 1000L;
+            System.out.println(unixTime);
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();

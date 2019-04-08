@@ -20,17 +20,20 @@ public class GoodsResource {
     @Path("/getStatus")
     @Produces({MediaType.APPLICATION_JSON})
     //add MediaType.APPLICATION_XML if you want XML as well (don't forget @XmlRootElement)
-    public Response getStateOfGood(@QueryParam("id") String id) throws Exception {
-        //State s;
-        if (id == null) {
+    public Response getStateOfGood(@QueryParam("id") String id, @QueryParam("userID") String userID, @QueryParam("signature") String sig) throws Exception {
+        System.out.println(id + " " + userID + " " + sig);
+        if (id == null || userID == null || sig == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("id is null").build());
+                    .entity("id and/or userID and/or sig are null").build());
         }
         try {
             State s = Notary.getInstance().getStateOfGood(id);
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-            byte[] toSign = (type + "||" + s.getOwnerID() + "||" + s.getOnSale()).getBytes();
+            byte[] toSign = (type + "||" + id + "||" + userID).getBytes();
+            if(!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(userID).getPublicKey(),toSign,sig)){
+                throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
+            }
             String sigNotary = Notary.getInstance().sign(toSign);
             Response response = Response.status(200).
                     entity(s).
