@@ -31,7 +31,7 @@ public class GoodsResource {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
             byte[] toSign = (type + "||" + id + "||" + userID).getBytes();
-            if(!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(userID).getPublicKey(),toSign,sig)){
+            if (!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(userID).getPublicKey(), toSign, sig)) {
                 throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
             }
             String sigNotary = Notary.getInstance().sign(toSign);
@@ -45,7 +45,6 @@ public class GoodsResource {
             throw e;
         }
     }
-
 
 
     @GET
@@ -96,7 +95,7 @@ public class GoodsResource {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
             byte[] toSign = (type + "||" + goodID + "||" + sellerID).getBytes();
-            if(!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(sellerID).getPublicKey(),toSign,sig)){
+            if (!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(sellerID).getPublicKey(), toSign, sig)) {
                 throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
             }
             Notary.getInstance().setIntentionToSell(goodID, sellerID);

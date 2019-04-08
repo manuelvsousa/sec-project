@@ -18,7 +18,7 @@ public class UserAbstract {
         try {
             Response r = client.target(REST_URI).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).request(MediaType.APPLICATION_JSON).get();
             this.verifyResponse(r);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw e;
         }
     }
@@ -26,16 +26,14 @@ public class UserAbstract {
     private void verifyResponse(Response r) {
         if (r.getStatus() == 200) {
             return;
-        }
-        else {
+        } else {
             String cause = r.readEntity(String.class);
             if (cause == null) {
                 throw new RuntimeException("Cause of error " + r.getStatus() + " is null");
             }
             if (r.getStatus() == 404) {
                 throw new UserNotFoundException(cause);
-            }
-            else {
+            } else {
                 throw new RuntimeException("Unable to process request, ERROR " + r.getStatus() + " Received!");
             }
         }

@@ -22,17 +22,6 @@ public class Notary implements Serializable {
     private List<Transaction> transactions = new ArrayList<>();
     private PrivateKey privatekey;
 
-    public PrivateKey getPrivateKey(){
-        if(this.privatekey == null){
-            throw new NullPointerException("Private Key is null");
-        }
-        return this.privatekey;
-    }
-
-    public void setPrivateKey(PrivateKey privatekey){
-        this.privatekey = privatekey;
-    }
-
     private Notary() {
     }
 
@@ -41,15 +30,6 @@ public class Notary implements Serializable {
             uniqueInstance = new Notary();
         }
         return uniqueInstance;
-    }
-
-    public String sign(byte[] toSign) throws Exception {
-        if(this.privatekey == null){
-            System.out.println("Going to sign with Citizen Card");
-            return Crypto.getInstance().byteToHex(CitizenCard.getInstance().sign(toSign));
-        }
-        System.out.println("Going to sign with privateKey");
-        return Crypto.getInstance().sign(this.getPrivateKey(),toSign);
     }
 
     public static void save() {
@@ -66,6 +46,26 @@ public class Notary implements Serializable {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
+    }
+
+    public PrivateKey getPrivateKey() {
+        if (this.privatekey == null) {
+            throw new NullPointerException("Private Key is null");
+        }
+        return this.privatekey;
+    }
+
+    public void setPrivateKey(PrivateKey privatekey) {
+        this.privatekey = privatekey;
+    }
+
+    public String sign(byte[] toSign) throws Exception {
+        if (this.privatekey == null) {
+            System.out.println("Going to sign with Citizen Card");
+            return Crypto.getInstance().byteToHex(CitizenCard.getInstance().sign(toSign));
+        }
+        System.out.println("Going to sign with privateKey");
+        return Crypto.getInstance().sign(this.getPrivateKey(), toSign);
     }
 
     public void addUser(User u) {

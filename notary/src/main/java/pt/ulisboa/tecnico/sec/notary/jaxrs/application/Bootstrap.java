@@ -14,9 +14,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.security.GeneralSecurityException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.cert.X509Certificate;
 
 
 public class Bootstrap implements ServletContextListener {
@@ -33,8 +31,8 @@ public class Bootstrap implements ServletContextListener {
 
         try {
 
-            PublicKey publicKey =  CitizenCard.getInstance().getPublicKey();
-            KeyWriter.getInstance().write(publicKey,"notario");
+            PublicKey publicKey = CitizenCard.getInstance().getPublicKey();
+            KeyWriter.getInstance().write(publicKey, "notario");
             //KeyWriter.getInstance().write(publicKey,"notaryy");
 //            byte[] sig = CitizenCard.getInstance().sign("fodasse".getBytes());
 //            System.out.println(sig);
@@ -64,7 +62,7 @@ public class Bootstrap implements ServletContextListener {
             ex.printStackTrace();
         } catch (ClassNotFoundException ex) {
             System.out.println("ClassNotFoundException is caught");
-        } catch (GeneralSecurityException gse){
+        } catch (GeneralSecurityException gse) {
             System.out.println("GeneralSecurityException is caught");
         }
 

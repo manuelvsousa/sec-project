@@ -3,13 +3,12 @@ package pt.ulisboa.tecnico.sec.user.jaxrs.application;
 import pt.ulisboa.tecnico.sec.user.model.User;
 import pt.ulisboa.tecnico.sec.user.model.exception.UserNotFoundException;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UserServ {
-    private List<User> users = new ArrayList<>(); //para guardar as keys
     private static UserServ uniqueinstance;
+    private List<User> users = new ArrayList<>(); //para guardar as keys
 
 
     private UserServ() {
@@ -17,7 +16,7 @@ public class UserServ {
     }
 
     public static UserServ getInstance() {
-        if(uniqueinstance == null) {
+        if (uniqueinstance == null) {
             uniqueinstance = new UserServ();
         }
         return uniqueinstance;

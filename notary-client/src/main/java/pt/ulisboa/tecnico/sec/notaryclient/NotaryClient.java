@@ -15,7 +15,7 @@ public class NotaryClient {
     }
 
     public State getStateOfGood(String id) throws Exception {
-        return na.getStateOfGood(id,this.userID);
+        return na.getStateOfGood(id, this.userID);
     }
 
     public boolean transferGood(String goodID, String buyerID) throws Exception {

@@ -1,8 +1,8 @@
 package pt.ulisboa.tecnico.sec.usercli;
 
 
-import pt.ulisboa.tecnico.sec.notaryclient.NotaryClient;
 import pt.ulisboa.tecnico.sec.notary.model.State;
+import pt.ulisboa.tecnico.sec.notaryclient.NotaryClient;
 
 import java.security.PrivateKey;
 import java.util.ArrayList;
@@ -10,9 +10,9 @@ import java.util.List;
 
 
 public class UserClient {
+    public List<String> goods = new ArrayList<>();
     private UserAbstract ua = new UserAbstract();
     private NotaryClient notaryClient;
-    public List<String> goods = new ArrayList<>();
     //EXCEPÇÕES
 
 
@@ -29,7 +29,9 @@ public class UserClient {
         return this.notaryClient.intentionToSell(goodID);
     }
 
-    /**TODO Tirar isto daqui**/
+    /**
+     * TODO Tirar isto daqui
+     **/
     public Boolean transferGood(String goodID, String buyerID) throws Exception {
         return this.notaryClient.transferGood(goodID, buyerID);
     }

@@ -3,11 +3,9 @@ package pt.ulisboa.tecnico.sec.usercli;
 import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.Key;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -16,9 +14,9 @@ import java.util.Scanner;
 //mvn exec:java -Dexec.args="user1"
 
 public class UserClientApp {
-    public static void main(String[] args) throws GeneralSecurityException, IOException{
+    public static void main(String[] args) throws GeneralSecurityException, IOException {
         /**TODO Pôr as mensagens recebidas mais bonitas e excepções???**/
-        if(args.length != 1) {
+        if (args.length != 1) {
             System.err.println("Argument(s) missing!");
             System.err.println("Usage: java " + UserClient.class.getName() + " userID");
             return;
@@ -83,11 +81,10 @@ public class UserClientApp {
                         }
                         break;
                     case "3":
-                        if(arr.length == 3) {
+                        if (arr.length == 3) {
                             System.out.println("buyGood: " + arr[1] + ", " + arr[2]);
                             System.out.println(userClient.buyGood(arr[1], userID, arr[2]));
-                        }
-                        else {
+                        } else {
                             System.out.println("Please insert the correct parameters");
                         }
                         break;
