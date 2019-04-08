@@ -20,20 +20,27 @@ public class GoodsResource {
     @Path("/getStatus")
     @Produces({MediaType.APPLICATION_JSON})
     //add MediaType.APPLICATION_XML if you want XML as well (don't forget @XmlRootElement)
-    public State getStateOfGood(@QueryParam("id") String id) {
-        State s;
+    public Response getStateOfGood(@QueryParam("id") String id) throws Exception {
+        //State s;
         if (id == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
                     .entity("id is null").build());
         }
         try {
-            s = Notary.getInstance().getStateOfGood(id);
+            State s = Notary.getInstance().getStateOfGood(id);
+            String type =
+                    Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
+            String toSign = type + "||" + s.getOwnerID() + "||" + s.getOnSale();
+            String sig = Crypto.getInstance().sign(Notary.getInstance().getPrivateKey(),toSign.getBytes());
+            Response response = Response.status(200).
+                    entity(s).
+                    header("Notary-Signature", sig).build();
+            return response;
         } catch (GoodNotFoundException e) {
             throw new NotFoundExceptionResponse(e.getMessage());
         } catch (Exception e) {
             throw e;
         }
-        return s;
     }
 
 
@@ -67,7 +74,9 @@ public class GoodsResource {
         } catch (Exception e) {
             throw e;
         }
-        return Response.ok().build();
+        Response response = Response.ok().
+                header("Notary-Signature", "dasdasadsdsa").build();
+        return response;
     }
 
     @GET
@@ -96,6 +105,8 @@ public class GoodsResource {
             throw e;
         }
 
-        return Response.ok().build();
+        Response response = Response.ok().
+                header("Notary-Signature", "dasdasadsdsa").build();
+        return response;
     }
 }

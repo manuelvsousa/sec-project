@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.sec.notaryclient;
 
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.GoodNotFoundException;
+import pt.ulisboa.tecnico.sec.notaryclient.exception.InvalidSignature;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.UserDoesNotOwnGoodException;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.util.Crypto;
@@ -12,6 +13,8 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -30,7 +33,22 @@ class NotaryAbstract {
 
     public State getStateOfGood(String id) {
         try {
-            State s = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).request(MediaType.APPLICATION_JSON).get(State.class);
+            //State s = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).request(MediaType.APPLICATION_JSON).get(State.class);
+
+            Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).request(MediaType.APPLICATION_JSON).get();
+            State s = r.readEntity(State.class);
+            String sig = r.getHeaderString("Notary-Signature");
+            if(sig == null){
+                throw new InvalidSignature("Signature from notary was null");
+            } else {
+                PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary");
+                String type =
+                        Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
+                byte[] toSign = (type + "||" + s.getOwnerID() + "||" + s.getOnSale()).getBytes();
+                if(!Crypto.getInstance().checkSignature(publicKey,toSign,sig)){
+                    throw new InvalidSignature("Signature from notary was forged");
+                }
+            }
             return s;
         } catch (NotFoundException e) {
             String cause = e.getResponse().readEntity(String.class);
@@ -40,6 +58,10 @@ class NotaryAbstract {
             if (cause.toLowerCase().contains("good".toLowerCase())) {
                 throw new GoodNotFoundException(cause);
             }
+        } catch(GeneralSecurityException gse){
+            System.out.println("GeneralSecurityException catched");
+        } catch(IOException io){
+            System.out.println("GeneralSecurityException catched");
         }
         throw new RuntimeException("Unknown Error");
     }

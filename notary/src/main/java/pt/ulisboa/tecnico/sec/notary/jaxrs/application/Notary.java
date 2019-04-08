@@ -7,6 +7,7 @@ import pt.ulisboa.tecnico.sec.notary.model.User;
 import pt.ulisboa.tecnico.sec.notary.model.exception.*;
 
 import java.io.*;
+import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,19 @@ public class Notary implements Serializable {
 
     private List<User> users = new ArrayList<>();
     private List<Transaction> transactions = new ArrayList<>();
+
+    private PrivateKey privatekey;
+
+    public PrivateKey getPrivateKey(){
+        if(this.privatekey == null){
+            throw new NullPointerException("Private Key is null");
+        }
+        return this.privatekey;
+    }
+
+    public void setPrivateKey(PrivateKey privatekey){
+        this.privatekey = privatekey;
+    }
 
     private Notary() {
     }
