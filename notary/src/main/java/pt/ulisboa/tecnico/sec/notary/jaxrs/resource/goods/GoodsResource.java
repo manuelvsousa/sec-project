@@ -30,8 +30,8 @@ public class GoodsResource {
             State s = Notary.getInstance().getStateOfGood(id);
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-            String toSign = type + "||" + s.getOwnerID() + "||" + s.getOnSale();
-            String sig = Crypto.getInstance().sign(Notary.getInstance().getPrivateKey(),toSign.getBytes());
+            byte[] toSign = (type + "||" + s.getOwnerID() + "||" + s.getOnSale()).getBytes();
+            String sig = Crypto.getInstance().sign(Notary.getInstance().getPrivateKey(),toSign);
             Response response = Response.status(200).
                     entity(s).
                     header("Notary-Signature", sig).build();
@@ -57,10 +57,15 @@ public class GoodsResource {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
-            if(!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(sellerID).getPublicKey(),toSign,sig)){
+            if (!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(sellerID).getPublicKey(), toSign, sig)) {
                 throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
             }
             Notary.getInstance().addTransaction(goodID, buyerID, sellerID);
+            String sigNotary = Crypto.getInstance().sign(Notary.getInstance().getPrivateKey(), toSign);
+            Response response = Response.ok().
+                    header("Notary-Signature", sigNotary).build();
+            return response;
+
         } catch (GoodNotFoundException e1) {
             throw new NotFoundExceptionResponse(e1.getMessage());
         } catch (UserNotFoundException e2) {
@@ -74,14 +79,11 @@ public class GoodsResource {
         } catch (Exception e) {
             throw e;
         }
-        Response response = Response.ok().
-                header("Notary-Signature", "dasdasadsdsa").build();
-        return response;
     }
 
     @GET
     @Path("/intention")
-    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig) {
+    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig) throws Exception {
         System.out.println(goodID + " " + sellerID + " ");
         if (goodID == null || sellerID == null || sig == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
@@ -95,6 +97,10 @@ public class GoodsResource {
                 throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
             }
             Notary.getInstance().setIntentionToSell(goodID, sellerID);
+            String sigNotary = Crypto.getInstance().sign(Notary.getInstance().getPrivateKey(),toSign);
+            Response response = Response.ok().
+                    header("Notary-Signature", sigNotary).build();
+            return response;
         } catch (GoodNotFoundException e1) {
             throw new NotFoundExceptionResponse(e1.getMessage());
         } catch (UserNotFoundException e2) {
@@ -104,9 +110,5 @@ public class GoodsResource {
         } catch (Exception e) {
             throw e;
         }
-
-        Response response = Response.ok().
-                header("Notary-Signature", "dasdasadsdsa").build();
-        return response;
     }
 }

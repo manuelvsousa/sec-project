@@ -33,22 +33,12 @@ class NotaryAbstract {
 
     public State getStateOfGood(String id) {
         try {
-            //State s = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).request(MediaType.APPLICATION_JSON).get(State.class);
-
             Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).request(MediaType.APPLICATION_JSON).get();
             State s = r.readEntity(State.class);
-            String sig = r.getHeaderString("Notary-Signature");
-            if(sig == null){
-                throw new InvalidSignature("Signature from notary was null");
-            } else {
-                PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary");
-                String type =
+            String type =
                         Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-                byte[] toSign = (type + "||" + s.getOwnerID() + "||" + s.getOnSale()).getBytes();
-                if(!Crypto.getInstance().checkSignature(publicKey,toSign,sig)){
-                    throw new InvalidSignature("Signature from notary was forged");
-                }
-            }
+            byte[] toSign = (type + "||" + s.getOwnerID() + "||" + s.getOnSale()).getBytes();
+            this.verifyResponse(r,toSign);
             return s;
         } catch (NotFoundException e) {
             String cause = e.getResponse().readEntity(String.class);
@@ -58,10 +48,6 @@ class NotaryAbstract {
             if (cause.toLowerCase().contains("good".toLowerCase())) {
                 throw new GoodNotFoundException(cause);
             }
-        } catch(GeneralSecurityException gse){
-            System.out.println("GeneralSecurityException catched");
-        } catch(IOException io){
-            System.out.println("GeneralSecurityException catched");
         }
         throw new RuntimeException("Unknown Error");
     }
@@ -74,15 +60,31 @@ class NotaryAbstract {
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
-            this.verifyResponse(r);
+            this.verifyResponse(r,toSign);
             return;
         } catch (Exception e) {
             throw e;
         }
     }
 
-    private void verifyResponse(Response r) {
+    private void verifyResponse(Response r, byte[] toSign) {
         if (r.getStatus() == 200) {
+            try{
+                String sig = r.getHeaderString("Notary-Signature");
+                if(sig == null){
+                    throw new InvalidSignature("Signature from notary was null");
+                } else {
+                    PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary");
+                    if(!Crypto.getInstance().checkSignature(publicKey,toSign,sig)){
+                        throw new InvalidSignature("Signature from notary was forged");
+                    }
+                }
+            } catch(GeneralSecurityException gse){
+                System.out.println("GeneralSecurityException catched");
+            } catch(IOException io){
+                System.out.println("IOException catched");
+
+            }
             return;
         } else {
             String cause = r.readEntity(String.class);
@@ -112,7 +114,7 @@ class NotaryAbstract {
             byte[] toSign = (type + "||" + goodID + "||" + sellerID).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
-            this.verifyResponse(r);
+            this.verifyResponse(r,toSign);
             return;
         } catch (Exception e) {
             throw e;
