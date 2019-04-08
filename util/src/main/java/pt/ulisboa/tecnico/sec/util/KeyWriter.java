@@ -32,7 +32,7 @@ public class KeyWriter {
 
     public void write(PublicKey publicKey,String user) throws GeneralSecurityException, IOException {
         String path = new File("../").getCanonicalPath();
-        System.out.println(path +  "/keys/users/" + ".pub");
+        System.out.println(path +  "/keys/users/" + user + ".pub");
         FileOutputStream pubFos = new FileOutputStream(path +  "/keys/users/" + user + ".pub");
         pubFos.write(publicKey.getEncoded());
         pubFos.close();

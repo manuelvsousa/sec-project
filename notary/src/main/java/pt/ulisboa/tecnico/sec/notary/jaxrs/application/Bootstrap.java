@@ -33,13 +33,16 @@ public class Bootstrap implements ServletContextListener {
 
         try {
 
-//            PublicKey publicKey =  CitizenCard.getInstance().getPublicKey();
-//            KeyWriter.getInstance().write(publicKey,"notaryy");
+            PublicKey publicKey =  CitizenCard.getInstance().getPublicKey();
+            KeyWriter.getInstance().write(publicKey,"notario");
+            //KeyWriter.getInstance().write(publicKey,"notaryy");
+//            byte[] sig = CitizenCard.getInstance().sign("fodasse".getBytes());
+//            System.out.println(sig);
             ObjectInput in = new ObjectInputStream(new FileInputStream(serializeFileName));
             Notary notary = (Notary) in.readObject();
             in.close();
-            PrivateKey privateKey = KeyReader.getInstance().readPrivateKey("notary","notary");
-            notary.setPrivateKey(privateKey);
+//            PrivateKey privateKey = KeyReader.getInstance().readPrivateKey("notary","notary");
+//            notary.setPrivateKey(privateKey);
             System.out.println("Object has been deserialized ");
 
             System.out.println("User 0 created");
@@ -56,12 +59,6 @@ public class Bootstrap implements ServletContextListener {
 
             notary.addUser(new User("user3", KeyReader.getInstance().readPublicKey("user3")));
             System.out.println("User 3 created");
-
-//        CitizenCard cc = CitizenCard.getInstance();
-//        byte[] sig = cc.sign("THE_CONTENT_THAT_IS_BEING_SIGNED".getBytes());
-//        System.out.print("Signature: " + sig);
-//        X509Certificate ccpub = cc.getCertificate();
-
         } catch (IOException ex) {
             System.out.println("IOException is caught");
             ex.printStackTrace();

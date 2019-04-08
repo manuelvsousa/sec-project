@@ -78,7 +78,7 @@ class NotaryAbstract {
                 if(sig == null){
                     throw new InvalidSignature("Signature from notary was null");
                 } else {
-                    PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary");
+                    PublicKey publicKey = KeyReader.getInstance().readPublicKey("notario");
                     if(!Crypto.getInstance().checkSignature(publicKey,toSign,sig)){
                         throw new InvalidSignature("Signature from notary was forged");
                     }

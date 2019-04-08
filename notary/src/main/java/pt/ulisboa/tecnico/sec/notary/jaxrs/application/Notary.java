@@ -44,9 +44,11 @@ public class Notary implements Serializable {
     }
 
     public String sign(byte[] toSign) throws Exception {
-        if(this.getPrivateKey() == null){
+        if(this.privatekey == null){
+            System.out.println("Going to sign with Citizen Card");
             return Crypto.getInstance().byteToHex(CitizenCard.getInstance().sign(toSign));
         }
+        System.out.println("Going to sign with privateKey");
         return Crypto.getInstance().sign(this.getPrivateKey(),toSign);
     }
 
