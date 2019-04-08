@@ -23,7 +23,7 @@ public class UserClient {
         this.ua = new UserAbstract(privKey);
     }
 
-    public Boolean getStateOfgood(String goodID) {
+    public Boolean getStateOfgood(String goodID) throws Exception {
         State state = this.notaryClient.getStateOfGood(goodID);
         return state.getOnSale();
     }
