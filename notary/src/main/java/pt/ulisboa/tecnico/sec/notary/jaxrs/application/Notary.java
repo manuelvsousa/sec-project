@@ -5,6 +5,8 @@ import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notary.model.Transaction;
 import pt.ulisboa.tecnico.sec.notary.model.User;
 import pt.ulisboa.tecnico.sec.notary.model.exception.*;
+import pt.ulisboa.tecnico.sec.notary.util.CitizenCard;
+import pt.ulisboa.tecnico.sec.util.Crypto;
 
 import java.io.*;
 import java.security.PrivateKey;
@@ -18,7 +20,7 @@ public class Notary implements Serializable {
 
     private List<User> users = new ArrayList<>();
     private List<Transaction> transactions = new ArrayList<>();
-
+    private boolean signWithCC = false;
     private PrivateKey privatekey;
 
     public PrivateKey getPrivateKey(){
@@ -32,6 +34,10 @@ public class Notary implements Serializable {
         this.privatekey = privatekey;
     }
 
+    public void setSignWithCC(boolean decision){
+        this.signWithCC = decision;
+    }
+
     private Notary() {
     }
 
@@ -40,6 +46,13 @@ public class Notary implements Serializable {
             uniqueInstance = new Notary();
         }
         return uniqueInstance;
+    }
+
+    public String sign(byte[] toSign) throws Exception {
+        if(this.signWithCC){
+            return Crypto.getInstance().byteToHex(CitizenCard.getInstance().sign(toSign));
+        }
+        return Crypto.getInstance().sign(this.getPrivateKey(),toSign);
     }
 
     public static void save() {

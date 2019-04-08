@@ -8,6 +8,7 @@ import sun.security.pkcs11.wrapper.*;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -45,14 +46,14 @@ public class CitizenCard {
         return certificate_bytes;
     }
 
-    public static X509Certificate getCertFromByteArray(byte[] certificateEncoded) throws CertificateException {
+    private static X509Certificate getCertFromByteArray(byte[] certificateEncoded) throws CertificateException {
         CertificateFactory f = CertificateFactory.getInstance("X.509");
         InputStream in = new ByteArrayInputStream(certificateEncoded);
         X509Certificate cert = (X509Certificate) f.generateCertificate(in);
         return cert;
     }
 
-    public X509Certificate getCertificate() {
+    public PublicKey getPublicKey() {
         X509Certificate cert = null;
         try {
             System.out.println("[CITIZENCARD] PTEidlibj Loading...");
@@ -68,11 +69,11 @@ public class CitizenCard {
 
             cert = getCertFromByteArray(getCertificateInBytes(0));
             this.terminate();
-            return cert;
+            return cert.getPublicKey();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return cert;
+        return cert.getPublicKey();
     }
 
     public byte[] sign(byte[] contentToSign) {
