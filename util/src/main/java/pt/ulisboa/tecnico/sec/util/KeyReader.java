@@ -68,7 +68,6 @@ public class KeyReader {
 
 
     public PrivateKey readPrivateKey(String userID, String password) throws GeneralSecurityException, IOException, BadPaddingException {
-        //PrivateKey privKey = null;
         try {
 
             String path = System.getProperty("user.dir");
@@ -94,7 +93,6 @@ public class KeyReader {
             byte[] encodedPrivKey = pbeCipher.doFinal(encrypPrivKey);
             KeyFactory kf = KeyFactory.getInstance("RSA");
             PrivateKey privKey = kf.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivKey));
-            System.out.print(printHexBinary(privKey.getEncoded()));
             return privKey;
         } catch (BadPaddingException e) {
            throw new PrivateKeyWrongPassword();

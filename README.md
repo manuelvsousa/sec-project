@@ -23,3 +23,10 @@ https://docs.google.com/document/d/1lBuShvxhQHOjTxnslglhPNr0ehEu8zmIEtWuo1vYikQ/
 3. mvn clean install tomcat7:run
 4. `cd user`
 5. mvn clean -Dport=${userID nº} install tomcat7:run (e.g. mvn clean -Dport=3 install tomcat7:run -> starts server with userID -3)
+
+
+# Generate keys
+
+1. `cd keys`
+2. `java RSAKeyGenerator w users/user1.key users/user1.pub`
+3. `java EncryptPrivKey users/user1.key users/user1.enc.key password1`

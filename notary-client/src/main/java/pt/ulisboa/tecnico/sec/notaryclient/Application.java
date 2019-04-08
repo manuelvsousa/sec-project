@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.sec.util.KeyReader;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
 
 public class Application {
     public static void main(String[] args) throws Exception {
@@ -25,6 +26,9 @@ public class Application {
 //        System.out.println(Crypto.getInstance().checkSignature(asd.getPublic(), "lalalallaallaa".getBytes(), asdd));
 //        CitizenCard.getInstance().getCertificate();
 
-System.out.println(KeyReader.getInstance().readPrivateKey("user2","password2"));
+
+PrivateKey pk = KeyReader.getInstance().readPrivateKey("user1","password1");
+NotaryClient nc = new NotaryClient("user1",pk);
+System.out.println(nc.getStateOfGood("good1"));
     }
 }
