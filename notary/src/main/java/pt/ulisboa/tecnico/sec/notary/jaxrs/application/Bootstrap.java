@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.security.GeneralSecurityException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 
 
@@ -38,8 +39,8 @@ public class Bootstrap implements ServletContextListener {
             ObjectInput in = new ObjectInputStream(new FileInputStream(serializeFileName));
             Notary notary = (Notary) in.readObject();
             in.close();
-//            PrivateKey privateKey = KeyReader.getInstance().readPrivateKey("notary","notary");
-//            notary.setPrivateKey(privateKey);
+            PrivateKey privateKey = KeyReader.getInstance().readPrivateKey("notary","notary");
+            notary.setPrivateKey(privateKey);
             System.out.println("Object has been deserialized ");
 
             System.out.println("User 0 created");
