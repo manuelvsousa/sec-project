@@ -8,16 +8,14 @@ import java.security.PrivateKey;
 public class NotaryClient {
     private String userID;
     private NotaryAbstract na;
-    private PrivateKey privateKey;
 
     public NotaryClient(String userID, PrivateKey privateKey) {
         this.userID = userID;
-        this.privateKey = privateKey;
         this.na = new NotaryAbstract(privateKey);
     }
 
-    public State getStateOfGood(String id) {
-        return na.getStateOfGood(id);
+    public State getStateOfGood(String id) throws Exception {
+        return na.getStateOfGood(id, this.userID);
     }
 
     public boolean transferGood(String goodID, String buyerID) throws Exception {

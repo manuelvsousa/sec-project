@@ -52,7 +52,7 @@ public class Crypto {
         }
     }
 
-    private String byteToHex(byte[] sig) {
+    public String byteToHex(byte[] sig) {
         char[] hexArray = "0123456789ABCDEF".toCharArray();
         char[] hexChars = new char[sig.length * 2];
         for (int j = 0; j < sig.length; j++) {

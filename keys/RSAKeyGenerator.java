@@ -1,14 +1,8 @@
 import javax.crypto.spec.SecretKeySpec;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 
 import static javax.xml.bind.DatatypeConverter.printHexBinary;
 
@@ -28,11 +22,11 @@ public class RSAKeyGenerator {
 
         if (mode.toLowerCase().startsWith("w")) {
             System.out.println("Generate and save keys");
-            write(pubkeyPath,privkeyPath);
+            write(pubkeyPath, privkeyPath);
         } else {
             System.out.println("Load keys");
             read(privkeyPath);
-            read(pubkeyPath);            
+            read(pubkeyPath);
         }
 
         System.out.println("Done.");
@@ -40,12 +34,12 @@ public class RSAKeyGenerator {
 
     public static void write(String pubkeyPath, String privkeyPath) throws GeneralSecurityException, IOException {
         // get an AES private key
-        System.out.println("Generating RSA key ..." );
+        System.out.println("Generating RSA key ...");
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
         keyGen.initialize(1024);
         KeyPair keys = keyGen.generateKeyPair();
         System.out.println("Finish generating RSA keys");
-        
+
         System.out.println("Private Key:");
         PrivateKey privKey = keys.getPrivate();
         byte[] privKeyEncoded = privKey.getEncoded();
@@ -53,16 +47,16 @@ public class RSAKeyGenerator {
         System.out.println("Public Key:");
         PublicKey pubKey = keys.getPublic();
         byte[] pubKeyEncoded = pubKey.getEncoded();
-        System.out.println(printHexBinary(pubKeyEncoded));       
+        System.out.println(printHexBinary(pubKeyEncoded));
 
-        System.out.println("Writing Private key to '" + privkeyPath + "' ..." );
+        System.out.println("Writing Private key to '" + privkeyPath + "' ...");
         FileOutputStream privFos = new FileOutputStream(privkeyPath);
         privFos.write(privKeyEncoded);
         privFos.close();
-        System.out.println("Writing Pubic key to '" + pubkeyPath + "' ..." );
+        System.out.println("Writing Pubic key to '" + pubkeyPath + "' ...");
         FileOutputStream pubFos = new FileOutputStream(pubkeyPath);
         pubFos.write(pubKeyEncoded);
-        pubFos.close();        
+        pubFos.close();
     }
 
     public static Key read(String keyPath) throws GeneralSecurityException, IOException {

@@ -5,7 +5,6 @@ import pt.ulisboa.tecnico.sec.user.jaxrs.application.UserServ;
 import pt.ulisboa.tecnico.sec.user.model.exception.UserNotFoundException;
 
 import javax.ws.rs.*;
-
 import javax.ws.rs.core.Response;
 
 @Path("/transfer")
@@ -15,7 +14,7 @@ public class TransferResource {
     @Path("/buy")
     public Response buyGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID) throws Exception {
         System.out.println(goodID + " " + buyerID + " " + sellerID);
-       if (goodID == null || goodID == null || sellerID == null) {
+        if (goodID == null || goodID == null || sellerID == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
                     .entity("goodID and/or goodID and/or sellerID are null").build());
         }
