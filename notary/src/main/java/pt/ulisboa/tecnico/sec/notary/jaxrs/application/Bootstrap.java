@@ -31,11 +31,10 @@ public class Bootstrap implements ServletContextListener {
 
         try {
 
-            PublicKey publicKey = CitizenCard.getInstance().getPublicKey();
-            KeyWriter.getInstance().write(publicKey, "notario");
-            //KeyWriter.getInstance().write(publicKey,"notaryy");
-//            byte[] sig = CitizenCard.getInstance().sign("fodasse".getBytes());
-//            System.out.println(sig);
+            // TODO ADD THIS FIRST RUN
+//            PublicKey publicKey = CitizenCard.getInstance().getPublicKey();
+//            KeyWriter.getInstance().write(publicKey, "notary");
+
             ObjectInput in = new ObjectInputStream(new FileInputStream(serializeFileName));
             Notary notary = (Notary) in.readObject();
             in.close();
