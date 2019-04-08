@@ -10,6 +10,8 @@ public class Application {
 //        System.out.println(Crypto.getInstance().checkSignature(asd.getPublic(),"lalalallaallaa".getBytes(),asdd));
 //        CitizenCard.getInstance().getCertificate();
 //        CitizenCard.getInstance().getCertificate();
-        System.out.print(KeyReader.getInstance().readPublicKey("user1"));
+        //System.out.println(KeyReader.getInstance().readPublicKey("user4"));
+        System.out.println(KeyReader.getInstance().readPublicKey("user4"));
+        System.out.println(KeyReader.getInstance().readPrivateKey("user4","123"));
     }
 }

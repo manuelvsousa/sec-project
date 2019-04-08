@@ -1,10 +1,17 @@
 package pt.ulisboa.tecnico.sec.util;
 
+import pt.ulisboa.tecnico.sec.util.exception.PrivateKeyWrongPassword;
+
+import javax.crypto.*;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 import static javax.xml.bind.DatatypeConverter.printHexBinary;
@@ -52,27 +59,56 @@ public class KeyReader {
     }
 
     public PublicKey readPublicKey(String userID) throws GeneralSecurityException, IOException {
-        String path = new File("../").getCanonicalPath();
-        System.out.print(path);
-        FileInputStream fis = new FileInputStream(path + "/keys/users/" + userID + ".pub");
-        byte[] encoded = new byte[fis.available()];
-        fis.read(encoded);
-        fis.close();
+        String path = System.getProperty("user.dir");
+        byte[] encoded = read(path + "/keys/users/" + userID + ".pub");
         PublicKey publicKey =
                 KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(encoded));
         return publicKey;
     }
 
-//    public PrivateKey readPrivateKey(String userID,String password) throws GeneralSecurityException, IOException {
-//        String path = new File("../").getCanonicalPath();
-//        System.out.print(path);
-//        FileInputStream fis = new FileInputStream(path + "/keys/users/" + userID + ".key");
-//        byte[] encoded = new byte[fis.available()];
-//        fis.read(encoded);
-//        fis.close();
-//        PrivateKey privateKey =
-//                KeyFactory.getInstance("RSA").generatePrivate(new X509EncodedKeySpec(encoded));
-//        return privateKey;
-//    }
+
+    public PrivateKey readPrivateKey(String userID, String password) throws GeneralSecurityException, IOException, BadPaddingException {
+        //PrivateKey privKey = null;
+        try {
+
+            String path = System.getProperty("user.dir");
+            byte[] encoded = read(path + "/keys/users/" + userID + ".enc.key");
+            byte[] salt = read(path + "/keys/users/" + userID + "salt.txt");
+            EncryptedPrivateKeyInfo encinfo = new EncryptedPrivateKeyInfo(encoded);
+            byte[] encrypPrivKey = encinfo.getEncryptedData();
+
+            String PBEALG = "PBEWithSHA1AndDESede";
+            int count = 20; //hash iteration count
+
+            //Create PBE parameter set
+            PBEParameterSpec pbeParamSpec = new PBEParameterSpec(salt, count);
+            PBEKeySpec pbeKeySpec = new PBEKeySpec(password.toCharArray());
+            SecretKeyFactory keyFac = SecretKeyFactory.getInstance(PBEALG);
+            SecretKey pbeKey = keyFac.generateSecret(pbeKeySpec);
+
+            Cipher pbeCipher = Cipher.getInstance(PBEALG);
+
+            //Initialize PBE cipher with key and parameters
+            pbeCipher.init(Cipher.DECRYPT_MODE, pbeKey, pbeParamSpec);
+
+            byte[] encodedPrivKey = pbeCipher.doFinal(encrypPrivKey);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            PrivateKey privKey = kf.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivKey));
+            System.out.print(printHexBinary(privKey.getEncoded()));
+            return privKey;
+        } catch (BadPaddingException e) {
+           throw new PrivateKeyWrongPassword();
+        }
+    }
+
+    private byte[] read(String path) throws GeneralSecurityException, IOException {
+        System.out.println("Reading from file " + path + " ...");
+        FileInputStream fis = new FileInputStream(path);
+        byte[] encoded = new byte[fis.available()];
+        fis.read(encoded);
+        fis.close();
+
+        return encoded;
+    }
 
 }

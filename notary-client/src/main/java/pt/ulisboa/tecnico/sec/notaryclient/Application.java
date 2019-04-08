@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.sec.notaryclient;
 
 import pt.ulisboa.tecnico.sec.notary.util.CitizenCard;
 import pt.ulisboa.tecnico.sec.util.Crypto;
+import pt.ulisboa.tecnico.sec.util.KeyReader;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -24,5 +25,6 @@ public class Application {
 //        System.out.println(Crypto.getInstance().checkSignature(asd.getPublic(), "lalalallaallaa".getBytes(), asdd));
 //        CitizenCard.getInstance().getCertificate();
 
+System.out.println(KeyReader.getInstance().readPrivateKey("user2","password2"));
     }
 }
