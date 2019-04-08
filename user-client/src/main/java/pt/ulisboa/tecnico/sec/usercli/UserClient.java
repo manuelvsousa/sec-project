@@ -10,7 +10,7 @@ import java.util.List;
 
 
 public class UserClient {
-    private UserAbstract ua = new UserAbstract();
+    private UserAbstract ua;
     private NotaryClient notaryClient;
     public List<String> goods = new ArrayList<>();
     //EXCEPÇÕES
@@ -18,6 +18,7 @@ public class UserClient {
 
     public UserClient(String userID, PrivateKey privKey) {
         this.notaryClient = new NotaryClient(userID, privKey);
+        this.ua = new UserAbstract(privKey);
     }
 
     public Boolean getStateOfgood(String goodID) {
@@ -34,7 +35,7 @@ public class UserClient {
         return this.notaryClient.transferGood(goodID, buyerID);
     }
 
-    public Boolean buyGood(String goodID, String buyerID, String sellerID) {
+    public Boolean buyGood(String goodID, String buyerID, String sellerID) throws Exception {
         ua.buyGood(goodID, buyerID, sellerID);
         return true;
     }

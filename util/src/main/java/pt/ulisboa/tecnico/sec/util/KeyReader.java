@@ -68,9 +68,12 @@ public class KeyReader {
 
 
     public PrivateKey readPrivateKey(String userID, String password) throws GeneralSecurityException, IOException, BadPaddingException {
-        try {
-
             String path = System.getProperty("user.dir");
+            return readPrivateKey(userID, password, path);
+    }
+
+    public PrivateKey readPrivateKey(String userID, String password, String path) throws GeneralSecurityException, IOException, BadPaddingException {
+        try {
             byte[] encoded = read(path + "/keys/users/" + userID + ".enc.key");
             byte[] salt = read(path + "/keys/users/" + userID + "salt.txt");
             EncryptedPrivateKeyInfo encinfo = new EncryptedPrivateKeyInfo(encoded);
@@ -95,7 +98,7 @@ public class KeyReader {
             PrivateKey privKey = kf.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivKey));
             return privKey;
         } catch (BadPaddingException e) {
-           throw new PrivateKeyWrongPassword();
+            throw new PrivateKeyWrongPassword();
         }
     }
 

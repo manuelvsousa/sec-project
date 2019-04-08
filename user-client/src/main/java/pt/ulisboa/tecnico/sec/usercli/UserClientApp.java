@@ -12,11 +12,14 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Scanner;
+import java.io.File;
+import pt.ulisboa.tecnico.sec.util.KeyReader;
+import pt.ulisboa.tecnico.sec.util.exception.PrivateKeyWrongPassword;
 
 //mvn exec:java -Dexec.args="user1"
 
 public class UserClientApp {
-    public static void main(String[] args) throws GeneralSecurityException, IOException{
+    public static void main(String[] args) throws GeneralSecurityException, IOException, Exception{
         /**TODO Pôr as mensagens recebidas mais bonitas e excepções???**/
         if(args.length != 1) {
             System.err.println("Argument(s) missing!");
@@ -25,11 +28,9 @@ public class UserClientApp {
         }
         String userID = args[0];
         Boolean flag = true;
-
-        String keyPath = "keys/" + userID + "enc.key";
-        byte[] encoded = read(keyPath);
-        String saltPath = "keys/" + userID + "encsalt.txt";
-        byte[] salt = read(saltPath);
+        System.out.println(userID);
+        String path = new File(System.getProperty("user.dir")).getParent();
+        System.out.println(path);
         PrivateKey privKey = null;
 
         while (flag) {
@@ -37,7 +38,7 @@ public class UserClientApp {
             Scanner scanner = new Scanner(System.in);
             String password = scanner.nextLine();
             try {
-                privKey = verifyID(userID, password, encoded, salt);
+                privKey = KeyReader.getInstance().readPrivateKey(userID, password, path);
                 UserClient userClient = new UserClient(userID, privKey);
                 userClient.addGood("good1");
                 userClient.printGoods();
@@ -106,34 +107,6 @@ public class UserClientApp {
             }
 
         }
-    }
-
-    public static PrivateKey verifyID(String userID, String password, byte[] encoded, byte[] salt) throws GeneralSecurityException, IOException, BadPaddingException {
-
-        EncryptedPrivateKeyInfo encinfo = new EncryptedPrivateKeyInfo(encoded);
-        byte[] encrypPrivKey = encinfo.getEncryptedData();
-
-        String PBEALG = "PBEWithSHA1AndDESede";
-        int count = 20; //hash iteration count
-
-        //Create PBE parameter set
-        PBEParameterSpec pbeParamSpec = new PBEParameterSpec(salt, count);
-        PBEKeySpec pbeKeySpec = new PBEKeySpec(password.toCharArray());
-        SecretKeyFactory keyFac = SecretKeyFactory.getInstance(PBEALG);
-        SecretKey pbeKey = keyFac.generateSecret(pbeKeySpec);
-
-        Cipher pbeCipher = Cipher.getInstance(PBEALG);
-
-        //Initialize PBE cipher with key and parameters
-        pbeCipher.init(Cipher.DECRYPT_MODE, pbeKey, pbeParamSpec);
-
-        byte[] encodedPrivKey = pbeCipher.doFinal(encrypPrivKey);
-
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        PrivateKey privKey = kf.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivKey));
-        //Key privKey = new SecretKeySpec(encodedPrivKey, "RSA");
-
-        return privKey;
     }
 
     public static byte[] read(String path) throws GeneralSecurityException, IOException {
