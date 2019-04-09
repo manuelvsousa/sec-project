@@ -20,13 +20,13 @@ public class Checker {
 
     public void checkResponse(byte[] receivedContent, String userID, String sig, String nonce) {
         if (!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(userID).getPublicKey(), receivedContent, sig)) {
-            throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
+            throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!",sig,nonce);
         }
         long nonceL = Long.valueOf(nonce).longValue();
         if (nonceL > Notary.getInstance().getUser(userID).getLastNonce()) {
             Notary.getInstance().getUser(userID).setLastNonce(nonceL);
         } else {
-            throw new InvalidTransactionExceptionResponse("Invalid Nonce");
+            throw new InvalidTransactionExceptionResponse("Invalid Nonce",sig,nonce);
         }
     }
 }
