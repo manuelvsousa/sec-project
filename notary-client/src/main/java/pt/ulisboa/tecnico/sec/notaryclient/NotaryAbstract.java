@@ -77,13 +77,10 @@ class NotaryAbstract {
             String sig = r.getHeaderString("Notary-Signature");
             String nonceS = r.getHeaderString("Notary-Nonce");
             long nonce = Long.valueOf(nonceS).longValue();
-            System.out.println(nonce);
             if (sig == null) {
                 throw new InvalidSignature("Signature from notary was null");
             } else {
                 String path = new File(System.getProperty("user.dir")).getParent();
-                System.out.println(path);
-                System.out.println(new String(toSign) + "||" + nonceS);
                 toSign = (new String(toSign) + "||" + nonceS).getBytes();
                 PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary", path);
                 if (!Crypto.getInstance().checkSignature(publicKey, toSign, sig)) {
@@ -131,7 +128,6 @@ class NotaryAbstract {
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
-            System.out.println(toSign);
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
             this.verifyResponse(r, toSign);
