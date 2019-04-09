@@ -7,7 +7,6 @@ import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.UserDoesNotO
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notary.model.exception.*;
 import pt.ulisboa.tecnico.sec.notary.util.Checker;
-import pt.ulisboa.tecnico.sec.util.Crypto;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -33,9 +32,9 @@ public class GoodsResource {
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
 
-            Checker.getInstance().checkResponse(toSign,userID,sig,nonce); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, userID, sig, nonce); // Check integrity of message and nonce validaty
 
-            String nonceNotary =  String.valueOf((System.currentTimeMillis() / 1000L));
+            String nonceNotary = String.valueOf((System.currentTimeMillis() / 1000L));
             byte[] toSignToSend = (type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary).getBytes();
             String sigNotary = Notary.getInstance().sign(toSignToSend);
             Response response = Response.status(200).
@@ -64,11 +63,11 @@ public class GoodsResource {
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
 
-            Checker.getInstance().checkResponse(toSign,sellerID,sig,nonce); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce); // Check integrity of message and nonce validaty
 
             Notary.getInstance().addTransaction(goodID, buyerID, sellerID);
 
-            String nonceNotary =  String.valueOf((System.currentTimeMillis() / 1000L));
+            String nonceNotary = String.valueOf((System.currentTimeMillis() / 1000L));
             byte[] toSignResponse = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
             String sigNotary = Notary.getInstance().sign(toSignResponse);
             Response response = Response.ok().
@@ -93,7 +92,7 @@ public class GoodsResource {
 
     @GET
     @Path("/intention")
-    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig,@QueryParam("nonce") String nonce) throws Exception {
+    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce) throws Exception {
         System.out.println(goodID + " " + sellerID + " ");
         if (goodID == null || sellerID == null || sig == null || nonce == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
@@ -104,11 +103,11 @@ public class GoodsResource {
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
 
-            Checker.getInstance().checkResponse(toSign,sellerID,sig,nonce); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce); // Check integrity of message and nonce validaty
 
             Notary.getInstance().setIntentionToSell(goodID, sellerID);
 
-            String nonceNotary =  String.valueOf((System.currentTimeMillis() / 1000L));
+            String nonceNotary = String.valueOf((System.currentTimeMillis() / 1000L));
             byte[] toSignResponse = (type + "||" + goodID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
             String sigNotary = Notary.getInstance().sign(toSignResponse);
             Response response = Response.ok().

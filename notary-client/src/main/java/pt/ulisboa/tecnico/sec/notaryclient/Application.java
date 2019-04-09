@@ -27,7 +27,7 @@ public class Application {
         NotaryClient nc = new NotaryClient("user1", pk);
         System.out.println(nc.getStateOfGood("good2").getOwnerID());
         //System.out.println(nc.intentionToSell("good2"));
-       // System.out.println(nc.intentionToSell("good2"));
+        // System.out.println(nc.intentionToSell("good2"));
 
     }
 }
