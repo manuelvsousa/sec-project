@@ -6,13 +6,10 @@ import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-
-import static javax.xml.bind.DatatypeConverter.printHexBinary;
 
 public class KeyReader {
 
@@ -29,33 +26,6 @@ public class KeyReader {
         return uniqueInstance;
     }
 
-    public void write(String keyPath) throws GeneralSecurityException, IOException {
-        // get an AES private key
-        System.out.println("Generating RSA key ...");
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-        keyGen.initialize(1024);
-        KeyPair keys = keyGen.generateKeyPair();
-        System.out.println("Finish generating RSA keys");
-
-        System.out.println("Private Key:");
-        PrivateKey privKey = keys.getPrivate();
-        byte[] privKeyEncoded = privKey.getEncoded();
-        System.out.println(printHexBinary(privKeyEncoded));
-        System.out.println("Public Key:");
-        PublicKey pubKey = keys.getPublic();
-        byte[] pubKeyEncoded = pubKey.getEncoded();
-        System.out.println(printHexBinary(pubKeyEncoded));
-
-        System.out.println("Writing Private key to '" + keyPath + "' ...");
-        FileOutputStream privFos = new FileOutputStream(keyPath);
-        privFos.write(privKeyEncoded);
-        privFos.close();
-        System.out.println("Writing Pubic key to '" + keyPath + "' ...");
-        FileOutputStream pubFos = new FileOutputStream(keyPath);
-        pubFos.write(pubKeyEncoded);
-        pubFos.close();
-    }
-
     public PublicKey readPublicKey(String userID) throws GeneralSecurityException, IOException {
         String path = System.getProperty("user.dir");
         byte[] encoded = read(path + "/keys/users/" + userID + ".pub");
@@ -65,12 +35,12 @@ public class KeyReader {
     }
 
 
-    public PrivateKey readPrivateKey(String userID, String password) throws GeneralSecurityException, IOException, BadPaddingException {
+    public PrivateKey readPrivateKey(String userID, String password) throws GeneralSecurityException, IOException {
         String path = System.getProperty("user.dir");
         return readPrivateKey(userID, password, path);
     }
 
-    public PrivateKey readPrivateKey(String userID, String password, String path) throws GeneralSecurityException, IOException, BadPaddingException {
+    public PrivateKey readPrivateKey(String userID, String password, String path) throws GeneralSecurityException, IOException {
         try {
             byte[] encoded = read(path + "/keys/users/" + userID + ".enc.key");
             byte[] salt = read(path + "/keys/users/" + userID + "salt.txt");
@@ -101,7 +71,7 @@ public class KeyReader {
         }
     }
 
-    private byte[] read(String path) throws GeneralSecurityException, IOException {
+    private byte[] read(String path) throws IOException {
         System.out.println("Reading from file " + path + " ...");
         FileInputStream fis = new FileInputStream(path);
         byte[] encoded = new byte[fis.available()];
