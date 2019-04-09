@@ -24,9 +24,6 @@ public class UserClientApp {
         }
         String userID = args[0];
         Boolean flag = true;
-        System.out.println(userID);
-        String path = new File(System.getProperty("user.dir")).getParent();
-        System.out.println(path);
         PrivateKey privKey = null;
 
         while (flag) {
@@ -34,7 +31,7 @@ public class UserClientApp {
             Scanner scanner = new Scanner(System.in);
             String password = scanner.nextLine();
             try {
-                privKey = KeyReader.getInstance().readPrivateKey(userID, password, path);
+                privKey = KeyReader.getInstance().readPrivateKey(userID, password);
                 UserClient userClient = new UserClient(userID, privKey);
                 userClient.addGood("good1");
                 userClient.printGoods();
@@ -74,7 +71,7 @@ public class UserClientApp {
                     case "2":
                         if (arr.length == 2) {
                             System.out.println("getStateOfGood: " + arr[1]);
-                            System.out.println(userClient.intentionToSell(arr[1]));
+                            System.out.println(userClient.getStateOfgood(arr[1]));
                         } else {
                             System.out.println("Please insert the correct parameters");
                         }

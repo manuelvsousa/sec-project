@@ -40,24 +40,25 @@ public class Bootstrap implements ServletContextListener {
                 in.close();
                 System.out.println("Notary has been deserialized ");
             } else {
+                String path = new File(System.getProperty("user.dir")).getParent();
                 Notary notary = Notary.getInstance();
                 if (!this.CITIZEN_CARD_ACTIVATED) {
-                    PrivateKey privateKey = KeyReader.getInstance().readPrivateKey("notary", "notary");
+                    PrivateKey privateKey = KeyReader.getInstance().readPrivateKey("notary", "notary", path);
                     notary.setPrivateKey(privateKey);
                 }
                 System.out.println("User 0 created");
-                User user1 = new User("user1", KeyReader.getInstance().readPublicKey("user1"));
+                User user1 = new User("user1", KeyReader.getInstance().readPublicKey("user1", path));
                 user1.addGood(new Good("good1", true));
                 user1.addGood(new Good("good2", false));
                 notary.addUser(user1);
                 System.out.println("User 1 created");
 
-                User user2 = new User("user2", KeyReader.getInstance().readPublicKey("user2"));
+                User user2 = new User("user2", KeyReader.getInstance().readPublicKey("user2", path));
                 user2.addGood(new Good("good3", true));
                 notary.addUser(user2);
                 System.out.println("User 2 created");
 
-                notary.addUser(new User("user3", KeyReader.getInstance().readPublicKey("user3")));
+                notary.addUser(new User("user3", KeyReader.getInstance().readPublicKey("user3", path)));
                 System.out.println("User 3 created");
             }
         } catch (IOException ex) {

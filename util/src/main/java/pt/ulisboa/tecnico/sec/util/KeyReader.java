@@ -13,6 +13,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.io.File;
 
 public class KeyReader {
 
@@ -30,16 +31,21 @@ public class KeyReader {
     }
 
     public PublicKey readPublicKey(String userID) throws GeneralSecurityException, IOException {
-        String path = System.getProperty("user.dir");
+        String path = new File(System.getProperty("user.dir")).getParent();
+        System.out.println(path);
+        return readPublicKey(userID, path);
+    }
+
+    public PublicKey readPublicKey(String userID, String path) throws GeneralSecurityException, IOException {
         byte[] encoded = read(path + "/keys/users/" + userID + ".pub");
         PublicKey publicKey =
                 KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(encoded));
         return publicKey;
     }
 
-
     public PrivateKey readPrivateKey(String userID, String password) throws GeneralSecurityException, IOException {
-        String path = System.getProperty("user.dir");
+        String path = new File(System.getProperty("user.dir")).getParent();
+        System.out.println(path);
         return readPrivateKey(userID, password, path);
     }
 

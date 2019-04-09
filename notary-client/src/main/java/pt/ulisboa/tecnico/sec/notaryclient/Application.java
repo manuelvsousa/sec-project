@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.sec.notaryclient;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 
 import java.security.PrivateKey;
+import java.io.File;
 
 public class Application {
     public static void main(String[] args) throws Exception {
@@ -22,8 +23,8 @@ public class Application {
 //        System.out.println(Crypto.getInstance().checkSignature(asd.getPublic(), "lalalallaallaa".getBytes(), asdd));
 //        CitizenCard.getInstance().getCertificate();
 
-
-        PrivateKey pk = KeyReader.getInstance().readPrivateKey("user1", "password1");
+        String path = new File(System.getProperty("user.dir")).getParent();
+        PrivateKey pk = KeyReader.getInstance().readPrivateKey("user1", "password1", path);
         NotaryClient nc = new NotaryClient("user1", pk);
         System.out.println(nc.getStateOfGood("good2").getOwnerID());
         System.out.println(nc.intentionToSell("good2"));
