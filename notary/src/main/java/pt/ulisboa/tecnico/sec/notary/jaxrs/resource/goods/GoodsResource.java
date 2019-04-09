@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.NotFoundExce
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.UserDoesNotOwnResourceExceptionResponse;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notary.model.exception.*;
+import pt.ulisboa.tecnico.sec.notary.util.Checker;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 
 import javax.ws.rs.*;
@@ -30,19 +31,10 @@ public class GoodsResource {
             State s = Notary.getInstance().getStateOfGood(id);
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-            System.out.println(type + "||" + id + "||" + userID + "||" + nonce);
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
-            if (!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(userID).getPublicKey(), toSign, sig)) {
-                throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
-            }
-            long nonceL = Long.valueOf(nonce).longValue();
-            System.out.println(nonceL + " " + Notary.getInstance().getUser(userID).getLastNonce());
-            System.out.println(nonceL > Notary.getInstance().getUser(userID).getLastNonce());
-            if(nonceL > Notary.getInstance().getUser(userID).getLastNonce()){
-                Notary.getInstance().getUser(userID).setLastNonce(nonceL);
-            } else {
-                throw new InvalidTransactionExceptionResponse("Invalid Nonce");
-            }
+
+            Checker.getInstance().checkResponse(toSign,userID,sig,nonce); // Check integrity of message and nonce validaty
+
             String nonceNotary =  String.valueOf((System.currentTimeMillis() / 1000L));
             byte[] toSignToSend = (type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary).getBytes();
             String sigNotary = Notary.getInstance().sign(toSignToSend);
@@ -61,23 +53,27 @@ public class GoodsResource {
 
     @GET
     @Path("/transfer")
-    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig) throws Exception {
-        System.out.println(goodID + " " + buyerID + " " + sellerID + "" + sig);
-        if (goodID == null || goodID == null || sellerID == null || sig == null) {
+    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce) throws Exception {
+        System.out.println(goodID + " " + buyerID + " " + sellerID + " " + sig + " " + nonce);
+        if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("goodID and/or goodID and/or sellerID and/or signature are null").build());
+                    .entity("goodID and/or goodID and/or sellerID and/or signature and/or nonce are null").build());
         }
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
-            byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
-            if (!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(sellerID).getPublicKey(), toSign, sig)) {
-                throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
-            }
+            byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
+
+            Checker.getInstance().checkResponse(toSign,sellerID,sig,nonce); // Check integrity of message and nonce validaty
+
             Notary.getInstance().addTransaction(goodID, buyerID, sellerID);
-            String sigNotary = Notary.getInstance().sign(toSign);
+
+            String nonceNotary =  String.valueOf((System.currentTimeMillis() / 1000L));
+            byte[] toSignResponse = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
+            String sigNotary = Notary.getInstance().sign(toSignResponse);
             Response response = Response.ok().
-                    header("Notary-Signature", sigNotary).build();
+                    header("Notary-Signature", sigNotary).
+                    header("Notary-Nonce", nonceNotary).build();
             return response;
 
         } catch (GoodNotFoundException e1) {
@@ -97,23 +93,28 @@ public class GoodsResource {
 
     @GET
     @Path("/intention")
-    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig) throws Exception {
+    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig,@QueryParam("nonce") String nonce) throws Exception {
         System.out.println(goodID + " " + sellerID + " ");
-        if (goodID == null || sellerID == null || sig == null) {
+        if (goodID == null || sellerID == null || sig == null || nonce == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("goodID and/or sellerID  and/or signature are null").build());
+                    .entity("goodID and/or sellerID and/or signature and/or nonce are null").build());
         }
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
-            byte[] toSign = (type + "||" + goodID + "||" + sellerID).getBytes();
-            if (!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(sellerID).getPublicKey(), toSign, sig)) {
-                throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
-            }
+            byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
+
+            Checker.getInstance().checkResponse(toSign,sellerID,sig,nonce); // Check integrity of message and nonce validaty
+
             Notary.getInstance().setIntentionToSell(goodID, sellerID);
-            String sigNotary = Notary.getInstance().sign(toSign);
+
+            String nonceNotary = "1554871876";
+            //String nonceNotary =  String.valueOf((System.currentTimeMillis() / 1000L));
+            byte[] toSignResponse = (type + "||" + goodID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
+            String sigNotary = Notary.getInstance().sign(toSignResponse);
             Response response = Response.ok().
-                    header("Notary-Signature", sigNotary).build();
+                    header("Notary-Signature", sigNotary).
+                    header("Notary-Nonce", nonceNotary).build();
             return response;
         } catch (GoodNotFoundException e1) {
             throw new NotFoundExceptionResponse(e1.getMessage());

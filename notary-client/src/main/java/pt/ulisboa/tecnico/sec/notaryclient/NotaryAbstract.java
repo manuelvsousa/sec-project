@@ -30,7 +30,7 @@ class NotaryAbstract {
 
     public NotaryAbstract(PrivateKey privateKey) {
         this.privateKey = privateKey;
-        this.lastNotaryNonce = System.currentTimeMillis() / 1000L;
+        this.lastNotaryNonce = (System.currentTimeMillis() - 200) / 1000L;
     }
 
     public State getStateOfGood(String id, String userID) throws Exception {
@@ -41,8 +41,7 @@ class NotaryAbstract {
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
-            byte[] toSignResponse = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
-            this.verifyResponse(r, toSignResponse);
+            this.verifyResponse(r, toSign);
             State s = r.readEntity(State.class);
             return s;
         } catch (NotFoundException e) {
@@ -62,9 +61,10 @@ class NotaryAbstract {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
-            byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
+            String nonce =  String.valueOf((System.currentTimeMillis() / 1000L));
+            byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
+            Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
             this.verifyResponse(r, toSign);
             return;
         } catch (Exception e) {
@@ -125,9 +125,10 @@ class NotaryAbstract {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
-            byte[] toSign = (type + "||" + goodID + "||" + sellerID).getBytes();
+            String nonce =  String.valueOf((System.currentTimeMillis() / 1000L));
+            byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
+            Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
             this.verifyResponse(r, toSign);
             return;
         } catch (Exception e) {
