@@ -7,7 +7,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import java.security.PrivateKey;
 import java.util.Base64;
 
@@ -15,7 +14,9 @@ public class UserAbstract {
     private Client client = ClientBuilder.newClient();
     private PrivateKey privateKey;
 
-    public UserAbstract(PrivateKey privateKey){this.privateKey = privateKey; }
+    public UserAbstract(PrivateKey privateKey) {
+        this.privateKey = privateKey;
+    }
 
     public void buyGood(String goodID, String buyerID, String sellerID) throws Exception {
         String arr[] = sellerID.split("user");

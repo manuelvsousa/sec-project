@@ -66,8 +66,8 @@ public class KeyReader {
 
 
     public PrivateKey readPrivateKey(String userID, String password) throws GeneralSecurityException, IOException, BadPaddingException {
-            String path = System.getProperty("user.dir");
-            return readPrivateKey(userID, password, path);
+        String path = System.getProperty("user.dir");
+        return readPrivateKey(userID, password, path);
     }
 
     public PrivateKey readPrivateKey(String userID, String password, String path) throws GeneralSecurityException, IOException, BadPaddingException {

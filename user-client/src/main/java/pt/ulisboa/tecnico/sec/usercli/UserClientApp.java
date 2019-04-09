@@ -1,24 +1,20 @@
 package pt.ulisboa.tecnico.sec.usercli;
 
-import javax.crypto.*;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
+import pt.ulisboa.tecnico.sec.util.KeyReader;
+
+import javax.crypto.BadPaddingException;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
 import java.security.PrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Scanner;
-import java.io.File;
-import pt.ulisboa.tecnico.sec.util.KeyReader;
-import pt.ulisboa.tecnico.sec.util.exception.PrivateKeyWrongPassword;
 
 //mvn exec:java -Dexec.args="user1"
 
 public class UserClientApp {
 
-    public static void main(String[] args) throws GeneralSecurityException, IOException, Exception{
+    public static void main(String[] args) throws GeneralSecurityException, IOException, Exception {
 
         /**TODO Pôr as mensagens recebidas mais bonitas e excepções???**/
         if (args.length != 1) {

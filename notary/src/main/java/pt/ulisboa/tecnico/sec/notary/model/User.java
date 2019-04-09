@@ -42,11 +42,11 @@ public class User implements Serializable {
         return this.goods;
     }
 
-    public long getLastNonce(){
+    public long getLastNonce() {
         return this.lastNonce;
     }
 
-    public void setLastNonce(long lastNonce){
+    public void setLastNonce(long lastNonce) {
         this.lastNonce = lastNonce;
         Notary.getInstance().save();
     }

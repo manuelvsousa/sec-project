@@ -11,9 +11,8 @@ import java.util.List;
 
 public class UserClient {
 
-    private UserAbstract ua;
     public List<String> goods = new ArrayList<>();
-
+    private UserAbstract ua;
     private NotaryClient notaryClient;
     //EXCEPÇÕES
 

@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.Arrays;
 import java.util.Base64;
 
 
@@ -37,7 +36,7 @@ class NotaryAbstract {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-            String nonce =  String.valueOf((System.currentTimeMillis() / 1000L));
+            String nonce = String.valueOf((System.currentTimeMillis() / 1000L));
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
@@ -61,7 +60,7 @@ class NotaryAbstract {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
-            String nonce =  String.valueOf((System.currentTimeMillis() / 1000L));
+            String nonce = String.valueOf((System.currentTimeMillis() / 1000L));
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
@@ -88,7 +87,7 @@ class NotaryAbstract {
                         throw new InvalidSignature("Signature from notary was forged");
                     }
                 }
-                if(nonce > this.lastNotaryNonce){
+                if (nonce > this.lastNotaryNonce) {
                     this.lastNotaryNonce = nonce;
                 } else {
                     throw new InvalidSignature("Nonce from notary is invalid");
@@ -125,7 +124,7 @@ class NotaryAbstract {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
-            String nonce =  String.valueOf((System.currentTimeMillis() / 1000L));
+            String nonce = String.valueOf((System.currentTimeMillis() / 1000L));
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
