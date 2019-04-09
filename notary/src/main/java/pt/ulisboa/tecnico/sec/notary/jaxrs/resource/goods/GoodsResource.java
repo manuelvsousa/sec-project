@@ -19,7 +19,6 @@ public class GoodsResource {
     @GET
     @Path("/getStatus")
     @Produces({MediaType.APPLICATION_JSON})
-    //add MediaType.APPLICATION_XML if you want XML as well (don't forget @XmlRootElement)
     public Response getStateOfGood(@QueryParam("id") String id, @QueryParam("userID") String userID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce) throws Exception {
         System.out.println(id + " " + userID + " " + sig + " " + nonce);
         if (id == null || userID == null || sig == null || nonce == null) {
@@ -71,7 +70,6 @@ public class GoodsResource {
 
             Notary.getInstance().addTransaction(goodID, buyerID, sellerID);
 
-
             Response response = Response.ok().
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
@@ -95,7 +93,7 @@ public class GoodsResource {
     @GET
     @Path("/intention")
     public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce) throws Exception {
-        System.out.println(goodID + " " + sellerID + " ");
+        System.out.println(goodID + " " + sellerID + " " + sig + " " + nonce);
         if (goodID == null || sellerID == null || sig == null || nonce == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
                     .entity("goodID and/or sellerID and/or signature and/or nonce are null").build());
