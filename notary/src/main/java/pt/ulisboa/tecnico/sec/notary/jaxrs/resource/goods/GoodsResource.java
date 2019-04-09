@@ -12,6 +12,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Base64;
+import java.util.concurrent.TimeUnit;
 
 @Path("/goods")
 public class GoodsResource {
@@ -28,8 +29,9 @@ public class GoodsResource {
 
         String type =
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-        String nonceNotary = String.valueOf((System.currentTimeMillis() / 1000L));
+        String nonceNotary = String.valueOf((System.currentTimeMillis()));
         byte[] toSignToSend = (type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary).getBytes();
+        System.out.println(type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary);
         String sigNotary = Notary.getInstance().sign(toSignToSend);
 
         try {
@@ -60,7 +62,7 @@ public class GoodsResource {
         }
         String type =
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
-        String nonceNotary = String.valueOf((System.currentTimeMillis() / 1000L));
+        String nonceNotary = String.valueOf((System.currentTimeMillis()));
         byte[] toSignResponse = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
         String sigNotary = Notary.getInstance().sign(toSignResponse);
         try {
@@ -100,7 +102,7 @@ public class GoodsResource {
         }
         String type =
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
-        String nonceNotary = String.valueOf((System.currentTimeMillis() / 1000L));
+        String nonceNotary = String.valueOf((System.currentTimeMillis()));
         byte[] toSignResponse = (type + "||" + goodID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
         String sigNotary = Notary.getInstance().sign(toSignResponse);
         try {

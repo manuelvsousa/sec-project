@@ -22,7 +22,7 @@ public class User implements Serializable {
     public User(@JsonProperty("userID") String userID, @JsonProperty("publicKey") PublicKey publicKey) {
         this.userID = userID;
         this.publicKey = publicKey;
-        this.lastNonce = System.currentTimeMillis() / 1000L;
+        this.lastNonce = System.currentTimeMillis();
     }
 
     public String getID() {

@@ -29,14 +29,14 @@ class NotaryAbstract {
 
     public NotaryAbstract(PrivateKey privateKey) {
         this.privateKey = privateKey;
-        this.lastNotaryNonce = (System.currentTimeMillis() - 200) / 1000L;
+        this.lastNotaryNonce = System.currentTimeMillis();
     }
 
     public State getStateOfGood(String id, String userID) throws Exception {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-            String nonce = String.valueOf((System.currentTimeMillis() / 1000L));
+            String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
@@ -60,7 +60,7 @@ class NotaryAbstract {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
-            String nonce = String.valueOf((System.currentTimeMillis() / 1000L));
+            String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
@@ -79,6 +79,7 @@ class NotaryAbstract {
             if (sig == null) {
                 throw new InvalidSignature("Signature from notary was null");
             } else {
+                System.out.println(new String(toSign) + "||" + nonceS);
                 toSign = (new String(toSign) + "||" + nonceS).getBytes();
                 PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary");
                 if (!Crypto.getInstance().checkSignature(publicKey, toSign, sig)) {
@@ -124,7 +125,7 @@ class NotaryAbstract {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
-            String nonce = String.valueOf((System.currentTimeMillis() / 1000L));
+            String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
