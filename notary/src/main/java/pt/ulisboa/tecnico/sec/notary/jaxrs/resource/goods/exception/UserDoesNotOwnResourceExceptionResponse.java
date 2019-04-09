@@ -5,7 +5,9 @@ import javax.ws.rs.core.Response;
 
 public class UserDoesNotOwnResourceExceptionResponse extends WebApplicationException {
 
-    public UserDoesNotOwnResourceExceptionResponse(String message) {
-        super(Response.status(Response.Status.EXPECTATION_FAILED).entity(message).build());
+    public UserDoesNotOwnResourceExceptionResponse(String message, String sig,String nonce) {
+        super(Response.status(Response.Status.EXPECTATION_FAILED).
+                header("Notary-Signature", sig).
+                header("Notary-Nonce", nonce).entity(message).build());
     }
 }

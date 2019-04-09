@@ -72,32 +72,32 @@ class NotaryAbstract {
     }
 
     private void verifyResponse(Response r, byte[] toSign) {
-        if (r.getStatus() == 200) {
-            try {
-                String sig = r.getHeaderString("Notary-Signature");
-                String nonceS = r.getHeaderString("Notary-Nonce");
-                long nonce = Long.valueOf(nonceS).longValue();
-                if (sig == null) {
-                    throw new InvalidSignature("Signature from notary was null");
-                } else {
-                    toSign = (new String(toSign) + "||" + nonceS).getBytes();
-                    System.out.println(new String(toSign));
-                    PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary");
-                    if (!Crypto.getInstance().checkSignature(publicKey, toSign, sig)) {
-                        throw new InvalidSignature("Signature from notary was forged");
-                    }
+        try {
+            String sig = r.getHeaderString("Notary-Signature");
+            String nonceS = r.getHeaderString("Notary-Nonce");
+            long nonce = Long.valueOf(nonceS).longValue();
+            if (sig == null) {
+                throw new InvalidSignature("Signature from notary was null");
+            } else {
+                toSign = (new String(toSign) + "||" + nonceS).getBytes();
+                PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary");
+                if (!Crypto.getInstance().checkSignature(publicKey, toSign, sig)) {
+                    throw new InvalidSignature("Signature from notary was forged");
                 }
-                if (nonce > this.lastNotaryNonce) {
-                    this.lastNotaryNonce = nonce;
-                } else {
-                    throw new InvalidSignature("Nonce from notary is invalid");
-                }
-            } catch (GeneralSecurityException gse) {
-                System.out.println("GeneralSecurityException catched");
-            } catch (IOException io) {
-                System.out.println("IOException catched");
-
             }
+            if (nonce > this.lastNotaryNonce) {
+                this.lastNotaryNonce = nonce;
+            } else {
+                throw new InvalidSignature("Nonce from notary is invalid");
+            }
+        } catch (GeneralSecurityException gse) {
+            System.out.println("GeneralSecurityException catched");
+        } catch (IOException io) {
+            System.out.println("IOException catched");
+
+        }
+
+        if (r.getStatus() == 200) {
             return;
         } else {
             String cause = r.readEntity(String.class);
