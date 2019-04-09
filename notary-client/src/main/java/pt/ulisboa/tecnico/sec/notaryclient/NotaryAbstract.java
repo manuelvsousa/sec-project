@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Arrays;
 import java.util.Base64;
 
 
@@ -25,19 +26,23 @@ class NotaryAbstract {
     private static final String REST_URI = "http://localhost:9090/notary/notary";
     private Client client = ClientBuilder.newClient();
     private PrivateKey privateKey;
+    private long lastNotaryNonce;
 
     public NotaryAbstract(PrivateKey privateKey) {
         this.privateKey = privateKey;
+        this.lastNotaryNonce = System.currentTimeMillis() / 1000L;
     }
 
     public State getStateOfGood(String id, String userID) throws Exception {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-            byte[] toSign = (type + "||" + id + "||" + userID).getBytes();
+            String nonce =  String.valueOf((System.currentTimeMillis() / 1000L));
+            byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
-            this.verifyResponse(r, toSign);
+            Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
+            byte[] toSignResponse = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
+            this.verifyResponse(r, toSignResponse);
             State s = r.readEntity(State.class);
             return s;
         } catch (NotFoundException e) {
@@ -57,9 +62,6 @@ class NotaryAbstract {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
-
-            long unixTime = System.currentTimeMillis() / 1000L;
-            System.out.println(unixTime);
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
@@ -74,13 +76,22 @@ class NotaryAbstract {
         if (r.getStatus() == 200) {
             try {
                 String sig = r.getHeaderString("Notary-Signature");
+                String nonceS = r.getHeaderString("Notary-Nonce");
+                long nonce = Long.valueOf(nonceS).longValue();
                 if (sig == null) {
                     throw new InvalidSignature("Signature from notary was null");
                 } else {
+                    toSign = (new String(toSign) + "||" + nonceS).getBytes();
+                    System.out.println(new String(toSign));
                     PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary");
                     if (!Crypto.getInstance().checkSignature(publicKey, toSign, sig)) {
                         throw new InvalidSignature("Signature from notary was forged");
                     }
+                }
+                if(nonce > this.lastNotaryNonce){
+                    this.lastNotaryNonce = nonce;
+                } else {
+                    throw new InvalidSignature("Nonce from notary is invalid");
                 }
             } catch (GeneralSecurityException gse) {
                 System.out.println("GeneralSecurityException catched");

@@ -74,6 +74,7 @@ public class KeyReader {
         try {
             byte[] encoded = read(path + "/keys/users/" + userID + ".enc.key");
             byte[] salt = read(path + "/keys/users/" + userID + "salt.txt");
+            System.out.println(path);
             EncryptedPrivateKeyInfo encinfo = new EncryptedPrivateKeyInfo(encoded);
             byte[] encrypPrivKey = encinfo.getEncryptedData();
 

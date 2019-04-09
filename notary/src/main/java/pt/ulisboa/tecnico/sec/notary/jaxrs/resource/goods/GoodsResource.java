@@ -20,24 +20,36 @@ public class GoodsResource {
     @Path("/getStatus")
     @Produces({MediaType.APPLICATION_JSON})
     //add MediaType.APPLICATION_XML if you want XML as well (don't forget @XmlRootElement)
-    public Response getStateOfGood(@QueryParam("id") String id, @QueryParam("userID") String userID, @QueryParam("signature") String sig) throws Exception {
-        System.out.println(id + " " + userID + " " + sig);
-        if (id == null || userID == null || sig == null) {
+    public Response getStateOfGood(@QueryParam("id") String id, @QueryParam("userID") String userID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce) throws Exception {
+        System.out.println(id + " " + userID + " " + sig + " " + nonce);
+        if (id == null || userID == null || sig == null || nonce == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("id and/or userID and/or sig are null").build());
+                    .entity("id and/or userID and/or sig and/or nonce  are null").build());
         }
         try {
             State s = Notary.getInstance().getStateOfGood(id);
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-            byte[] toSign = (type + "||" + id + "||" + userID).getBytes();
+            System.out.println(type + "||" + id + "||" + userID + "||" + nonce);
+            byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
             if (!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(userID).getPublicKey(), toSign, sig)) {
                 throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!");
             }
-            String sigNotary = Notary.getInstance().sign(toSign);
+            long nonceL = Long.valueOf(nonce).longValue();
+            System.out.println(nonceL + " " + Notary.getInstance().getUser(userID).getLastNonce());
+            System.out.println(nonceL > Notary.getInstance().getUser(userID).getLastNonce());
+            if(nonceL > Notary.getInstance().getUser(userID).getLastNonce()){
+                Notary.getInstance().getUser(userID).setLastNonce(nonceL);
+            } else {
+                throw new InvalidTransactionExceptionResponse("Invalid Nonce");
+            }
+            String nonceNotary =  String.valueOf((System.currentTimeMillis() / 1000L));
+            byte[] toSignToSend = (type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary).getBytes();
+            String sigNotary = Notary.getInstance().sign(toSignToSend);
             Response response = Response.status(200).
                     entity(s).
-                    header("Notary-Signature", sigNotary).build();
+                    header("Notary-Signature", sigNotary).
+                    header("Notary-Nonce", nonceNotary).build();
             return response;
         } catch (GoodNotFoundException e) {
             throw new NotFoundExceptionResponse(e.getMessage());

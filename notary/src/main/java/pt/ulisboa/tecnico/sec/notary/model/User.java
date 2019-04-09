@@ -17,9 +17,12 @@ public class User implements Serializable {
 
     private PublicKey publicKey;
 
+    private long lastNonce;
+
     public User(@JsonProperty("userID") String userID, @JsonProperty("publicKey") PublicKey publicKey) {
         this.userID = userID;
         this.publicKey = publicKey;
+        this.lastNonce = System.currentTimeMillis() / 1000L;
     }
 
     public String getID() {
@@ -37,5 +40,14 @@ public class User implements Serializable {
 
     public List<Good> getGoods() {
         return this.goods;
+    }
+
+    public long getLastNonce(){
+        return this.lastNonce;
+    }
+
+    public void setLastNonce(long lastNonce){
+        this.lastNonce = lastNonce;
+        Notary.getInstance().save();
     }
 }
