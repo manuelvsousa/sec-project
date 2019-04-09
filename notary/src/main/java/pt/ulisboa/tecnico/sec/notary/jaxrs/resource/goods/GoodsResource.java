@@ -44,7 +44,7 @@ public class GoodsResource {
                     header("Notary-Nonce", nonceNotary).build();
             return response;
         } catch (GoodNotFoundException e) {
-            throw new NotFoundExceptionResponse(e.getMessage(),sigNotary,nonceNotary);
+            throw new NotFoundExceptionResponse(e.getMessage(), sigNotary, nonceNotary);
         } catch (Exception e) {
             throw e;
         }
@@ -78,15 +78,15 @@ public class GoodsResource {
             return response;
 
         } catch (GoodNotFoundException e1) {
-            throw new NotFoundExceptionResponse(e1.getMessage(),sigNotary,nonceNotary);
+            throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary);
         } catch (UserNotFoundException e2) {
-            throw new NotFoundExceptionResponse(e2.getMessage(),sigNotary,nonceNotary);
+            throw new NotFoundExceptionResponse(e2.getMessage(), sigNotary, nonceNotary);
         } catch (UserDoesNotOwnGood e3) {
-            throw new UserDoesNotOwnResourceExceptionResponse(e3.getMessage(),sigNotary,nonceNotary);
+            throw new UserDoesNotOwnResourceExceptionResponse(e3.getMessage(), sigNotary, nonceNotary);
         } catch (TransactionAlreadyExistsException e4) {
-            throw new InvalidTransactionExceptionResponse(e4.getMessage(),sigNotary,nonceNotary);
+            throw new InvalidTransactionExceptionResponse(e4.getMessage(), sigNotary, nonceNotary);
         } catch (InvalidTransactionException e5) {
-            throw new InvalidTransactionExceptionResponse(e5.getMessage(),sigNotary,nonceNotary);
+            throw new InvalidTransactionExceptionResponse(e5.getMessage(), sigNotary, nonceNotary);
         } catch (Exception e) {
             throw e;
         }
@@ -117,11 +117,11 @@ public class GoodsResource {
                     header("Notary-Nonce", nonceNotary).build();
             return response;
         } catch (GoodNotFoundException e1) {
-            throw new NotFoundExceptionResponse(e1.getMessage(),sigNotary,nonceNotary);
+            throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary);
         } catch (UserNotFoundException e2) {
-            throw new NotFoundExceptionResponse(e2.getMessage(),sigNotary,nonceNotary);
+            throw new NotFoundExceptionResponse(e2.getMessage(), sigNotary, nonceNotary);
         } catch (UserDoesNotOwnGood e3) {
-            throw new UserDoesNotOwnResourceExceptionResponse(e3.getMessage(),sigNotary,nonceNotary);
+            throw new UserDoesNotOwnResourceExceptionResponse(e3.getMessage(), sigNotary, nonceNotary);
         } catch (Exception e) {
             throw e;
         }

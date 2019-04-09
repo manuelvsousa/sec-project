@@ -5,7 +5,7 @@ import javax.ws.rs.core.Response;
 
 public class InvalidTransactionExceptionResponse extends WebApplicationException {
 
-    public InvalidTransactionExceptionResponse(String message, String sig,String nonce) {
+    public InvalidTransactionExceptionResponse(String message, String sig, String nonce) {
         super(Response.status(Response.Status.CONFLICT).
                 header("Notary-Signature", sig).
                 header("Notary-Nonce", nonce).entity(message).build());
