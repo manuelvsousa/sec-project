@@ -49,7 +49,8 @@ public class Application {
         System.out.println(nc.getStateOfGood("good1").getOwnerID());
         System.out.println(nc.getStateOfGood("good1").getOwnerID());
         System.out.println(nc.getStateOfGood("good1").getOwnerID());
-        System.out.println(nc.getStateOfGood("good1").getOwnerID());        System.out.println(nc.getStateOfGood("good1").getOwnerID());
+        System.out.println(nc.getStateOfGood("good1").getOwnerID());
+        System.out.println(nc.getStateOfGood("good1").getOwnerID());
         System.out.println(nc.getStateOfGood("good1").getOwnerID());
         System.out.println(nc.getStateOfGood("good1").getOwnerID());
         System.out.println(nc.getStateOfGood("good1").getOwnerID());

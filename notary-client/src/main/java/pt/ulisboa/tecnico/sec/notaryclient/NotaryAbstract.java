@@ -18,6 +18,7 @@ import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Base64;
+import java.io.File;
 
 
 class NotaryAbstract {
@@ -76,12 +77,13 @@ class NotaryAbstract {
             String sig = r.getHeaderString("Notary-Signature");
             String nonceS = r.getHeaderString("Notary-Nonce");
             long nonce = Long.valueOf(nonceS).longValue();
+            System.out.println(nonce);
             if (sig == null) {
                 throw new InvalidSignature("Signature from notary was null");
             } else {
-                System.out.println(new String(toSign) + "||" + nonceS);
+                String path = new File(System.getProperty("user.dir")).getParent();
                 toSign = (new String(toSign) + "||" + nonceS).getBytes();
-                PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary");
+                PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary", path);
                 if (!Crypto.getInstance().checkSignature(publicKey, toSign, sig)) {
                     throw new InvalidSignature("Signature from notary was forged");
                 }
@@ -107,7 +109,7 @@ class NotaryAbstract {
             }
             if (r.getStatus() == 404) {
                 if (cause.toLowerCase().contains("good".toLowerCase())) {
-                    throw new GoodNotFoundException(cause);
+                    //throw new GoodNotFoundException(cause);
                 } else if (cause.toLowerCase().contains("user".toLowerCase())) {
                     throw new UserNotFoundException(cause);
                 }
@@ -127,6 +129,7 @@ class NotaryAbstract {
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
+            System.out.println(toSign);
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
             this.verifyResponse(r, toSign);

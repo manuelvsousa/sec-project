@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.sec.notaryclient;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 
 import java.security.PrivateKey;
+import java.io.File;
 
 
 public class NotaryClient {
