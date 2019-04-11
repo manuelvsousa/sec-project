@@ -25,9 +25,21 @@ public class UserClient {
         this.ua = new UserAbstract(privKey);
     }
 
-    public Boolean getStateOfgood(String goodID) throws Exception {
-        State state = this.notaryClient.getStateOfGood(goodID);
-        return state.getOnSale();
+    public String getStateOfgood(String goodID) throws Exception {
+        try {
+            State state = this.notaryClient.getStateOfGood(goodID);
+            String message = goodID + "->  Owner: " + state.getOwnerID() + "; On sale: ";
+            if(state.getOnSale()) {
+                message = message + "Yes;";
+            }
+            else {
+                message = message + "No;";
+            }
+            return message;
+        } catch (Exception e) {
+            String error = "Error: " + e.getMessage();
+            return error;
+        }
     }
 
     public String intentionToSell(String goodID) throws Exception {
@@ -42,9 +54,14 @@ public class UserClient {
     }
 
 
-    public Boolean buyGood(String goodID, String buyerID, String sellerID) throws Exception {
-        ua.buyGood(goodID, buyerID, sellerID);
-        return true;
+    public String buyGood(String goodID, String buyerID, String sellerID) throws Exception {
+        try {
+            ua.buyGood(goodID, buyerID, sellerID);
+            return "The transaction was successful";
+        } catch (Exception e) {
+            String error = "Error: " + e.getMessage();
+            return error;
+        }
     }
 
 

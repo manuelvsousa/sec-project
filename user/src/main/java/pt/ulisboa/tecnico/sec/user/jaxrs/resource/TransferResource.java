@@ -53,8 +53,8 @@ public class TransferResource {
                     header("Seller-Signature", sig).build();
             return Response.ok().build();
 
-        } catch (UserNotFoundException e) {
-            throw new NotFoundException(e);
+        } catch (Exception e) {
+            throw e;
         }
     }
 }
