@@ -22,8 +22,6 @@ public class Bootstrap implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         /**TODO**/
-        UserServ.getInstance().addUser(new User("user2", "public2"));
-        UserServ.getInstance().addUser(new User("user3", "public3"));
         /**try {
          ObjectInput in = new ObjectInputStream(new FileInputStream(serializeFileName));
          Notary notary = (Notary) in.readObject();
