@@ -3,12 +3,10 @@ package pt.ulisboa.tecnico.sec.user.jaxrs.resource;
 import pt.ulisboa.tecnico.sec.notaryclient.NotaryClient;
 import pt.ulisboa.tecnico.sec.user.jaxrs.application.UserServ;
 import pt.ulisboa.tecnico.sec.user.model.exception.UserNotFoundException;
-import pt.ulisboa.tecnico.sec.util.KeyReader;
-import pt.ulisboa.tecnico.sec.user.model.User;
-import java.security.PrivateKey;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.security.PrivateKey;
 
 @Path("/transfer")
 public class TransferResource {

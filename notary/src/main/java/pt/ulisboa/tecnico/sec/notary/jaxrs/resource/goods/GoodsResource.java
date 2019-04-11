@@ -31,17 +31,15 @@ public class GoodsResource {
         String nonceNotary = String.valueOf(System.currentTimeMillis());
         byte[] toSignToSend = (type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary).getBytes();
         System.out.println(type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary);
-        String sigNotary = Notary.getInstance().sign(toSignToSend);
+        String sigNotary = Notary.getInstance().sign(toSignToSend, false);
         try {
             State s = Notary.getInstance().getStateOfGood(id);
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
-            Checker.getInstance().checkResponse(toSign, userID, sig, nonceNotary); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, userID, sig, nonceNotary); // Check integrity of message and nonce validaty TODO fix this security issue. we need to sign the returned object!!!!!!!!!
             Response response = Response.status(200).
                     entity(s).
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
-            System.out.println("Notary-Nonce: " + nonceNotary);
-            System.out.println("Notary-Signature: " + sigNotary);
             return response;
         } catch (GoodNotFoundException e) {
             throw new NotFoundExceptionResponse(e.getMessage(), sigNotary, nonceNotary);
@@ -63,7 +61,7 @@ public class GoodsResource {
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
         String nonceNotary = String.valueOf((System.currentTimeMillis()));
         byte[] toSignResponse = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
-        String sigNotary = Notary.getInstance().sign(toSignResponse);
+        String sigNotary = Notary.getInstance().sign(toSignResponse, true);
         try {
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
 
@@ -102,7 +100,7 @@ public class GoodsResource {
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
         String nonceNotary = String.valueOf((System.currentTimeMillis()));
         byte[] toSignResponse = (type + "||" + goodID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
-        String sigNotary = Notary.getInstance().sign(toSignResponse);
+        String sigNotary = Notary.getInstance().sign(toSignResponse, false);
         try {
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
 

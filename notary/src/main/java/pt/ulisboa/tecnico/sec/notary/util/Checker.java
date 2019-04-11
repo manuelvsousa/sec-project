@@ -4,6 +4,8 @@ import pt.ulisboa.tecnico.sec.notary.jaxrs.application.Notary;
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.InvalidTransactionExceptionResponse;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 
+import java.security.GeneralSecurityException;
+
 
 public class Checker {
     private static Checker uniqueInstance;

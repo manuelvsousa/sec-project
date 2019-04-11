@@ -3,8 +3,6 @@ package pt.ulisboa.tecnico.sec.usercli;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 import pt.ulisboa.tecnico.sec.util.exception.PrivateKeyWrongPassword;
 
-import javax.crypto.BadPaddingException;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
