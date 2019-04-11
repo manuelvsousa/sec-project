@@ -28,20 +28,20 @@ public class GoodsResource {
 
         String type =
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-        String nonceNotary = String.valueOf((System.currentTimeMillis()));
+        String nonceNotary = String.valueOf(System.currentTimeMillis());
         byte[] toSignToSend = (type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary).getBytes();
         System.out.println(type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary);
         String sigNotary = Notary.getInstance().sign(toSignToSend);
-
         try {
             State s = Notary.getInstance().getStateOfGood(id);
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
-
-            Checker.getInstance().checkResponse(toSign, userID, sig, nonce); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, userID, sig, nonceNotary); // Check integrity of message and nonce validaty
             Response response = Response.status(200).
                     entity(s).
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
+            System.out.println("Notary-Nonce: " + nonceNotary);
+            System.out.println("Notary-Signature: " + sigNotary);
             return response;
         } catch (GoodNotFoundException e) {
             throw new NotFoundExceptionResponse(e.getMessage(), sigNotary, nonceNotary);
@@ -67,10 +67,9 @@ public class GoodsResource {
         try {
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
 
-            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonceNotary); // Check integrity of message and nonce validaty
 
-            Notary.getInstance().addTransaction(goodID, buyerID, sellerID);
-
+            Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary);
             Response response = Response.ok().
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
@@ -107,7 +106,7 @@ public class GoodsResource {
         try {
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
 
-            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonceNotary); // Check integrity of message and nonce validaty
 
             Notary.getInstance().setIntentionToSell(goodID, sellerID);
 

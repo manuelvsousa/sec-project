@@ -77,10 +77,14 @@ class NotaryAbstract {
             String sig = r.getHeaderString("Notary-Signature");
             String nonceS = r.getHeaderString("Notary-Nonce");
             long nonce = Long.valueOf(nonceS).longValue();
+            System.out.println(nonceS);
+            System.out.println(sig);
             if (sig == null) {
                 throw new InvalidSignature("Signature from notary was null");
             } else {
                 String path = new File(System.getProperty("user.dir")).getParent();
+                System.out.println(new String(toSign) + "||" + nonceS);
+                System.out.println(this.lastNotaryNonce);
                 toSign = (new String(toSign) + "||" + nonceS).getBytes();
                 PublicKey publicKey = KeyReader.getInstance().readPublicKey("notary", path);
                 if (!Crypto.getInstance().checkSignature(publicKey, toSign, sig)) {
