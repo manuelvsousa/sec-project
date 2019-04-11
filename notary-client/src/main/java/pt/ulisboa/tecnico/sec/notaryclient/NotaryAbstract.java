@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.sec.notaryclient;
 
+import javafx.util.Pair;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.GoodNotFoundException;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.InvalidSignature;
@@ -8,6 +9,7 @@ import pt.ulisboa.tecnico.sec.notaryclient.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 
+import javax.management.relation.RoleUnresolved;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -21,6 +23,8 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 
 class NotaryAbstract {
@@ -117,7 +121,7 @@ class NotaryAbstract {
     }
 
 
-    public void transferGood(String goodID, String buyerID, String sellerID, String nonceBuyer, String sigBuyer) throws Exception {
+    public Map<String, String> transferGood(String goodID, String buyerID, String sellerID, String nonceBuyer, String sigBuyer) throws Exception {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
@@ -126,7 +130,16 @@ class NotaryAbstract {
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonceBuyer", nonce).queryParam("sigBuyer", nonce).request(MediaType.APPLICATION_JSON).get();
             this.verifyResponse(r, toSign, true);
-            return;
+            String notarySig = r.getHeaderString("Notary-Signature");
+            String nonceS = r.getHeaderString("Notary-Nonce");
+            Map<String, String> map = new HashMap<>();
+            map.put("Notary-Signature", notarySig);
+            map.put("Original-Message", new String(toSign));
+            map.put("Good", goodID);
+            map.put("Buyer", buyerID);
+            map.put("Seller", sellerID);
+            map.put("Notary-Time", nonceS);
+            return map;
         } catch (Exception e) {
             throw e;
         }
@@ -150,7 +163,6 @@ class NotaryAbstract {
         } else {
             throw new InvalidSignature("Nonce from notary is invalid");
         }
-
 
         if (r.getStatus() == 200) {
             return;
