@@ -25,16 +25,21 @@ public class UserServ {
         }
         return uniqueinstance;
     }
-    public void addPrivateKey(PrivateKey privateKey){
-        this.privateKey = privateKey;
+
+    public String getUserID() {
+        return userID;
     }
 
-    public String getUserID(String userID) {
-        return userID;
+    public void setUserID(String userID){
+        this.userID = userID;
     }
 
     public PrivateKey getPrivateKey(){
         return privateKey;
+    }
+
+    public void setPrivateKey(PrivateKey privateKey){
+        this.privateKey = privateKey;
     }
 
 }

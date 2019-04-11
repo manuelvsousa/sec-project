@@ -2,12 +2,16 @@ package pt.ulisboa.tecnico.sec.user.jaxrs.application;
 
 
 //import pt.ulisboa.tecnico.sec.notary.model.Good;
-//import pt.ulisboa.tecnico.sec.notary.model.UserServ;
+import pt.ulisboa.tecnico.sec.user.jaxrs.application.UserServ;
 
-import pt.ulisboa.tecnico.sec.user.model.User;
+import pt.ulisboa.tecnico.sec.util.KeyReader;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import java.security.GeneralSecurityException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.io.*;
 
 
 public class Bootstrap implements ServletContextListener {
@@ -21,41 +25,33 @@ public class Bootstrap implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        /**TODO**/
-        /**try {
-         ObjectInput in = new ObjectInputStream(new FileInputStream(serializeFileName));
-         Notary notary = (Notary) in.readObject();
-         in.close();
+        try {
+            String port = System.getProperty("port");
+            String userServID = "user" + port;
+            String password = "password" + port;
+            File f = new File(serializeFileName);
+            if (f.exists()) {
+                ObjectInput in = new ObjectInputStream(new FileInputStream(serializeFileName));
+                UserServ user = (UserServ) in.readObject();
+                in.close();
+                System.out.println("Notary has been deserialized ");
+            } else {
+                String path = new File(System.getProperty("user.dir")).getParent();
+                PrivateKey privateKey = KeyReader.getInstance().readPrivateKey(userServID, password, path);
+                UserServ user = UserServ.getInstance();
+                user.setUserID(userServID);
+                user.setPrivateKey(privateKey);
 
-         System.out.println("Object has been deserialized ");
-         } catch (IOException ex) {
-         System.out.println("IOException is caught");
-         } catch (ClassNotFoundException ex) {
-         System.out.println("ClassNotFoundException is caught");
-         }
-         UserServ asd1 = new UserServ("user1", "public1");
-         asd1.addGood(new Good("good1", true));
-         Notary.getInstance().addUser(asd1);
-         Notary.getInstance().addUser(new UserServ("user2", "public2"));
-         Notary.getInstance().addUser(new UserServ("user3", "public3"));**/
-
-
-        /**ObjectInput in = new ObjectInputStream(new FileInputStream(serializeFileName));
-         Notary notary = (Notary) in.readObject();
-         in.close();
-
-         System.out.println("Object has been deserialized ");
-         } catch (IOException ex) {
-         System.out.println("IOException is caught");
-         } catch (ClassNotFoundException ex) {
-         System.out.println("ClassNotFoundException is caught");
-         }
-         User asd1 = new User("user1", "public1");
-         asd1.addGood(new Good("good1", true));
-         Notary.getInstance().addUser(asd1);
-         Notary.getInstance().addUser(new User("user2", "public2"));
-         Notary.getInstance().addUser(new User("user3", "public3"));**/
-
+                System.out.println("User " + port + " created.");
+            }
+        }
+        catch (IOException ex) {
+            System.out.println("IOException is caught");
+            ex.printStackTrace();
+        } catch (ClassNotFoundException ex) {
+            System.out.println("ClassNotFoundException is caught");
+        } catch (GeneralSecurityException gse) {
+            System.out.println("GeneralSecurityException is caught");
+        }
     }
-
 }
