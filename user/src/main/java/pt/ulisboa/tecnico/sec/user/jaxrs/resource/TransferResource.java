@@ -22,14 +22,12 @@ public class TransferResource {
     @Path("/buy")
     public Response buyGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signatureBuyer") String signatureBuyer, @QueryParam("nonceBuyer") String nonceBuyer) throws Exception {
         System.out.println(goodID + " " + buyerID + " " + sellerID + " " + signatureBuyer);
-        if (goodID == null || goodID == null || sellerID == null || signatureBuyer == null || nonceBuyer == null) {
+        if (goodID == null || buyerID == null || sellerID == null || signatureBuyer == null || nonceBuyer == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("goodID and/or goodID and/or sellerID and/or signature are null").build());
+                    .entity("goodID and/or buyerID and/or sellerID and/or signatureBuyer and/or nonceBuyer are null").build());
         }
 
-        String type =
-                Base64.getEncoder().withoutPadding().encodeToString("/user/user/transfer/buy".getBytes());
-        byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonceBuyer).getBytes();
+        byte[] toSign = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonceBuyer).getBytes();
 
         String path = new File(System.getProperty("user.dir")).getParent();
         PublicKey publicKey = KeyReader.getInstance().readPublicKey(buyerID, path);
@@ -50,7 +48,7 @@ public class TransferResource {
 
             Response response = Response.ok().
                     header("Seller-Signature", sig).build();
-            return Response.ok().build();
+            return response;
 
         } catch (Exception e) {
             throw e;

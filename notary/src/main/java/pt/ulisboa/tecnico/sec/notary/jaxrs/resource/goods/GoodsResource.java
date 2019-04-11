@@ -51,11 +51,11 @@ public class GoodsResource {
 
     @GET
     @Path("/transfer")
-    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce) throws Exception {
+    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce,@QueryParam("nonceBuyer") String nonceBuyer,@QueryParam("sigBuyer") String sigBuyer) throws Exception {
         System.out.println(goodID + " " + buyerID + " " + sellerID + " " + sig + " " + nonce);
-        if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null) {
+        if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null  || nonceBuyer == null  || sigBuyer == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("goodID and/or goodID and/or sellerID and/or signature and/or nonce are null").build());
+                    .entity("goodID and/or goodID and/or sellerID and/or signature and/or nonce and/or nonceBuyer and/or sigBuyer null").build());
         }
         String type =
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
@@ -66,6 +66,13 @@ public class GoodsResource {
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
 
             Checker.getInstance().checkResponse(toSign, sellerID, sig, nonceNotary); // Check integrity of message and nonce validaty
+
+            byte[] toSign2 = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonceBuyer).getBytes();
+
+
+
+            Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceNotary); // Check integrity of message send by the buyer to the seller
+
 
             Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary);
             Response response = Response.ok().
