@@ -69,11 +69,13 @@ public class GoodsResource {
 
             byte[] toSign2 = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonceBuyer).getBytes();
 
+            Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceBuyer); // Check integrity of message send by the buyer to the seller
 
 
-            Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceNotary); // Check integrity of message send by the buyer to the seller
-
-
+            /* Doing this might invalidate the transfer in case the buyer makes a request that arrives first then this one.
+             * But this verification wont allow a malicious seller to reuse a previously buyer transfer request in another
+             * future transfer for the same good (in case a certain seller sells the good, then gets it back, and tries to preform a transfer request again without the buyer knowing)
+             * */
             Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary);
             Response response = Response.ok().
                     header("Notary-Signature", sigNotary).
