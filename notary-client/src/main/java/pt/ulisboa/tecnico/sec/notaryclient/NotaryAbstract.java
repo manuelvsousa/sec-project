@@ -57,7 +57,7 @@ class NotaryAbstract {
     }
 
 
-    public void transferGood(String goodID, String buyerID, String sellerID) throws Exception {
+    public void transferGood(String goodID, String buyerID, String sellerID, String nonceBuyer, String sigBuyer) throws Exception {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
