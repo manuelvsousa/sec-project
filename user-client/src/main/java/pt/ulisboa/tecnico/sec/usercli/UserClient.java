@@ -70,9 +70,9 @@ public class UserClient {
     }
 
     public void printGoods() {
-        System.out.println("Goods");
+        System.out.println("List of Goods in the system: ");
         for (String goodID : this.goods) {
-            System.out.println(goodID);
+            System.out.println(" ->" + goodID);
         }
     }
 }

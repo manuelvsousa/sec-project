@@ -33,9 +33,6 @@ public class UserClientApp {
             String password = scanner.nextLine();
             try {
                 privKey = KeyReader.getInstance().readPrivateKey(userID, password);
-                UserClient userClient = new UserClient(userID, privKey);
-                userClient.addGood("good1");
-                userClient.printGoods();
                 flag = false;
             } catch (PrivateKeyWrongPassword e) {
                 System.out.println("Wrong password ");
@@ -44,7 +41,8 @@ public class UserClientApp {
 
         UserClient userClient = new UserClient(userID, privKey);
         userClient.addGood("good1");
-        userClient.printGoods();
+        userClient.addGood("good2");
+        userClient.addGood("good3");
         flag = true;
         Scanner scanner = new Scanner(System.in);
 
