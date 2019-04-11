@@ -98,7 +98,7 @@ public class UserClientApp {
             } else {
                 System.out.println("Wrong input: You didn't select any method");
             }
-
+            System.out.println("\n");
         }
     }
 

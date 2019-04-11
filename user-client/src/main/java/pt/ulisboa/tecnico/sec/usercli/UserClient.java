@@ -2,7 +2,10 @@ package pt.ulisboa.tecnico.sec.usercli;
 
 
 import pt.ulisboa.tecnico.sec.notary.model.State;
+import pt.ulisboa.tecnico.sec.notary.model.exception.UserDoesNotOwnGood;
+import pt.ulisboa.tecnico.sec.notary.model.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.notaryclient.NotaryClient;
+import pt.ulisboa.tecnico.sec.notaryclient.exception.GoodNotFoundException;
 
 import java.security.PrivateKey;
 import java.util.ArrayList;
@@ -27,16 +30,17 @@ public class UserClient {
         return state.getOnSale();
     }
 
-    public Boolean intentionToSell(String goodID) throws Exception {
-        return this.notaryClient.intentionToSell(goodID);
+    public String intentionToSell(String goodID) throws Exception {
+        try {
+            this.notaryClient.intentionToSell(goodID);
+            String message = "The " + goodID + " was set to sell";
+            return message;
+        } catch(Exception e) {
+            String error = "Error: " + e.getMessage();
+            return error;
+        }
     }
 
-    /**
-     * TODO Tirar isto daqui
-     **/
-    public Boolean transferGood(String goodID, String buyerID) throws Exception {
-        return this.notaryClient.transferGood(goodID, buyerID);
-    }
 
     public Boolean buyGood(String goodID, String buyerID, String sellerID) throws Exception {
         ua.buyGood(goodID, buyerID, sellerID);
