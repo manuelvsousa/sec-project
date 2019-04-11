@@ -73,16 +73,22 @@ public class Notary implements Serializable {
         this.save();
     }
 
-    public void addTransaction(String goodID, String buyerID, String sellerID) {
+    public void addTransaction(String goodID, String buyerID, String sellerID, String time) {
         if (sellerID.equals(buyerID)) {
             throw new InvalidTransactionException("Buyer and Seller cant be the same");
         }
         for (Transaction t : this.transactions) {
-            if (t.getGood().getID().equals(goodID) && t.getBuyer().getID().equals(buyerID) && t.getSeller().getID().equals(sellerID)) {
+            if (t.getGood().getID().equals(goodID) && t.getBuyer().getID().equals(buyerID) && t.getSeller().getID().equals(sellerID) && t.getTime().equals(time)) {
                 throw new TransactionAlreadyExistsException(goodID, buyerID, sellerID);
             }
         }
-        transactions.add(new Transaction(this.getGood(goodID), this.getUser(sellerID), this.getUser(buyerID)));
+        Good g = this.getGood(goodID);
+        User buyer = this.getUser(buyerID);
+        User seller = this.getUser(sellerID);
+        seller.removeGood(g);
+        g.setOnSale(false);
+        buyer.addGood(g);
+        transactions.add(new Transaction(this.getGood(goodID), this.getUser(sellerID), this.getUser(buyerID),time));
         this.save();
     }
 

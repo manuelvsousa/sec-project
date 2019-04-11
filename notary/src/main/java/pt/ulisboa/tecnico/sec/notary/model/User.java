@@ -50,4 +50,8 @@ public class User implements Serializable {
         this.lastNonce = lastNonce;
         Notary.getInstance().save();
     }
+    public void removeGood(Good g) {
+        this.goods.remove(g);
+        Notary.getInstance().save();
+    }
 }
