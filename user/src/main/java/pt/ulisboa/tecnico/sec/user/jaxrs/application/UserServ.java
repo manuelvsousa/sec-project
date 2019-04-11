@@ -1,12 +1,5 @@
 package pt.ulisboa.tecnico.sec.user.jaxrs.application;
 
-import pt.ulisboa.tecnico.sec.user.model.User;
-import pt.ulisboa.tecnico.sec.user.model.exception.UserNotFoundException;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 import java.security.PrivateKey;
 
 public class UserServ {

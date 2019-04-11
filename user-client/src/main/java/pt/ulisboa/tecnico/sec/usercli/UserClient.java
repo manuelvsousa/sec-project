@@ -2,10 +2,7 @@ package pt.ulisboa.tecnico.sec.usercli;
 
 
 import pt.ulisboa.tecnico.sec.notary.model.State;
-import pt.ulisboa.tecnico.sec.notary.model.exception.UserDoesNotOwnGood;
-import pt.ulisboa.tecnico.sec.notary.model.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.notaryclient.NotaryClient;
-import pt.ulisboa.tecnico.sec.notaryclient.exception.GoodNotFoundException;
 
 import java.security.PrivateKey;
 import java.util.ArrayList;
@@ -25,9 +22,20 @@ public class UserClient {
         this.ua = new UserAbstract(privKey);
     }
 
-    public Boolean getStateOfgood(String goodID) throws Exception {
-        State state = this.notaryClient.getStateOfGood(goodID);
-        return state.getOnSale();
+    public String getStateOfgood(String goodID) throws Exception {
+        try {
+            State state = this.notaryClient.getStateOfGood(goodID);
+            String message = goodID + "->  Owner: " + state.getOwnerID() + "; On sale: ";
+            if (state.getOnSale()) {
+                message = message + "Yes;";
+            } else {
+                message = message + "No;";
+            }
+            return message;
+        } catch (Exception e) {
+            String error = "Error: " + e.getMessage();
+            return error;
+        }
     }
 
     public String intentionToSell(String goodID) throws Exception {
@@ -35,16 +43,21 @@ public class UserClient {
             this.notaryClient.intentionToSell(goodID);
             String message = "The " + goodID + " was set to sell";
             return message;
-        } catch(Exception e) {
+        } catch (Exception e) {
             String error = "Error: " + e.getMessage();
             return error;
         }
     }
 
 
-    public Boolean buyGood(String goodID, String buyerID, String sellerID) throws Exception {
-        ua.buyGood(goodID, buyerID, sellerID);
-        return true;
+    public String buyGood(String goodID, String buyerID, String sellerID) throws Exception {
+        try {
+            ua.buyGood(goodID, buyerID, sellerID);
+            return "The transaction was successful";
+        } catch (Exception e) {
+            String error = "Error: " + e.getMessage();
+            return error;
+        }
     }
 
 
@@ -53,9 +66,9 @@ public class UserClient {
     }
 
     public void printGoods() {
-        System.out.println("Goods");
+        System.out.println("List of Goods in the system: ");
         for (String goodID : this.goods) {
-            System.out.println(goodID);
+            System.out.println(" ->" + goodID);
         }
     }
 }

@@ -3,8 +3,6 @@ package pt.ulisboa.tecnico.sec.usercli;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 import pt.ulisboa.tecnico.sec.util.exception.PrivateKeyWrongPassword;
 
-import javax.crypto.BadPaddingException;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -33,9 +31,6 @@ public class UserClientApp {
             String password = scanner.nextLine();
             try {
                 privKey = KeyReader.getInstance().readPrivateKey(userID, password);
-                UserClient userClient = new UserClient(userID, privKey);
-                userClient.addGood("good1");
-                userClient.printGoods();
                 flag = false;
             } catch (PrivateKeyWrongPassword e) {
                 System.out.println("Wrong password ");
@@ -44,7 +39,8 @@ public class UserClientApp {
 
         UserClient userClient = new UserClient(userID, privKey);
         userClient.addGood("good1");
-        userClient.printGoods();
+        userClient.addGood("good2");
+        userClient.addGood("good3");
         flag = true;
         Scanner scanner = new Scanner(System.in);
 

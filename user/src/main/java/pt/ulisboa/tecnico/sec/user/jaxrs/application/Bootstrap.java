@@ -4,6 +4,7 @@ package pt.ulisboa.tecnico.sec.user.jaxrs.application;
 //import pt.ulisboa.tecnico.sec.notary.model.Good;
 import pt.ulisboa.tecnico.sec.user.jaxrs.application.UserServ;
 
+
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 
 import javax.servlet.ServletContextEvent;

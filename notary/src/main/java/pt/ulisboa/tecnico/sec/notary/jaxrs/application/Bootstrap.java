@@ -11,7 +11,6 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.io.*;
 import java.security.GeneralSecurityException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 
 
@@ -22,17 +21,12 @@ public class Bootstrap implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.print("Exiting");
-        Notary.save();
     }
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
 
         try {
-            if (this.CITIZEN_CARD_ACTIVATED) {
-                PublicKey publicKey = CitizenCard.getInstance().getPublicKey();
-                KeyWriter.getInstance().write(publicKey, "notary");
-            }
             File f = new File(serializeFileName);
             if (f.exists()) {
                 ObjectInput in = new ObjectInputStream(new FileInputStream(serializeFileName));
@@ -42,9 +36,10 @@ public class Bootstrap implements ServletContextListener {
             } else {
                 String path = new File(System.getProperty("user.dir")).getParent();
                 Notary notary = Notary.getInstance();
-                if (!this.CITIZEN_CARD_ACTIVATED) {
-                    PrivateKey privateKey = KeyReader.getInstance().readPrivateKey("notary", "notary", path);
-                    notary.setPrivateKey(privateKey);
+                if (this.CITIZEN_CARD_ACTIVATED) {
+                    PublicKey publicKey = CitizenCard.getInstance().getPublicKey();
+                    KeyWriter.getInstance().write(publicKey, "notaryCC");
+                    notary.setWithCC(true);
                 }
                 System.out.println("User 0 created");
                 User user1 = new User("user1", KeyReader.getInstance().readPublicKey("user1", path));

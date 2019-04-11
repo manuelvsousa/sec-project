@@ -31,17 +31,15 @@ public class GoodsResource {
         String nonceNotary = String.valueOf(System.currentTimeMillis());
         byte[] toSignToSend = (type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary).getBytes();
         System.out.println(type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary);
-        String sigNotary = Notary.getInstance().sign(toSignToSend);
+        String sigNotary = Notary.getInstance().sign(toSignToSend, false);
         try {
             State s = Notary.getInstance().getStateOfGood(id);
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
-            Checker.getInstance().checkResponse(toSign, userID, sig, nonceNotary); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, userID, sig, nonceNotary); // Check integrity of message and nonce validaty TODO fix this security issue. we need to sign the returned object!!!!!!!!!
             Response response = Response.status(200).
                     entity(s).
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
-            System.out.println("Notary-Nonce: " + nonceNotary);
-            System.out.println("Notary-Signature: " + sigNotary);
             return response;
         } catch (GoodNotFoundException e) {
             throw new NotFoundExceptionResponse(e.getMessage(), sigNotary, nonceNotary);
@@ -53,22 +51,31 @@ public class GoodsResource {
 
     @GET
     @Path("/transfer")
-    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce) throws Exception {
+    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce,@QueryParam("nonceBuyer") String nonceBuyer,@QueryParam("sigBuyer") String sigBuyer) throws Exception {
         System.out.println(goodID + " " + buyerID + " " + sellerID + " " + sig + " " + nonce);
-        if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null) {
+        if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null  || nonceBuyer == null  || sigBuyer == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("goodID and/or goodID and/or sellerID and/or signature and/or nonce are null").build());
+                    .entity("goodID and/or goodID and/or sellerID and/or signature and/or nonce and/or nonceBuyer and/or sigBuyer null").build());
         }
         String type =
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
         String nonceNotary = String.valueOf((System.currentTimeMillis()));
         byte[] toSignResponse = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
-        String sigNotary = Notary.getInstance().sign(toSignResponse);
+        String sigNotary = Notary.getInstance().sign(toSignResponse, true);
         try {
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
 
             Checker.getInstance().checkResponse(toSign, sellerID, sig, nonceNotary); // Check integrity of message and nonce validaty
 
+            byte[] toSign2 = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonceBuyer).getBytes();
+
+            Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceBuyer); // Check integrity of message send by the buyer to the seller
+
+
+            /* Doing this might invalidate the transfer in case the buyer makes a request that arrives first then this one.
+             * But this verification wont allow a malicious seller to reuse a previously buyer transfer request in another
+             * future transfer for the same good (in case a certain seller sells the good, then gets it back, and tries to preform a transfer request again without the buyer knowing)
+             * */
             Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary);
             Response response = Response.ok().
                     header("Notary-Signature", sigNotary).
@@ -102,7 +109,7 @@ public class GoodsResource {
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
         String nonceNotary = String.valueOf((System.currentTimeMillis()));
         byte[] toSignResponse = (type + "||" + goodID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
-        String sigNotary = Notary.getInstance().sign(toSignResponse);
+        String sigNotary = Notary.getInstance().sign(toSignResponse, false);
         try {
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
 
