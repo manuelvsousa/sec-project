@@ -36,10 +36,10 @@ public class Bootstrap implements ServletContextListener {
             } else {
                 String path = new File(System.getProperty("user.dir")).getParent();
                 Notary notary = Notary.getInstance();
-                if(this.CITIZEN_CARD_ACTIVATED){
-                        PublicKey publicKey = CitizenCard.getInstance().getPublicKey();
-                        KeyWriter.getInstance().write(publicKey, "notaryCC");
-                        notary.setWithCC(true);
+                if (this.CITIZEN_CARD_ACTIVATED) {
+                    PublicKey publicKey = CitizenCard.getInstance().getPublicKey();
+                    KeyWriter.getInstance().write(publicKey, "notaryCC");
+                    notary.setWithCC(true);
                 }
                 System.out.println("User 0 created");
                 User user1 = new User("user1", KeyReader.getInstance().readPublicKey("user1", path));

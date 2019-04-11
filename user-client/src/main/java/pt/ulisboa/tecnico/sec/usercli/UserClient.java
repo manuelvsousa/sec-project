@@ -22,25 +22,42 @@ public class UserClient {
         this.ua = new UserAbstract(privKey);
     }
 
-    public Boolean getStateOfgood(String goodID) throws Exception {
-        State state = this.notaryClient.getStateOfGood(goodID);
-        return state.getOnSale();
+    public String getStateOfgood(String goodID) throws Exception {
+        try {
+            State state = this.notaryClient.getStateOfGood(goodID);
+            String message = goodID + "->  Owner: " + state.getOwnerID() + "; On sale: ";
+            if (state.getOnSale()) {
+                message = message + "Yes;";
+            } else {
+                message = message + "No;";
+            }
+            return message;
+        } catch (Exception e) {
+            String error = "Error: " + e.getMessage();
+            return error;
+        }
     }
 
-    public Boolean intentionToSell(String goodID) throws Exception {
-        return this.notaryClient.intentionToSell(goodID);
+    public String intentionToSell(String goodID) throws Exception {
+        try {
+            this.notaryClient.intentionToSell(goodID);
+            String message = "The " + goodID + " was set to sell";
+            return message;
+        } catch (Exception e) {
+            String error = "Error: " + e.getMessage();
+            return error;
+        }
     }
 
-    /**
-     * TODO Tirar isto daqui
-     **/
-    public Boolean transferGood(String goodID, String buyerID) throws Exception {
-        return this.notaryClient.transferGood(goodID, buyerID);
-    }
 
-    public Boolean buyGood(String goodID, String buyerID, String sellerID) throws Exception {
-        ua.buyGood(goodID, buyerID, sellerID);
-        return true;
+    public String buyGood(String goodID, String buyerID, String sellerID) throws Exception {
+        try {
+            ua.buyGood(goodID, buyerID, sellerID);
+            return "The transaction was successful";
+        } catch (Exception e) {
+            String error = "Error: " + e.getMessage();
+            return error;
+        }
     }
 
 
@@ -49,9 +66,9 @@ public class UserClient {
     }
 
     public void printGoods() {
-        System.out.println("Goods");
+        System.out.println("List of Goods in the system: ");
         for (String goodID : this.goods) {
-            System.out.println(goodID);
+            System.out.println(" ->" + goodID);
         }
     }
 }

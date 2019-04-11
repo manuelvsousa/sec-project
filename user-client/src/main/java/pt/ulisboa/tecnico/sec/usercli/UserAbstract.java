@@ -26,9 +26,10 @@ public class UserAbstract {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/user/user/transfer/buy".getBytes());
-            byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID).getBytes();
+            String nonce = String.valueOf((System.currentTimeMillis()));
+            byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            Response r = client.target(REST_URI).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).request(MediaType.APPLICATION_JSON).get();
+            Response r = client.target(REST_URI).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signatureBuyer", sig).queryParam("nonceBuyer", nonce).request(MediaType.APPLICATION_JSON).get();
             this.verifyResponse(r);
         } catch (Exception e) {
             throw e;

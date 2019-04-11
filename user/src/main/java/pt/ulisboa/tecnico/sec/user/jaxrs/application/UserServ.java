@@ -27,7 +27,8 @@ public class UserServ {
         return userID;
     }
 
-    public PrivateKey getPrivateKey(String userID) {
+
+    public PrivateKey getPrivateKey() {
         return privateKey;
     }
 

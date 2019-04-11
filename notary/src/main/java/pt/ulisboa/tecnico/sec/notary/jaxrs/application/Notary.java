@@ -35,15 +35,6 @@ public class Notary implements Serializable {
         }
     }
 
-    public void setWithCC(boolean withCC){
-        this.withCC = withCC;
-        if(withCC){
-            if (this.publicKeySignature == null){
-                this.publicKeySignature = Crypto.getInstance().byteToHex(CitizenCard.getInstance().sign(this.keys.getPublic().getEncoded()));
-            }
-        }
-    }
-
     public static Notary getInstance() {
         if (uniqueInstance == null) {
             uniqueInstance = new Notary();
@@ -64,6 +55,15 @@ public class Notary implements Serializable {
             System.out.println("Object has been serialized");
         } catch (IOException ioe) {
             ioe.printStackTrace();
+        }
+    }
+
+    public void setWithCC(boolean withCC) {
+        this.withCC = withCC;
+        if (withCC) {
+            if (this.publicKeySignature == null) {
+                this.publicKeySignature = Crypto.getInstance().byteToHex(CitizenCard.getInstance().sign(this.keys.getPublic().getEncoded()));
+            }
         }
     }
 
@@ -152,7 +152,7 @@ public class Notary implements Serializable {
         return getInstance();
     }
 
-    private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException,GeneralSecurityException {
+    private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException, GeneralSecurityException {
         ois.defaultReadObject();
         uniqueInstance = this;
         this.keys = KeyGen.getInstance().generateRSAKey();

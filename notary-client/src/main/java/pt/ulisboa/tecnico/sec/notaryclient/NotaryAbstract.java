@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.sec.notaryclient;
 
-import pt.ulisboa.tecnico.sec.notary.jaxrs.application.Notary;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.GoodNotFoundException;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.InvalidSignature;
@@ -15,8 +14,10 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.IOException;
-import java.security.*;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -37,16 +38,16 @@ class NotaryAbstract {
         this.lastNotaryNonce = System.currentTimeMillis();
         this.withCC = false;
 
-        try{
+        try {
             String path = new File(System.getProperty("user.dir")).getParent();
             this.notaryCCPublicKey = KeyReader.getInstance().readPublicKey("notaryCC", path);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Could not Load Notary CC public key");
         }
 
-        try{
+        try {
             getPublicKey();
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Could not Load Notary generated public key");
         }
@@ -74,7 +75,6 @@ class NotaryAbstract {
         }
         throw new RuntimeException("Unknown Error");
     }
-
 
     private void getPublicKey() {
         try {
@@ -108,17 +108,16 @@ class NotaryAbstract {
             if (cause.toLowerCase().contains("good".toLowerCase())) {
                 throw new GoodNotFoundException(cause);
             }
-        } catch (InvalidKeySpecException asd){
+        } catch (InvalidKeySpecException asd) {
             // TODO
-        } catch (NoSuchAlgorithmException asd){
+        } catch (NoSuchAlgorithmException asd) {
             // TODO
         }
         throw new RuntimeException("Unknown Error");
     }
 
 
-
-    public void transferGood(String goodID, String buyerID, String sellerID) throws Exception {
+    public void transferGood(String goodID, String buyerID, String sellerID, String nonceBuyer, String sigBuyer) throws Exception {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
@@ -126,7 +125,7 @@ class NotaryAbstract {
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
-            this.verifyResponse(r, toSign,true);
+            this.verifyResponse(r, toSign, true);
             return;
         } catch (Exception e) {
             throw e;
@@ -134,23 +133,23 @@ class NotaryAbstract {
     }
 
     private void verifyResponse(Response r, byte[] toSign, boolean withCC) {
-            withCC = withCC && this.withCC;
-            String sig = r.getHeaderString("Notary-Signature");
-            String nonceS = r.getHeaderString("Notary-Nonce");
-            long nonce = Long.valueOf(nonceS).longValue();
-            if (sig == null) {
-                throw new InvalidSignature("Signature from notary was null");
-            } else {
-                toSign = (new String(toSign) + "||" + nonceS).getBytes();
-                if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey, toSign, sig)) {
-                    throw new InvalidSignature("Signature from notary was forged");
-                }
+        withCC = withCC && this.withCC;
+        String sig = r.getHeaderString("Notary-Signature");
+        String nonceS = r.getHeaderString("Notary-Nonce");
+        long nonce = Long.valueOf(nonceS).longValue();
+        if (sig == null) {
+            throw new InvalidSignature("Signature from notary was null");
+        } else {
+            toSign = (new String(toSign) + "||" + nonceS).getBytes();
+            if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey, toSign, sig)) {
+                throw new InvalidSignature("Signature from notary was forged");
             }
-            if (nonce > this.lastNotaryNonce) {
-                this.lastNotaryNonce = nonce;
-            } else {
-                throw new InvalidSignature("Nonce from notary is invalid");
-            }
+        }
+        if (nonce > this.lastNotaryNonce) {
+            this.lastNotaryNonce = nonce;
+        } else {
+            throw new InvalidSignature("Nonce from notary is invalid");
+        }
 
 
         if (r.getStatus() == 200) {
@@ -184,7 +183,7 @@ class NotaryAbstract {
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
-            this.verifyResponse(r, toSign,false);
+            this.verifyResponse(r, toSign, false);
             return;
         } catch (Exception e) {
             throw e;

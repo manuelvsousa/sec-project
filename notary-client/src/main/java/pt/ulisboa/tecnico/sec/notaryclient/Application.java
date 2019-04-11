@@ -82,7 +82,7 @@ public class Application {
         System.out.println(nc2.getStateOfGood("good2").getOwnerID());
         System.out.println(nc.getStateOfGood("good1").getOwnerID());
         System.out.println(nc2.getStateOfGood("good1").getOwnerID());
-        System.out.println(nc2.transferGood("good1","user3"));
+        System.out.println(nc2.transferGood("good1", "user3"));
         //System.out.println(nc.intentionToSell("good2"));
         // System.out.println(nc.intentionToSell("good2"));
 

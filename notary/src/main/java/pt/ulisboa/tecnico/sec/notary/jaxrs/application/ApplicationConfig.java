@@ -6,7 +6,6 @@ import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.KeysResource;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
