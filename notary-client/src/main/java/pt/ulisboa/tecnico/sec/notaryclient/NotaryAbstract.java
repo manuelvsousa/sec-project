@@ -77,8 +77,6 @@ class NotaryAbstract {
             String sig = r.getHeaderString("Notary-Signature");
             String nonceS = r.getHeaderString("Notary-Nonce");
             long nonce = Long.valueOf(nonceS).longValue();
-            System.out.println(nonceS);
-            System.out.println(sig);
             if (sig == null) {
                 throw new InvalidSignature("Signature from notary was null");
             } else {
@@ -112,7 +110,7 @@ class NotaryAbstract {
             }
             if (r.getStatus() == 404) {
                 if (cause.toLowerCase().contains("good".toLowerCase())) {
-                    //throw new GoodNotFoundException(cause);
+                    throw new GoodNotFoundException(cause);
                 } else if (cause.toLowerCase().contains("user".toLowerCase())) {
                     throw new UserNotFoundException(cause);
                 }

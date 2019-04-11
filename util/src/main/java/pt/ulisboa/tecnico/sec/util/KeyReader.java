@@ -80,6 +80,34 @@ public class KeyReader {
         }
     }
 
+    public PrivateKey readPrivateKey(byte[] encoded, byte[] salt, String password) throws GeneralSecurityException, IOException {
+        try {
+            EncryptedPrivateKeyInfo encinfo = new EncryptedPrivateKeyInfo(encoded);
+            byte[] encrypPrivKey = encinfo.getEncryptedData();
+
+            String PBEALG = "PBEWithSHA1AndDESede";
+            int count = 20; //hash iteration count
+
+            //Create PBE parameter set
+            PBEParameterSpec pbeParamSpec = new PBEParameterSpec(salt, count);
+            PBEKeySpec pbeKeySpec = new PBEKeySpec(password.toCharArray());
+            SecretKeyFactory keyFac = SecretKeyFactory.getInstance(PBEALG);
+            SecretKey pbeKey = keyFac.generateSecret(pbeKeySpec);
+
+            Cipher pbeCipher = Cipher.getInstance(PBEALG);
+
+            //Initialize PBE cipher with key and parameters
+            pbeCipher.init(Cipher.DECRYPT_MODE, pbeKey, pbeParamSpec);
+
+            byte[] encodedPrivKey = pbeCipher.doFinal(encrypPrivKey);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            PrivateKey privKey = kf.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivKey));
+            return privKey;
+        } catch (BadPaddingException e) {
+            throw new PrivateKeyWrongPassword();
+        }
+    }
+
     private byte[] read(String path) throws IOException {
         System.out.println("Reading from file " + path + " ...");
         FileInputStream fis = new FileInputStream(path);
