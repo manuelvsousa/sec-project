@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.sec.notaryclient;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 
 import java.security.PrivateKey;
+import java.util.Map;
 
 
 public class NotaryClient {
@@ -18,9 +19,8 @@ public class NotaryClient {
         return na.getStateOfGood(id, this.userID);
     }
 
-    public boolean transferGood(String goodID, String buyerID, String nonceBuyer, String sigBuyer) throws Exception {
-        na.transferGood(goodID, buyerID, this.userID, nonceBuyer, sigBuyer);
-        return true;
+    public Map<String, String> transferGood(String goodID, String buyerID, String nonceBuyer, String sigBuyer) throws Exception {
+        return na.transferGood(goodID, buyerID, this.userID, nonceBuyer, sigBuyer);
     }
 
     public boolean intentionToSell(String goodID) throws Exception {
