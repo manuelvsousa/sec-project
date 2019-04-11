@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.sec.usercli;
 
 import pt.ulisboa.tecnico.sec.util.KeyReader;
+import pt.ulisboa.tecnico.sec.util.exception.PrivateKeyWrongPassword;
 
 import javax.crypto.BadPaddingException;
 import java.io.File;
@@ -36,7 +37,7 @@ public class UserClientApp {
                 userClient.addGood("good1");
                 userClient.printGoods();
                 flag = false;
-            } catch (BadPaddingException e) {
+            } catch (PrivateKeyWrongPassword e) {
                 System.out.println("Wrong password ");
             }
         }
