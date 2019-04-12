@@ -26,9 +26,6 @@ public class Checker {
         if (nonceL > Notary.getInstance().getUser(userID).getLastNonce()) {
             Notary.getInstance().getUser(userID).setLastNonce(nonceL);
         } else {
-            System.out.println("fodasseeeee");
-            System.out.println(sig);
-            System.out.println(nonceNotary);
             throw new InvalidTransactionExceptionResponse("Invalid Nonce", sigNotary, nonceNotary);
         }
     }
