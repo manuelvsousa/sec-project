@@ -70,7 +70,7 @@ class NotaryAbstract {
                 s = r.readEntity(State.class);
                 toSign = (type + "||" + id + "||" + userID + "||" + nonce + "||" + s.getOnSale() + "||" + s.getOwnerID()).getBytes();
             }
-            this.verifyResponse(r, toSign, false,true);
+            this.verifyResponse(r, toSign, false);
             return s;
         } catch (NotFoundException e) {
             String cause = e.getResponse().readEntity(String.class);
@@ -96,7 +96,7 @@ class NotaryAbstract {
             PublicKey publicKey = kf.generatePublic(publicKeySpec);
             this.notarySignedPublicKey = publicKey;
             byte[] toSign = (type + "||" + publicKeySignature + "||" + Base64.getEncoder().encodeToString(publicKey.getEncoded())).getBytes();
-            this.verifyResponse(r, toSign, false,false); // General request verification. Check integrity hole message
+            this.verifyResponse(r, toSign, false); // General request verification. Check integrity hole message
             /*  The check bellow is really important
                 Check if signature from CC actually matches the sent public key
                 An attacker may encript a simillar message with a equally generated key.
@@ -132,7 +132,7 @@ class NotaryAbstract {
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("nonceBuyer", nonceBuyer).queryParam("sigBuyer", sigBuyer).request(MediaType.APPLICATION_JSON).get();
-            this.verifyResponse(r, toSign, true,true);
+            this.verifyResponse(r, toSign, true);
             String notarySig = r.getHeaderString("Notary-Signature");
             String nonceS = r.getHeaderString("Notary-Nonce");
             Map<String, String> map = new HashMap<>();
@@ -148,7 +148,7 @@ class NotaryAbstract {
         }
     }
 
-    private void verifyResponse(Response r, byte[] toSign, boolean withCC, boolean retrievePublicKey) {
+    private void verifyResponse(Response r, byte[] toSign, boolean withCC) {
         withCC = withCC && this.withCC;
         String sig = r.getHeaderString("Notary-Signature");
         String nonceS = r.getHeaderString("Notary-Nonce");
@@ -156,13 +156,13 @@ class NotaryAbstract {
         if (sig == null) {
             throw new InvalidSignature("Signature from notary was null");
         } else {
-            byte[] newToSign = (new String(toSign) + "||" + nonceS).getBytes();
-            if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey, newToSign, sig)) {
+            toSign = (new String(toSign) + "||" + nonceS).getBytes();
+            if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey, toSign, sig)) {
                 retrievePublicKey();
-                if(retrievePublicKey){
-                    this.verifyResponse(r,toSign,withCC,false);
-                } else{
+                if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey, toSign, sig)) {
                     throw new InvalidSignature("Signature from notary was forged");
+                } else {
+                    throw new InvalidSignature("Notary has new Public Key. Please Redo Request"); //can be optimized, but might open a security hole
                 }
             }
         }
@@ -205,7 +205,7 @@ class NotaryAbstract {
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
-            this.verifyResponse(r, toSign, false,true);
+            this.verifyResponse(r, toSign, false);
             return;
         } catch (Exception e) {
             throw e;
