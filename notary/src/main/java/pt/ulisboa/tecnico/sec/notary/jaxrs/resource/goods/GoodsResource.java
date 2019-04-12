@@ -21,7 +21,8 @@ public class GoodsResource {
     @Path("/getStatus")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getStateOfGood(@QueryParam("id") String id, @QueryParam("userID") String userID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce) throws Exception {
-        System.out.println(id + " " + userID + " " + sig + " " + nonce);
+        System.out.println("\n\nReceived Paramenters:\n");
+        System.out.println("goodID: " + id + "\nuserID: " + userID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce);
         if (id == null || userID == null || sig == null || nonce == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
                     .entity("id and/or userID and/or sig and/or nonce  are null").build());
@@ -40,6 +41,9 @@ public class GoodsResource {
 
             toSignToSend = (type + "||" + id + "||" + userID + "||" + nonce + "||" + s.getOnSale() + "||" + s.getOwnerID() + "||" + nonceNotary).getBytes();
             sigNotary = Notary.getInstance().sign(toSignToSend, false);
+
+            System.out.println("\n\n\nAbout to Send:\n");
+            System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignToSend));
             Response response = Response.status(200).
                     entity(s).
                     header("Notary-Signature", sigNotary).
@@ -56,7 +60,8 @@ public class GoodsResource {
     @GET
     @Path("/transfer")
     public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("nonceBuyer") String nonceBuyer, @QueryParam("sigBuyer") String sigBuyer) throws Exception {
-        System.out.println(goodID + " " + buyerID + " " + sellerID + " " + sig + " " + nonce + " " + nonceBuyer + " " + sigBuyer);
+        System.out.println("\n\nReceived Paramenters:\n");
+        System.out.println("goodID: " + goodID + "\nbuyerID: " + buyerID + "\nsellerID: " + sellerID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce + "\nnonce (from buyer): " + nonceBuyer + "\nsignature (from buyer): " + sigBuyer);
         if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null || nonceBuyer == null || sigBuyer == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
                     .entity("goodID and/or goodID and/or sellerID and/or signature and/or nonce and/or nonceBuyer and/or sigBuyer null").build());
@@ -83,6 +88,9 @@ public class GoodsResource {
              * future transfer for the same good (in case a certain seller sells the good, then gets it back, and tries to preform a transfer request again without the buyer knowing)
              * */
             Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary);
+
+            System.out.println("\n\n\nAbout to Send:\n");
+            System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
             Response response = Response.ok().
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
@@ -108,7 +116,8 @@ public class GoodsResource {
     @GET
     @Path("/intention")
     public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce) throws Exception {
-        System.out.println(goodID + " " + sellerID + " " + sig + " " + nonce);
+        System.out.println("\n\nReceived Paramenters:\n");
+        System.out.println("goodID: " + goodID + "\nsellerID: " + sellerID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce);
         if (goodID == null || sellerID == null || sig == null || nonce == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
                     .entity("goodID and/or sellerID and/or signature and/or nonce are null").build());
@@ -125,6 +134,9 @@ public class GoodsResource {
 
             Notary.getInstance().setIntentionToSell(goodID, sellerID);
 
+
+            System.out.println("\n\n\nAbout to Send:\n");
+            System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
             Response response = Response.ok().
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
