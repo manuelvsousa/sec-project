@@ -35,7 +35,7 @@ public class GoodsResource {
         try {
             State s = Notary.getInstance().getStateOfGood(id);
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
-            Checker.getInstance().checkResponse(toSign, userID, sig, nonceNotary); // Check integrity of message and nonce validaty TODO fix this security issue. we need to sign the returned object!!!!!!!!!
+            Checker.getInstance().checkResponse(toSign, userID, sig, nonce); // Check integrity of message and nonce validaty TODO fix this security issue. we need to sign the returned object!!!!!!!!!
             Response response = Response.status(200).
                     entity(s).
                     header("Notary-Signature", sigNotary).
@@ -67,7 +67,7 @@ public class GoodsResource {
         try {
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
 
-            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonceNotary); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce); // Check integrity of message and nonce validaty
 
             byte[] toSign2 = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonceBuyer).getBytes();
 
@@ -120,7 +120,7 @@ public class GoodsResource {
         try {
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
 
-            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonceNotary); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce); // Check integrity of message and nonce validaty
 
             Notary.getInstance().setIntentionToSell(goodID, sellerID);
 
