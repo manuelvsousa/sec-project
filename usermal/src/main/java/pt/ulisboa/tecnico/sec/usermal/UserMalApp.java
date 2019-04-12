@@ -18,6 +18,11 @@ public class UserMalApp {
     public static void main(String[] args) throws Exception {
         Boolean flag = true;
         Scanner scanner = new Scanner(System.in);
+        PrivateKey privKey;
+        String type;
+        String nonce;
+        byte[] toSign;
+        Response r;
 
         while (flag) {
             System.out.println("Choose an attack: \n" +
@@ -29,23 +34,25 @@ public class UserMalApp {
 
             switch (attack) {
                 case "1":
-                    PrivateKey privKey = KeyReader.getInstance().readPrivateKey("user1", "password1");
-                    String type =
+                    privKey = KeyReader.getInstance().readPrivateKey("user1", "password1");
+                    type =
                             Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
-                    String nonce = String.valueOf((System.currentTimeMillis()));
-                    byte[] toSign = (type + "||good1||user1||" + nonce).getBytes();
+                    nonce = String.valueOf((System.currentTimeMillis()));
+                    toSign = (type + "||good1||user1||" + nonce).getBytes();
                     String sig = Crypto.getInstance().sign(privKey, toSign);
                     System.out.println("First Request:" + type + "||good1||user1||" + nonce + "||" + sig);
-                    Response r = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user1").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
-                    System.out.println("Request Done Succefully\n");
-                    System.out.println("Second Request:" + type + "||good1||user1||" + nonce + "||" + sig);
-                    try {
-                        Response r1 = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user1").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
-                        System.out.println(r1.getStatus());
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                        System.out.println("Atack, Muahahaha");
+                    r = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user1").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
+                    System.out.println("Code received: " + r.getStatus());
+                    if(r.getStatus()==200){
+                        System.out.println("Request Done Successfully\n");
                     }
+                    else {
+                        System.out.println("Something went wrong. Please try agaain");
+                    }
+                    System.out.println("Second Request:" + type + "||good1||user1||" + nonce + "||" + sig);
+                    r = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user1").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
+                    System.out.println("Code received: " + r.getStatus());
+                    checkResponse(r, "Replay attack");
                     break;
 
                 case "2":
@@ -55,15 +62,13 @@ public class UserMalApp {
                     nonce = String.valueOf((System.currentTimeMillis()));
                     toSign = (type + "||good1||user1||" + nonce).getBytes();
                     sig = Crypto.getInstance().sign(privKey, toSign);
+                    System.out.println("Signature done with user2 privatekey");
                     System.out.println("First Request:" + type + "||good1||user1||" + nonce + "||" + sig);
-                    try {
-                        r = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user1").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
-                        System.out.println(r.getStatus());
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                        System.out.println("Atack, Muahahaha");
-                    }
+                    r = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user1").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
+                    System.out.println("Code received: " + r.getStatus());
+                    checkResponse(r,"Authenticity attack");
                     break;
+
                 case "3":
                     privKey = KeyReader.getInstance().readPrivateKey("user1", "password1");
                     type =
@@ -71,10 +76,31 @@ public class UserMalApp {
                     nonce = String.valueOf((System.currentTimeMillis()));
                     toSign = (type + "||good1||user1||" + nonce).getBytes();
                     sig = Crypto.getInstance().sign(privKey, toSign);
-                    System.out.println("First Request:" + type + "||good1||user1||" + nonce + "||" + sig);
+                    System.out.println("Content signed: " + type + "||good1||user1||" + nonce);
+                    System.out.println("Message sent:" + type + "||good1||user2||" + nonce);
                     r = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user2").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
-                    System.out.println(r.getStatus());
+                    System.out.println("Code received: " + r.getStatus());
+                    checkResponse(r, "Integrity Attack");
+                    break;
+                case "q":
+                case "Q":
+                    flag = false;
+                    break;
+                default:
+                    System.out.println("Please insert a valid method");
             }
+        }
+    }
+
+    public static void checkResponse(Response r, String attack) {
+        if (r.getStatus()==409) {
+            System.out.println("Invalid transaction. There was a " + attack + "\n");
+        }
+        else if(r.getStatus()==200) {
+            System.out.println("Request Done Successfully. No " + attack + "\n");
+        }
+        else {
+            System.out.println("Something went wrong\n");
         }
     }
 }

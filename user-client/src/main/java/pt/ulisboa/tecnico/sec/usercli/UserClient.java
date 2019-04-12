@@ -14,7 +14,6 @@ public class UserClient {
     public List<String> goods = new ArrayList<>();
     private UserAbstract ua;
     private NotaryClient notaryClient;
-    //EXCEPÇÕES
 
 
     public UserClient(String userID, PrivateKey privKey) {

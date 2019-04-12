@@ -2,8 +2,6 @@ package pt.ulisboa.tecnico.sec.usercli;
 
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 import pt.ulisboa.tecnico.sec.util.exception.PrivateKeyWrongPassword;
-
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
@@ -101,14 +99,5 @@ public class UserClientApp {
         }
     }
 
-    public static byte[] read(String path) throws GeneralSecurityException, IOException {
-        System.out.println("Reading from file " + path + " ...");
-        FileInputStream fis = new FileInputStream(path);
-        byte[] encoded = new byte[fis.available()];
-        fis.read(encoded);
-        fis.close();
-
-        return encoded;
-    }
 }
 

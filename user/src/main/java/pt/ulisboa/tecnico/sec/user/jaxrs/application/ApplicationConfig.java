@@ -1,7 +1,5 @@
 package pt.ulisboa.tecnico.sec.user.jaxrs.application;
 
-//import pt.ulisboa.tecnico.sec.notary.jaxrs.provider.MyJacksonJsonProvider;
-//import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.GoodsResource;
 
 import pt.ulisboa.tecnico.sec.notary.jaxrs.provider.MyJacksonJsonProvider;
 import pt.ulisboa.tecnico.sec.user.jaxrs.resource.TransferResource;
