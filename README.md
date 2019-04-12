@@ -26,3 +26,11 @@ https://docs.google.com/document/d/1mtFV9VeYQm8_UqbLZi23UULT_nh_jZsGeqYXtVheErI/
 1. `cd keys`
 2. `java RSAKeyGenerator w users/user1.key users/user1.pub`
 3. `java EncryptPrivKey users/user1.key users/user1.enc.key password1`
+
+# To run the demo
+
+Open DEMO.md file and follow the instructions described
+
+# Notary CC
+
+Change the boolean to true in the Bootstrap in the notary directory and in the NotaryAbstract in the notary-client directory if you want to use the CC.

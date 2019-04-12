@@ -51,3 +51,13 @@ mvn clean install exec:java
 Press 1 to simulate Replay attack
 Press 2 to simulate Authenticity attack
 Press 3 to simulate Integrity attack
+
+##  Crash simulator demo instructions 
+
+On notary:
+Do ctrl-c to stop the notary server
+mvn clean install tomcat7:run
+
+On the user client 1:
+Write: 2 good2 (twice -> first to synchronize, second to get the answer)
+
