@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.sec.usercli;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import pt.ulisboa.tecnico.sec.usercli.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.usercli.exception.InvalidSignature;
 import pt.ulisboa.tecnico.sec.util.Crypto;
@@ -12,16 +14,19 @@ import javax.ws.rs.core.Response;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.GeneralSecurityException;
-import java.util.Base64;
+import java.util.*;
 import java.io.IOException;
 import java.io.File;
 
 public class UserAbstract {
     private Client client = ClientBuilder.newClient();
     private PrivateKey privateKey;
+    List<HashMap<String, String >> listOfNotaryCertificates;
+
 
     public UserAbstract(PrivateKey privateKey) {
         this.privateKey = privateKey;
+        this.listOfNotaryCertificates = new ArrayList<>();
     }
 
     public void buyGood(String goodID, String buyerID, String sellerID) throws Exception {
@@ -36,6 +41,11 @@ public class UserAbstract {
             System.out.println("Signature UserAbstract: " + sig);
             Response r = client.target(REST_URI).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signatureBuyer", sig).queryParam("nonceBuyer", nonce).request(MediaType.APPLICATION_JSON).get();
             this.verifyResponse(r, toSign, sellerID);
+            String json = r.readEntity(String.class);
+            HashMap<String, String> notaryCertificate = new Gson().fromJson(
+                    json, new TypeToken<HashMap<String, String>>() {}.getType()
+            );
+            this.listOfNotaryCertificates.add(notaryCertificate);
         } catch (Exception e) {
             throw e;
         }

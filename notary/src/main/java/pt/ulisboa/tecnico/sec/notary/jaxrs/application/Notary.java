@@ -101,6 +101,12 @@ public class Notary implements Serializable {
         Good g = this.getGood(goodID);
         User buyer = this.getUser(buyerID);
         User seller = this.getUser(sellerID);
+        if (!this.getUser(sellerID).getGoods().contains(this.getGood(goodID))) {
+            throw new UserDoesNotOwnGood(sellerID, goodID);
+        }
+        if (!g.onSale()) {
+            throw new GoodNotOnSale(goodID);
+        }
         seller.removeGood(g);
         g.setOnSale(false);
         buyer.addGood(g);

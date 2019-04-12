@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods;
 
 import pt.ulisboa.tecnico.sec.notary.jaxrs.application.Notary;
+import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.GoodNotOnSaleResponse;
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.InvalidTransactionExceptionResponse;
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.NotFoundExceptionResponse;
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.UserDoesNotOwnResourceExceptionResponse;
@@ -89,6 +90,8 @@ public class GoodsResource {
             throw new NotFoundExceptionResponse(e2.getMessage(), sigNotary, nonceNotary);
         } catch (UserDoesNotOwnGood e3) {
             throw new UserDoesNotOwnResourceExceptionResponse(e3.getMessage(), sigNotary, nonceNotary);
+        } catch (GoodNotOnSale gg) {
+            throw new GoodNotOnSaleResponse(gg.getMessage(), sigNotary, nonceNotary);
         } catch (TransactionAlreadyExistsException e4) {
             throw new InvalidTransactionExceptionResponse(e4.getMessage(), sigNotary, nonceNotary);
         } catch (InvalidTransactionException e5) {

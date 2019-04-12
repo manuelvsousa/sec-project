@@ -182,7 +182,9 @@ class NotaryAbstract {
                 throw new UserDoesNotOwnGoodException(cause);
             } else if (r.getStatus() == 409) { //conflict
                 throw new UserDoesNotOwnGoodException(cause);
-            } else {
+            } else if (r.getStatus() == 406) { //not acceptable
+                throw new UserDoesNotOwnGoodException(cause);
+            }  else {
                 throw new RuntimeException("Unable to process request, ERROR " + r.getStatus() + " Received!");
             }
         }
