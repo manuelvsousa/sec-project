@@ -1,13 +1,14 @@
 ﻿# Demo
 
 ## Instructions 
-0. If there is a notary.ser file in the notary directory, delete it (to start a clean notary)
+If there is a notary.ser file in the notary directory, delete it (to start a clean notary)
 
-1. cd sec-project
-2. mvn clean install
+cd sec-project
+mvn clean install
 
 ## Start Notary
 (new terminal)
+export MAVEN_OPTS=-Djava.library.path=/usr/local/lib #change the path to yours
 cd notary
 mvn clean install tomcat7:run
 
