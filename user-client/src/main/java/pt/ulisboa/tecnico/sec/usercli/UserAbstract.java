@@ -2,8 +2,8 @@ package pt.ulisboa.tecnico.sec.usercli;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import pt.ulisboa.tecnico.sec.usercli.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.usercli.exception.InvalidSignature;
+import pt.ulisboa.tecnico.sec.usercli.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 
@@ -11,17 +11,19 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.GeneralSecurityException;
-import java.util.*;
-import java.io.IOException;
-import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class UserAbstract {
+    List<HashMap<String, String>> listOfNotaryCertificates;
     private Client client = ClientBuilder.newClient();
     private PrivateKey privateKey;
-    List<HashMap<String, String >> listOfNotaryCertificates;
 
 
     public UserAbstract(PrivateKey privateKey) {
@@ -40,13 +42,14 @@ public class UserAbstract {
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             System.out.println("Signature UserAbstract: " + sig);
             Response r = client.target(REST_URI).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signatureBuyer", sig).queryParam("nonceBuyer", nonce).request(MediaType.APPLICATION_JSON).get();
-            if(r.getStatus() != 200){
+            if (r.getStatus() != 200) {
                 throw new Exception(r.readEntity(String.class));
             }
             this.verifyResponse(r, toSign, sellerID);
             String json = r.readEntity(String.class);
             HashMap<String, String> notaryCertificate = new Gson().fromJson(
-                    json, new TypeToken<HashMap<String, String>>() {}.getType()
+                    json, new TypeToken<HashMap<String, String>>() {
+                    }.getType()
             );
             this.listOfNotaryCertificates.add(notaryCertificate);
         } catch (Exception e) {
@@ -54,7 +57,7 @@ public class UserAbstract {
         }
     }
 
-    
+
     private void verifyResponse(Response r, byte[] toSign, String sellerID) {
         try {
             String sig = r.getHeaderString("Seller-Signature");
@@ -67,7 +70,7 @@ public class UserAbstract {
                     throw new InvalidSignature("Signature from user was forged");
                 }
             }
-        }catch (GeneralSecurityException gse) {
+        } catch (GeneralSecurityException gse) {
             System.out.println("GeneralSecurityException caught");
         } catch (IOException io) {
             System.out.println("IOException caught");

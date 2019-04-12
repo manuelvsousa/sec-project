@@ -15,8 +15,6 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 
 @Path("/transfer")
@@ -47,7 +45,7 @@ public class TransferResource {
         try {
             PrivateKey privateKey = UserServ.getInstance().getPrivateKey();
             NotaryClient notaryClient = new NotaryClient(sellerID, privateKey);
-            Map<String,String> hm = notaryClient.transferGood(goodID, buyerID, nonceBuyer, signatureBuyer);
+            Map<String, String> hm = notaryClient.transferGood(goodID, buyerID, nonceBuyer, signatureBuyer);
 
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             System.out.println("Signature: " + sig);

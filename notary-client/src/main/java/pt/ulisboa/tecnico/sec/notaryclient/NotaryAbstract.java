@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.sec.notaryclient;
 
-import javafx.util.Pair;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.GoodNotFoundException;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.InvalidSignature;
@@ -9,7 +8,6 @@ import pt.ulisboa.tecnico.sec.notaryclient.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 
-import javax.management.relation.RoleUnresolved;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -44,7 +42,7 @@ class NotaryAbstract {
 
         try {
             String path = new File(System.getProperty("user.dir")).getParent();
-            if(this.withCC){
+            if (this.withCC) {
                 this.notaryCCPublicKey = KeyReader.getInstance().readPublicKey("notaryCC", path);
             }
         } catch (Exception e) {
@@ -184,7 +182,7 @@ class NotaryAbstract {
                 throw new UserDoesNotOwnGoodException(cause);
             } else if (r.getStatus() == 406) { //not acceptable
                 throw new UserDoesNotOwnGoodException(cause);
-            }  else {
+            } else {
                 throw new RuntimeException("Unable to process request, ERROR " + r.getStatus() + " Received!");
             }
         }

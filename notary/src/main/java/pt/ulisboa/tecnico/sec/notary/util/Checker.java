@@ -18,7 +18,7 @@ public class Checker {
         return uniqueInstance;
     }
 
-    public void checkResponse(byte[] receivedContent, String userID, String sig, String nonce,String nonceNotary, String sigNotary) {
+    public void checkResponse(byte[] receivedContent, String userID, String sig, String nonce, String nonceNotary, String sigNotary) {
         if (!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(userID).getPublicKey(), receivedContent, sig)) {
             throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!", sigNotary, nonceNotary);
         }
