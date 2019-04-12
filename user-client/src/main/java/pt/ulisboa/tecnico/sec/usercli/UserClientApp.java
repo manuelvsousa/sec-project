@@ -15,7 +15,6 @@ public class UserClientApp {
 
     public static void main(String[] args) throws GeneralSecurityException, IOException, Exception {
 
-        /**TODO Pôr as mensagens recebidas mais bonitas e excepções???**/
         if (args.length != 1) {
             System.err.println("Argument(s) missing!");
             System.err.println("Usage: java " + UserClient.class.getName() + " userID");
