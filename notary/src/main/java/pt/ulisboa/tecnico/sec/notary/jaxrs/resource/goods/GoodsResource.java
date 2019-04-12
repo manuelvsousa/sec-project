@@ -36,7 +36,10 @@ public class GoodsResource {
             State s = Notary.getInstance().getStateOfGood(id);
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
 
-            Checker.getInstance().checkResponse(toSign, userID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty TODO fix this security issue. we need to sign the returned object!!!!!!!!!
+            Checker.getInstance().checkResponse(toSign, userID, sig, nonce, nonceNotary, sigNotary);
+
+            toSignToSend = (type + "||" + id + "||" + userID + "||" + nonce + "||" + s.getOnSale() + "||" + s.getOwnerID() + "||" + nonceNotary).getBytes();
+            sigNotary = Notary.getInstance().sign(toSignToSend, false);
             Response response = Response.status(200).
                     entity(s).
                     header("Notary-Signature", sigNotary).
