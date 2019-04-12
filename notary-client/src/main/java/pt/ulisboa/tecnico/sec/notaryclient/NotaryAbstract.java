@@ -128,13 +128,13 @@ class NotaryAbstract {
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonceBuyer", nonce).queryParam("sigBuyer", nonce).request(MediaType.APPLICATION_JSON).get();
+            Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("nonceBuyer", nonceBuyer).queryParam("sigBuyer", sigBuyer).request(MediaType.APPLICATION_JSON).get();
             this.verifyResponse(r, toSign, true);
             String notarySig = r.getHeaderString("Notary-Signature");
             String nonceS = r.getHeaderString("Notary-Nonce");
             Map<String, String> map = new HashMap<>();
             map.put("Notary-Signature", notarySig);
-            map.put("Original-Message", new String(toSign));
+            map.put("Original-Message", new String(toSign) + "||" + nonceS);
             map.put("Good", goodID);
             map.put("Buyer", buyerID);
             map.put("Seller", sellerID);
@@ -154,6 +154,7 @@ class NotaryAbstract {
             throw new InvalidSignature("Signature from notary was null");
         } else {
             toSign = (new String(toSign) + "||" + nonceS).getBytes();
+            System.out.println(new String(toSign) + "||" + nonceS);
             if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey, toSign, sig)) {
                 throw new InvalidSignature("Signature from notary was forged");
             }

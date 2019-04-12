@@ -55,6 +55,7 @@ public class UserClient {
             ua.buyGood(goodID, buyerID, sellerID);
             return "The transaction was successful";
         } catch (Exception e) {
+            e.printStackTrace();
             String error = "Error: " + e.getMessage();
             return error;
         }

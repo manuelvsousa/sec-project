@@ -30,10 +30,8 @@ public class UserAbstract {
         String REST_URI = "http://localhost:909" + port + "/user/user/transfer/buy";
         System.out.println(REST_URI);
         try {
-            String type =
-                    Base64.getEncoder().withoutPadding().encodeToString("/user/user/transfer/buy".getBytes());
             String nonce = String.valueOf((System.currentTimeMillis()));
-            byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
+            byte[] toSign = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             System.out.println("Signature UserAbstract: " + sig);
             Response r = client.target(REST_URI).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signatureBuyer", sig).queryParam("nonceBuyer", nonce).request(MediaType.APPLICATION_JSON).get();
@@ -43,6 +41,7 @@ public class UserAbstract {
         }
     }
 
+    
     private void verifyResponse(Response r, byte[] toSign, String sellerID) {
         try {
             String sig = r.getHeaderString("Seller-Signature");
@@ -60,6 +59,7 @@ public class UserAbstract {
         } catch (IOException io) {
             System.out.println("IOException caught");
         }
+
         if (r.getStatus() == 200) {
             return;
         } else {
