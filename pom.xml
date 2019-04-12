@@ -27,6 +27,7 @@
         <module>user</module>
         <module>user-client</module>
         <module>util</module>
+        <module>usermal</module>
     </modules>
 
 </project>
