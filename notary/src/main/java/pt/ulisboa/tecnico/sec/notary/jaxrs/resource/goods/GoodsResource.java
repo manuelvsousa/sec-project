@@ -8,7 +8,6 @@ import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.UserDoesNotO
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notary.model.exception.*;
 import pt.ulisboa.tecnico.sec.notary.util.Checker;
-import pt.ulisboa.tecnico.sec.util.Crypto;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -37,7 +36,7 @@ public class GoodsResource {
             State s = Notary.getInstance().getStateOfGood(id);
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
 
-            Checker.getInstance().checkResponse(toSign, userID, sig, nonce,nonceNotary,sigNotary); // Check integrity of message and nonce validaty TODO fix this security issue. we need to sign the returned object!!!!!!!!!
+            Checker.getInstance().checkResponse(toSign, userID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty TODO fix this security issue. we need to sign the returned object!!!!!!!!!
             Response response = Response.status(200).
                     entity(s).
                     header("Notary-Signature", sigNotary).
@@ -53,9 +52,9 @@ public class GoodsResource {
 
     @GET
     @Path("/transfer")
-    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce,@QueryParam("nonceBuyer") String nonceBuyer,@QueryParam("sigBuyer") String sigBuyer) throws Exception {
+    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("nonceBuyer") String nonceBuyer, @QueryParam("sigBuyer") String sigBuyer) throws Exception {
         System.out.println(goodID + " " + buyerID + " " + sellerID + " " + sig + " " + nonce + " " + nonceBuyer + " " + sigBuyer);
-        if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null  || nonceBuyer == null  || sigBuyer == null) {
+        if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null || nonceBuyer == null || sigBuyer == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
                     .entity("goodID and/or goodID and/or sellerID and/or signature and/or nonce and/or nonceBuyer and/or sigBuyer null").build());
         }
@@ -67,11 +66,13 @@ public class GoodsResource {
         try {
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
 
-            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce,nonceNotary,sigNotary); // Check integrity of message and nonce validaty
+            Notary.getInstance().doIntegrityCheck(goodID, buyerID, sellerID);
+
+            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty
 
             byte[] toSign2 = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonceBuyer).getBytes();
 
-           // Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceBuyer); // Check integrity of message send by the buyer to the seller
+            Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceBuyer, nonceNotary, sigNotary); // Check integrity of message send by the buyer to the seller
 
 
             /* Doing this might invalidate the transfer in case the buyer makes a request that arrives first then this one.
@@ -117,7 +118,7 @@ public class GoodsResource {
         try {
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
 
-            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce,nonceNotary,sigNotary); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty
 
             Notary.getInstance().setIntentionToSell(goodID, sellerID);
 

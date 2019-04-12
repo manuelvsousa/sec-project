@@ -23,15 +23,15 @@ public class UserServ {
         return userID;
     }
 
-    public void setUserID(String userID){
+    public void setUserID(String userID) {
         this.userID = userID;
     }
 
-    public PrivateKey getPrivateKey(){
+    public PrivateKey getPrivateKey() {
         return privateKey;
     }
 
-    public void setPrivateKey(PrivateKey privateKey){
+    public void setPrivateKey(PrivateKey privateKey) {
         this.privateKey = privateKey;
     }
 

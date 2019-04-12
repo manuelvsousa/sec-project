@@ -7,8 +7,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.util.Base64;
 import java.util.Scanner;
@@ -16,6 +14,7 @@ import java.util.Scanner;
 public class UserMalApp {
     private static final String REST_URI = "http://localhost:9090/notary/notary";
     private static Client clientMal = ClientBuilder.newClient();
+
     public static void main(String[] args) throws Exception {
         Boolean flag = true;
         Scanner scanner = new Scanner(System.in);

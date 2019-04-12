@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.sec.user.jaxrs.resource;
 import com.google.gson.Gson;
 import pt.ulisboa.tecnico.sec.notaryclient.NotaryClient;
 import pt.ulisboa.tecnico.sec.user.jaxrs.application.UserServ;
+import pt.ulisboa.tecnico.sec.user.jaxrs.resource.exception.GeneralErrorExceptionResponse;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 
@@ -14,8 +15,6 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 
 @Path("/transfer")
@@ -46,7 +45,7 @@ public class TransferResource {
         try {
             PrivateKey privateKey = UserServ.getInstance().getPrivateKey();
             NotaryClient notaryClient = new NotaryClient(sellerID, privateKey);
-            Map<String,String> hm = notaryClient.transferGood(goodID, buyerID, nonceBuyer, signatureBuyer);
+            Map<String, String> hm = notaryClient.transferGood(goodID, buyerID, nonceBuyer, signatureBuyer);
 
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             System.out.println("Signature: " + sig);
@@ -57,7 +56,7 @@ public class TransferResource {
             return response;
 
         } catch (Exception e) {
-            throw e;
+            throw new GeneralErrorExceptionResponse(e.getMessage());
         }
     }
 }
