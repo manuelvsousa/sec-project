@@ -24,8 +24,8 @@ public class Application {
 
         PrivateKey pk = KeyReader.getInstance().readPrivateKey("user1", "password1");
         NotaryClient nc = new NotaryClient("user1", pk);
-        PrivateKey pk2 = KeyReader.getInstance().readPrivateKey("user2", "password2");
-        NotaryClient nc2 = new NotaryClient("user2", pk2);
+//        PrivateKey pk2 = KeyReader.getInstance().readPrivateKey("user2", "password2");
+//        NotaryClient nc2 = new NotaryClient("user2", pk2);
         System.out.println(nc.getStateOfGood("good2").getOwnerID());
         System.out.println(nc.getStateOfGood("good2").getOwnerID());
 

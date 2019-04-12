@@ -18,15 +18,18 @@ public class Checker {
         return uniqueInstance;
     }
 
-    public void checkResponse(byte[] receivedContent, String userID, String sig, String nonce) {
+    public void checkResponse(byte[] receivedContent, String userID, String sig, String nonce,String nonceNotary, String sigNotary) {
         if (!Crypto.getInstance().checkSignature(Notary.getInstance().getUser(userID).getPublicKey(), receivedContent, sig)) {
-            throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!", sig, nonce);
+            throw new InvalidTransactionExceptionResponse("Content of Request Forged!!!", sigNotary, nonceNotary);
         }
         long nonceL = Long.valueOf(nonce).longValue();
         if (nonceL > Notary.getInstance().getUser(userID).getLastNonce()) {
             Notary.getInstance().getUser(userID).setLastNonce(nonceL);
         } else {
-            throw new InvalidTransactionExceptionResponse("Invalid Nonce", sig, nonce);
+            System.out.println("fodasseeeee");
+            System.out.println(sig);
+            System.out.println(nonceNotary);
+            throw new InvalidTransactionExceptionResponse("Invalid Nonce", sigNotary, nonceNotary);
         }
     }
 }

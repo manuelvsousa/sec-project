@@ -44,7 +44,9 @@ class NotaryAbstract {
 
         try {
             String path = new File(System.getProperty("user.dir")).getParent();
-            this.notaryCCPublicKey = KeyReader.getInstance().readPublicKey("notaryCC", path);
+            if(this.withCC){
+                this.notaryCCPublicKey = KeyReader.getInstance().readPublicKey("notaryCC", path);
+            }
         } catch (Exception e) {
             throw new RuntimeException("Could not Load Notary CC public key");
         }
@@ -90,7 +92,6 @@ class NotaryAbstract {
             X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeybase64.getBytes()));
             KeyFactory kf = KeyFactory.getInstance("RSA");
             PublicKey publicKey = kf.generatePublic(publicKeySpec);
-            System.out.println(publicKey);
             this.notarySignedPublicKey = publicKey;
             byte[] toSign = (type + "||" + publicKeySignature + "||" + Base64.getEncoder().encodeToString(publicKey.getEncoded())).getBytes();
             this.verifyResponse(r, toSign, false); // General request verification. Check integrity hole message
@@ -154,7 +155,6 @@ class NotaryAbstract {
             throw new InvalidSignature("Signature from notary was null");
         } else {
             toSign = (new String(toSign) + "||" + nonceS).getBytes();
-            System.out.println(new String(toSign) + "||" + nonceS);
             if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey, toSign, sig)) {
                 throw new InvalidSignature("Signature from notary was forged");
             }

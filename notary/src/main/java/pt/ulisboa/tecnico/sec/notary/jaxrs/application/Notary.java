@@ -156,6 +156,7 @@ public class Notary implements Serializable {
         ois.defaultReadObject();
         uniqueInstance = this;
         this.keys = KeyGen.getInstance().generateRSAKey();
+        System.out.println(this.keys.getPublic());
     }
 
 }
