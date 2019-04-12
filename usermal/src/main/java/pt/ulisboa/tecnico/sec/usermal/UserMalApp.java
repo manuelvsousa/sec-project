@@ -43,10 +43,9 @@ public class UserMalApp {
                     System.out.println("First Request:" + type + "||good1||user1||" + nonce + "||" + sig);
                     r = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user1").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
                     System.out.println("Code received: " + r.getStatus());
-                    if(r.getStatus()==200){
+                    if (r.getStatus() == 200) {
                         System.out.println("Request Done Successfully\n");
-                    }
-                    else {
+                    } else {
                         System.out.println("Something went wrong. Please try agaain");
                     }
                     System.out.println("Second Request:" + type + "||good1||user1||" + nonce + "||" + sig);
@@ -66,7 +65,7 @@ public class UserMalApp {
                     System.out.println("First Request:" + type + "||good1||user1||" + nonce + "||" + sig);
                     r = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user1").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
                     System.out.println("Code received: " + r.getStatus());
-                    checkResponse(r,"Authenticity attack");
+                    checkResponse(r, "Authenticity attack");
                     break;
 
                 case "3":
@@ -93,13 +92,11 @@ public class UserMalApp {
     }
 
     public static void checkResponse(Response r, String attack) {
-        if (r.getStatus()==409) {
+        if (r.getStatus() == 409) {
             System.out.println("Invalid transaction. There was a " + attack + "\n");
-        }
-        else if(r.getStatus()==200) {
+        } else if (r.getStatus() == 200) {
             System.out.println("Request Done Successfully. No " + attack + "\n");
-        }
-        else {
+        } else {
             System.out.println("Something went wrong\n");
         }
     }

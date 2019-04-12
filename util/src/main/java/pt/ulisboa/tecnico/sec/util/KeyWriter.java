@@ -3,7 +3,6 @@ package pt.ulisboa.tecnico.sec.util;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.PublicKey;
 
 public class KeyWriter {

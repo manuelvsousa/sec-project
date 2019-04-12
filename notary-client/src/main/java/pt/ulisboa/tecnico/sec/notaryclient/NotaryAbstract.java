@@ -66,7 +66,7 @@ class NotaryAbstract {
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
             State s = null;
-            if(r.getStatus() == 200){
+            if (r.getStatus() == 200) {
                 s = r.readEntity(State.class);
                 toSign = (type + "||" + id + "||" + userID + "||" + nonce + "||" + s.getOnSale() + "||" + s.getOwnerID()).getBytes();
             }

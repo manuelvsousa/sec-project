@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.sec.usercli;
 
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 import pt.ulisboa.tecnico.sec.util.exception.PrivateKeyWrongPassword;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;

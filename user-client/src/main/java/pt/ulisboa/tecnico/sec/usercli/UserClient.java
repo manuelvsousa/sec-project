@@ -71,7 +71,7 @@ public class UserClient {
         }
     }
 
-    public void printTransactions(){
+    public void printTransactions() {
         System.out.println("List of transactions: ");
         ua.printTransactions();
     }

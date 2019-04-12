@@ -4,7 +4,8 @@ import pt.ulisboa.tecnico.sec.util.KeyReader;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 
@@ -34,7 +35,7 @@ public class Bootstrap implements ServletContextListener {
         } catch (IOException ex) {
             System.out.println("IOException is caught");
             ex.printStackTrace();
-        }  catch (GeneralSecurityException gse) {
+        } catch (GeneralSecurityException gse) {
             System.out.println("GeneralSecurityException is caught");
         }
     }

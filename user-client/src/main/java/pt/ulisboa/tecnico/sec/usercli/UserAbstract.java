@@ -16,14 +16,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-
-
-import java.util.*;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 
 public class UserAbstract {
@@ -60,10 +54,10 @@ public class UserAbstract {
             throw e;
         }
     }
-    
-    public void printTransactions(){
+
+    public void printTransactions() {
         int i = 1;
-        for(Map<String, String> map : listOfNotaryCertificates){
+        for (Map<String, String> map : listOfNotaryCertificates) {
             SimpleDateFormat date = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             Date dateResult = new Date(Long.valueOf(map.get("Notary-Time")));
             System.out.println("Transaction " + i + "\n" +
