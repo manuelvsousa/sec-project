@@ -16,12 +16,15 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+
+
 import java.util.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 
 public class UserAbstract {
     List<HashMap<String, String>> listOfNotaryCertificates;
