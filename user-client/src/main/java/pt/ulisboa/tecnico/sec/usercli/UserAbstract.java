@@ -40,6 +40,9 @@ public class UserAbstract {
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             System.out.println("Signature UserAbstract: " + sig);
             Response r = client.target(REST_URI).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signatureBuyer", sig).queryParam("nonceBuyer", nonce).request(MediaType.APPLICATION_JSON).get();
+            if(r.getStatus() != 200){
+                throw new Exception(r.readEntity(String.class));
+            }
             this.verifyResponse(r, toSign, sellerID);
             String json = r.readEntity(String.class);
             HashMap<String, String> notaryCertificate = new Gson().fromJson(

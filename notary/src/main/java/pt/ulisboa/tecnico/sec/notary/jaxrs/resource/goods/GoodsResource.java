@@ -67,11 +67,13 @@ public class GoodsResource {
         try {
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
 
+            Notary.getInstance().doIntegrityCheck(goodID, buyerID, sellerID);
+
             Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce,nonceNotary,sigNotary); // Check integrity of message and nonce validaty
 
             byte[] toSign2 = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonceBuyer).getBytes();
 
-           // Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceBuyer); // Check integrity of message send by the buyer to the seller
+           Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceBuyer,nonceNotary,sigNotary); // Check integrity of message send by the buyer to the seller
 
 
             /* Doing this might invalidate the transfer in case the buyer makes a request that arrives first then this one.

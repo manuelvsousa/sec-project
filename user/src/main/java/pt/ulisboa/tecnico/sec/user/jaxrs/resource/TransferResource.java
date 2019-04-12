@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.sec.user.jaxrs.resource;
 import com.google.gson.Gson;
 import pt.ulisboa.tecnico.sec.notaryclient.NotaryClient;
 import pt.ulisboa.tecnico.sec.user.jaxrs.application.UserServ;
+import pt.ulisboa.tecnico.sec.user.jaxrs.resource.exception.GeneralErrorExceptionResponse;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 
@@ -57,7 +58,7 @@ public class TransferResource {
             return response;
 
         } catch (Exception e) {
-            throw e;
+            throw new GeneralErrorExceptionResponse(e.getMessage());
         }
     }
 }
