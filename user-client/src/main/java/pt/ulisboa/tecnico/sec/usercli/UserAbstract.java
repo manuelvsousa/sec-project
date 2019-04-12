@@ -35,23 +35,21 @@ public class UserAbstract {
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             System.out.println("Signature UserAbstract: " + sig);
             Response r = client.target(REST_URI).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signatureBuyer", sig).queryParam("nonceBuyer", nonce).request(MediaType.APPLICATION_JSON).get();
-            this.verifyResponse(r, toSign);
+            this.verifyResponse(r, toSign, sellerID);
         } catch (Exception e) {
             throw e;
         }
     }
 
-    private void verifyResponse(Response r, byte[] toSign) {
-       System.out.println(r.toString());
+    
+    private void verifyResponse(Response r, byte[] toSign, String sellerID) {
         try {
             String sig = r.getHeaderString("Seller-Signature");
             if (sig == null) {
                 throw new InvalidSignature("Signature from user was null");
             } else {
                 String path = new File(System.getProperty("user.dir")).getParent();
-                String port = System.getProperty("port");
-                String userServID = "user" + port;
-                PublicKey publicKey = KeyReader.getInstance().readPublicKey(userServID, path);
+                PublicKey publicKey = KeyReader.getInstance().readPublicKey(sellerID, path);
                 if (!Crypto.getInstance().checkSignature(publicKey, toSign, sig)) {
                     throw new InvalidSignature("Signature from user was forged");
                 }

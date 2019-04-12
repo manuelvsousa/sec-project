@@ -42,6 +42,7 @@ public class UserMalApp {
                     System.out.println("Second Request:" + type + "||good1||user1||" + nonce + "||" + sig);
                     try {
                         Response r1 = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user1").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
+                        System.out.println(r1.getStatus());
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
                         System.out.println("Atack, Muahahaha");
@@ -58,10 +59,22 @@ public class UserMalApp {
                     System.out.println("First Request:" + type + "||good1||user1||" + nonce + "||" + sig);
                     try {
                         r = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user1").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
+                        System.out.println(r.getStatus());
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
+                        System.out.println("Atack, Muahahaha");
                     }
                     break;
+                case "3":
+                    privKey = KeyReader.getInstance().readPrivateKey("user1", "password1");
+                    type =
+                            Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
+                    nonce = String.valueOf((System.currentTimeMillis()));
+                    toSign = (type + "||good1||user1||" + nonce).getBytes();
+                    sig = Crypto.getInstance().sign(privKey, toSign);
+                    System.out.println("First Request:" + type + "||good1||user1||" + nonce + "||" + sig);
+                    r = clientMal.target(REST_URI + "/goods/getStatus").queryParam("id", "good1").queryParam("userID", "user2").queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
+                    System.out.println(r.getStatus());
             }
         }
     }
