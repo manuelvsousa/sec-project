@@ -26,7 +26,7 @@
 11. cd user-client
 12. mvn exec:java -Dexec.args="user2" (password: password2)
 
-##Demo Instructions
+## Demo Instructions
 On the user client 1: 
 15. Press 4 to list the goods available in the system
 16. Write: 2 good2
@@ -40,7 +40,7 @@ On the user client 2:
 21. Write: 2 good2
 22. Write: 1 good1 (Returns error) 
 
-##Attack simulator demo instructions 
+## Attack simulator demo instructions 
 
 (new terminal)
 23. mvn clean install exec:java
