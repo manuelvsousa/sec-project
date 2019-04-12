@@ -17,6 +17,8 @@ import java.security.GeneralSecurityException;
 import java.util.*;
 import java.io.IOException;
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class UserAbstract {
     private Client client = ClientBuilder.newClient();
@@ -48,6 +50,23 @@ public class UserAbstract {
             this.listOfNotaryCertificates.add(notaryCertificate);
         } catch (Exception e) {
             throw e;
+        }
+    }
+
+    public void printTransactions(){
+        int i = 1;
+        for(Map<String, String> map : listOfNotaryCertificates){
+            SimpleDateFormat date = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            Date dateResult = new Date(Long.valueOf(map.get("Notary-Time")));
+            System.out.println(date.format(dateResult));
+            System.out.println("Transaction " + i + "\n" +
+                    "   Notary Signature: " + map.get("Notary-Signature") + "\n" +
+                    "   Original Message: " + map.get("Original-Message") + "\n" +
+                    "   Good: " + map.get("Good") + "\n" +
+                    "   Seller: " + map.get("Seller") + "\n" +
+                    "   Buyer: " + map.get("Buyer") + "\n" +
+                    "   Notary Time: " + date.format(dateResult));
+            i++;
         }
     }
 

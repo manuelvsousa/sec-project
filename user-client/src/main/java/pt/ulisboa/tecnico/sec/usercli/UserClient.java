@@ -72,4 +72,9 @@ public class UserClient {
             System.out.println(" ->" + goodID);
         }
     }
+
+    public void printTransactions(){
+        System.out.println("List of transactions: ");
+        ua.printTransactions();
+    }
 }

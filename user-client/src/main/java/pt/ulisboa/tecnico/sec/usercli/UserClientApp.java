@@ -49,6 +49,7 @@ public class UserClientApp {
                     "2 - getStateOfGood: goodID\n" +
                     "3 - buyGood: goodID sellerID\n" +
                     "4 - listGoods\n" +
+                    "5 - listTransactions\n" +
                     "Press Q to quit");
 
             String method = scanner.nextLine();
@@ -82,6 +83,9 @@ public class UserClientApp {
                         break;
                     case "4":
                         userClient.printGoods();
+                        break;
+                    case "5":
+                        userClient.printTransactions();
                         break;
                     case "q":
                     case "Q":
