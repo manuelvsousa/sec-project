@@ -41,6 +41,7 @@ Write: 2 good2
 Write: 3 good2 user1
 Write: 2 good2
 Write: 1 good1 (Returns error) 
+Write: 5 (Prints certificates from notary)
 
 ## Attack simulator demo instructions 
 

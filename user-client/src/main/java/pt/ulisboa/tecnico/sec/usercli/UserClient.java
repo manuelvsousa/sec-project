@@ -21,7 +21,7 @@ public class UserClient {
         this.ua = new UserAbstract(privKey);
     }
 
-    public String getStateOfgood(String goodID) throws Exception {
+    public String getStateOfgood(String goodID) {
         try {
             State state = this.notaryClient.getStateOfGood(goodID);
             String message = goodID + "->  Owner: " + state.getOwnerID() + "; On sale: ";
@@ -37,7 +37,7 @@ public class UserClient {
         }
     }
 
-    public String intentionToSell(String goodID) throws Exception {
+    public String intentionToSell(String goodID) {
         try {
             this.notaryClient.intentionToSell(goodID);
             String message = "The " + goodID + " was set to sell";
@@ -49,7 +49,7 @@ public class UserClient {
     }
 
 
-    public String buyGood(String goodID, String buyerID, String sellerID) throws Exception {
+    public String buyGood(String goodID, String buyerID, String sellerID) {
         try {
             ua.buyGood(goodID, buyerID, sellerID);
             return "The transaction was successful";

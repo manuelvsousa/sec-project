@@ -21,7 +21,7 @@ public class KeyWriter {
         return uniqueInstance;
     }
 
-    public void write(PublicKey publicKey, String user) throws GeneralSecurityException, IOException {
+    public void write(PublicKey publicKey, String user) throws IOException {
         String path = new File("../").getCanonicalPath();
         System.out.println(path + "/keys/users/" + user + ".pub");
         FileOutputStream pubFos = new FileOutputStream(path + "/keys/users/" + user + ".pub");

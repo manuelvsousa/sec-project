@@ -41,12 +41,10 @@ public class UserAbstract {
         String arr[] = sellerID.split("user");
         String port = arr[1];
         String REST_URI = "http://localhost:909" + port + "/user/user/transfer/buy";
-        System.out.println(REST_URI);
         try {
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            System.out.println("Signature UserAbstract: " + sig);
             Response r = client.target(REST_URI).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signatureBuyer", sig).queryParam("nonceBuyer", nonce).request(MediaType.APPLICATION_JSON).get();
             if (r.getStatus() != 200) {
                 throw new Exception(r.readEntity(String.class));
@@ -68,7 +66,6 @@ public class UserAbstract {
         for(Map<String, String> map : listOfNotaryCertificates){
             SimpleDateFormat date = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             Date dateResult = new Date(Long.valueOf(map.get("Notary-Time")));
-            System.out.println(date.format(dateResult));
             System.out.println("Transaction " + i + "\n" +
                     "   Notary Signature: " + map.get("Notary-Signature") + "\n" +
                     "   Original Message: " + map.get("Original-Message") + "\n" +
