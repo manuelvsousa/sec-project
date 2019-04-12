@@ -43,7 +43,7 @@ public class Crypto {
             signature1.update(signedContent);
             result = signature1.verify(hexToByte(sig));
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         if (result) {
             return true;
