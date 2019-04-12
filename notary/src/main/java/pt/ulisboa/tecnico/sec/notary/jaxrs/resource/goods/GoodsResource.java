@@ -74,7 +74,7 @@ public class GoodsResource {
         try {
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
 
-            Notary.getInstance().doIntegrityCheck(goodID, buyerID, sellerID);
+            Notary.getInstance().doIntegrityCheck(goodID, buyerID, sellerID); //check if all users exist, if goods exist, and if users are telling the truth i.e if they own the goods they claim to own
 
             Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty
 
