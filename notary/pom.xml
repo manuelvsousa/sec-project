@@ -20,6 +20,7 @@
         <version.servlet.api>3.1.0
         </version.servlet.api>  <!-- use 3.0.1 for Tomcat 7 or Java EE 6 (i.e. Glassfish 3.x) -->
         <mainclass>pt.ulisboa.tecnico.sec.notary.jaxrs.application.Main</mainclass>
+        <port></port>
     </properties>
     <repositories>
         <repository>
@@ -110,6 +111,16 @@
                     <!--</systemProperties>-->
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <port>919${port}</port>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
