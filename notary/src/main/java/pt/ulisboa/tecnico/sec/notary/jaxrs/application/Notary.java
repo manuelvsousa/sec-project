@@ -17,7 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Notary implements Serializable {
-    private final static String SERIALIZE_FILE_NAME = "notary.ser";
+    private final static String SERIALIZE_FILE_NAME = "notary";
+    private final static String SERIALIZE_FILE_EXTENSION = ".ser";
 
     private static Notary uniqueInstance;
 
@@ -47,8 +48,8 @@ public class Notary implements Serializable {
         try {
             Notary notary = Notary.getInstance();
             ObjectOutput out;
-
-            out = new ObjectOutputStream(new FileOutputStream(SERIALIZE_FILE_NAME));
+            String saveFilename = SERIALIZE_FILE_NAME + System.getProperty("port") + SERIALIZE_FILE_EXTENSION;
+            out = new ObjectOutputStream(new FileOutputStream(saveFilename));
             out.writeObject(notary);
             out.close();
 
