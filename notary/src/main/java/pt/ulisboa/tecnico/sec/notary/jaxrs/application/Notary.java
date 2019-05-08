@@ -173,8 +173,8 @@ public class Notary implements Serializable {
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException, GeneralSecurityException {
         ois.defaultReadObject();
         uniqueInstance = this;
-        this.keys = KeyGen.getInstance().generateRSAKey();
-        setWithCC(true);
+//        this.keys = KeyGen.getInstance().generateRSAKey();
+//        setWithCC(true);
     }
 
 }

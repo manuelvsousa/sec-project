@@ -16,7 +16,7 @@ import java.security.PublicKey;
 
 public class Bootstrap implements ServletContextListener {
     private String serializeFileName = "notary.ser";
-    private boolean CITIZEN_CARD_ACTIVATED = true;
+    private boolean CITIZEN_CARD_ACTIVATED = false;
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
