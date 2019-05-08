@@ -38,7 +38,7 @@ class NotaryAbstract {
     public NotaryAbstract(PrivateKey privateKey) {
         this.privateKey = privateKey;
         this.lastNotaryNonce = System.currentTimeMillis();
-        this.withCC = true;
+        this.withCC = false;
 
         try {
             String path = new File(System.getProperty("user.dir")).getParent();
