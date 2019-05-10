@@ -109,9 +109,9 @@ public class Notary implements Serializable {
         if(Long.valueOf(time).longValue() > this.getGood(goodID).getTimestamp()) {
             seller.removeGood(g);
             g.setOnSale(false);
-            this.getGood(goodID).setTimestamp(Long.valueOf(time).longValue());
+            g.setTimestamp(Long.valueOf(time).longValue());
             /**TODO Improve??**/
-            this.getGood(goodID).setSignWrite(signWrite);
+            g.setSignWrite(signWrite);
             buyer.addGood(g);
             transactions.add(new Transaction(this.getGood(goodID), this.getUser(sellerID), this.getUser(buyerID), time));
             this.save();

@@ -396,7 +396,7 @@ class NotaryAbstract {
         String code;
         int value;
         for(Integer i : r.keySet()) {
-            code = this.codeResponse(r.get(i), toSign, false, i);
+            code = this.codeResponse(r.get(i), toSign, false, i-1);
             if(codes.containsKey(code)) {
                 value = codes.get(code) + 1;
                 codes.replace(code, value);
