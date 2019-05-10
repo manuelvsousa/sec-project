@@ -20,18 +20,18 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 
 class NotaryAbstract {
 
-    private static final String REST_URI = "http://localhost:9090/notary/notary";
+    private static final String REST_URI = "http://localhost:9191/notary/notary";
+    private static  final int F = 1;
+    private static  final int N = 4 * F;
     private Client client = ClientBuilder.newClient();
     private PrivateKey privateKey;
     private long lastNotaryNonce;
-    private PublicKey notarySignedPublicKey;
+    private ArrayList<PublicKey> notarySignedPublicKey = new ArrayList<PublicKey>();
     private PublicKey notaryCCPublicKey;
     private boolean withCC;
 
@@ -64,13 +64,15 @@ class NotaryAbstract {
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
+
             Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
+
             State s = null;
             if (r.getStatus() == 200) {
                 s = r.readEntity(State.class);
                 toSign = (type + "||" + id + "||" + userID + "||" + nonce + "||" + s.getOnSale() + "||" + s.getOwnerID()).getBytes();
             }
-            this.verifyResponse(r, toSign, false);
+            this.verifyResponse(r, toSign, false, 0);
             return s;
         } catch (NotFoundException e) {
             String cause = e.getResponse().readEntity(String.class);
@@ -88,23 +90,28 @@ class NotaryAbstract {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/keys/getPublicKey".getBytes());
-            Response r = client.target(REST_URI + "/keys/getPublicKey").request(MediaType.APPLICATION_JSON).get();
-            String publicKeySignature = r.getHeaderString("PublicKey-Signature");
-            String publicKeybase64 = r.readEntity(String.class);
-            X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeybase64.getBytes()));
-            KeyFactory kf = KeyFactory.getInstance("RSA");
-            PublicKey publicKey = kf.generatePublic(publicKeySpec);
-            this.notarySignedPublicKey = publicKey;
-            byte[] toSign = (type + "||" + publicKeySignature + "||" + Base64.getEncoder().encodeToString(publicKey.getEncoded())).getBytes();
-            this.verifyResponse(r, toSign, false); // General request verification. Check integrity hole message
+            String REST_URI_C;
+            for(int i = 1; i <= N; i++) {
+                REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+                Response r = client.target(REST_URI_C + "/keys/getPublicKey").request(MediaType.APPLICATION_JSON).get();
+                String publicKeySignature = r.getHeaderString("PublicKey-Signature");
+                String publicKeybase64 = r.readEntity(String.class);
+                X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeybase64.getBytes()));
+                KeyFactory kf = KeyFactory.getInstance("RSA");
+                PublicKey publicKey = kf.generatePublic(publicKeySpec);
+                this.notarySignedPublicKey.add(publicKey);
+                byte[] toSign = (type + "||" + publicKeySignature + "||" + Base64.getEncoder().encodeToString(publicKey.getEncoded())).getBytes();
+                this.verifyResponse(r, toSign, false, i-1); // General request verification. Check integrity hole message
             /*  The check bellow is really important
                 Check if signature from CC actually matches the sent public key
                 An attacker may encript a simillar message with a equally generated key.
                 This verification is going ensure that the public key actually came from notary and not from another place
                 This is done this away to avoid unnecessary CC signatures everytime someone asks for the public key.
              */
-            if (this.withCC && !Crypto.getInstance().checkSignature(this.notaryCCPublicKey, publicKey.getEncoded(), publicKeySignature)) {
-                throw new InvalidSignature("Public Key sent from notary was forged. Signature made with CC is wrong");
+            /**TODO fix this**/
+                if (this.withCC && !Crypto.getInstance().checkSignature(this.notaryCCPublicKey, publicKey.getEncoded(), publicKeySignature)) {
+                    throw new InvalidSignature("Public Key sent from notary was forged. Signature made with CC is wrong");
+                }
             }
             return;
         } catch (NotFoundException e) {
@@ -131,24 +138,48 @@ class NotaryAbstract {
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            Response r = client.target(REST_URI + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("nonceBuyer", nonceBuyer).queryParam("sigBuyer", sigBuyer).request(MediaType.APPLICATION_JSON).get();
-            this.verifyResponse(r, toSign, true);
-            String notarySig = r.getHeaderString("Notary-Signature");
-            String nonceS = r.getHeaderString("Notary-Nonce");
-            Map<String, String> map = new HashMap<>();
-            map.put("Notary-Signature", notarySig);
-            map.put("Original-Message", new String(toSign) + "||" + nonceS);
-            map.put("Good", goodID);
-            map.put("Buyer", buyerID);
-            map.put("Seller", sellerID);
-            map.put("Notary-Time", nonceS);
-            return map;
+            List<Response> r = new ArrayList<>();
+            String REST_URI_C;
+            for(int i = 1; i <= N; i++) {
+                REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+                r.add(client.target(REST_URI_C + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("nonceBuyer", nonceBuyer).queryParam("sigBuyer", sigBuyer).request(MediaType.APPLICATION_JSON).get());
+            }
+
+            HashMap<String, Integer> codes = this.processResponses(r, toSign);
+
+            for(String code_aux : codes.keySet()) {
+                if(codes.get(code_aux) > (N + F)/2) {
+                    System.out.println(code_aux);
+                    //it only returns if everything went well
+                    checkCode(code_aux);
+                    String notarySig = "";
+                    String nonceS = "";
+                    for(Response resp : r) {
+                        if(resp.getStatus() == 200) {
+                            /**TODO Aleterar isto **/
+                            notarySig = resp.getHeaderString("Notary-Signature");
+                            nonceS = resp.getHeaderString("Notary-Nonce");
+                            break;
+                        }
+                    }
+                    //this.verifyResponse(r, toSign, true);
+                    Map<String, String> map = new HashMap<>();
+                    map.put("Notary-Signature", notarySig);
+                    map.put("Original-Message", new String(toSign) + "||" + nonceS);
+                    map.put("Good", goodID);
+                    map.put("Buyer", buyerID);
+                    map.put("Seller", sellerID);
+                    map.put("Notary-Time", nonceS);
+                    return map;
+                }
+            }
+            throw new RuntimeException("Unknown Error");
         } catch (Exception e) {
             throw e;
         }
     }
 
-    private void verifyResponse(Response r, byte[] toSign, boolean withCC) {
+    private void verifyResponse(Response r, byte[] toSign, boolean withCC, int index) {
         withCC = withCC && this.withCC;
         String sig = r.getHeaderString("Notary-Signature");
         String nonceS = r.getHeaderString("Notary-Nonce");
@@ -157,9 +188,9 @@ class NotaryAbstract {
             throw new InvalidSignature("Signature from notary was null");
         } else {
             toSign = (new String(toSign) + "||" + nonceS).getBytes();
-            if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey, toSign, sig)) {
+            if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
                 retrievePublicKey();
-                if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey, toSign, sig)) {
+                if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
                     throw new InvalidSignature("Signature from notary was forged");
                 } else {
                     throw new InvalidSignature("Notary has new Public Key. Please Redo Request"); //can be optimized, but might open a security hole
@@ -204,12 +235,140 @@ class NotaryAbstract {
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            Response r = client.target(REST_URI + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
-            this.verifyResponse(r, toSign, false);
-            return;
+            List<Response> r = new ArrayList<>();
+            String REST_URI_C;
+            for(int i = 1; i <= N; i++) {
+                REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+                r.add(client.target(REST_URI_C + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get());
+                //this.verifyResponse(r, toSign, false);
+            }
+
+            HashMap<String, Integer> codes = this.processResponses(r, toSign);
+
+            for(String code_aux : codes.keySet()) {
+                if(codes.get(code_aux) > (N + F)/2) {
+                    System.out.println(code_aux);
+                    checkCode(code_aux);
+                    return;
+                }
+            }
+
+            throw new RuntimeException("Unknown Error");
         } catch (Exception e) {
             throw e;
         }
     }
+
+
+    private String codeResponse(Response r, byte[] toSign, boolean withCC, int index) {
+        withCC = withCC && this.withCC;
+        String sig = r.getHeaderString("Notary-Signature");
+        String nonceS = r.getHeaderString("Notary-Nonce");
+        long nonce = Long.valueOf(nonceS).longValue();
+        if (sig == null) {
+            return "Signull";
+        } else {
+            toSign = (new String(toSign) + "||" + nonceS).getBytes();
+            if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
+                retrievePublicKey();
+                if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
+                    return "Sigforged";
+                } else {
+                    return "KeySync"; //can be optimized, but might open a security hole
+                }
+            }
+        }
+        if (nonce > this.lastNotaryNonce) {
+            this.lastNotaryNonce = nonce;
+        } else {
+            return "Siginval";
+        }
+
+        if (r.getStatus() == 200) {
+            return "200";
+        } else {
+            String cause = r.readEntity(String.class);
+            if (cause == null) {
+                return "null ||" + r.getStatus();
+            }
+            if (r.getStatus() == 404) {
+                if (cause.toLowerCase().contains("good".toLowerCase())) {
+                    return "goodNotFound ||" + cause;
+                } else if (cause.toLowerCase().contains("user".toLowerCase())) {
+                    return "userNotFound";
+                }
+            } else if (r.getStatus() == 417) {
+                return "417 ||" + cause;
+            } else if (r.getStatus() == 409) { //conflict
+                return "409 ||" + cause;
+            } else if (r.getStatus() == 406) { //not acceptable
+                return "406 ||" + cause;
+            } else {
+                return "error ||" + r.getStatus();
+            }
+        }
+        return "error";
+    }
+
+    private void checkCode(String code) {
+        if(code.equals("Signull")) {
+            throw new InvalidSignature("Signature from notary was null");
+        }
+        else if(code.equals("Sigforged")) {
+            throw new InvalidSignature("Signature from notary was forged");
+        }
+        else if(code.equals("Siginval")){
+            throw new InvalidSignature("Nonce from notary is invalid");
+        }
+        else if(code.equals("200")) {
+            return;
+        }
+        else if(code.startsWith("null")) {
+            String[] cause = code.split("||");
+            throw new RuntimeException("Cause of error " +  cause[1] + " is null");
+        }
+        else if(code.startsWith("goodNotFound")) {
+            String[] cause = code.split("||");
+            throw new GoodNotFoundException(cause[1]);
+        }
+        else if(code.startsWith("userNotFound")) {
+            String[] cause = code.split("||");
+            throw new UserNotFoundException(cause[1]);
+        }
+        else if(code.startsWith("417")) {
+            String[] cause = code.split("||");
+            throw new UserDoesNotOwnGoodException(cause[1]);
+        }
+        else if(code.startsWith("409")) {
+            String[] cause = code.split("||");
+            throw new UserDoesNotOwnGoodException(cause[1]);
+        }
+        else if(code.startsWith("406")) {
+            String[] cause = code.split("||");
+            throw new UserDoesNotOwnGoodException(cause[1]);
+        }
+        else if(code.startsWith("error")) {
+            String[] cause = code.split("||");
+            throw new RuntimeException("Unable to process request, ERROR " + cause + " Received!");
+        }
+    }
+
+    private HashMap<String, Integer> processResponses(List<Response> r, byte[] toSign) {
+        HashMap<String, Integer> codes = new HashMap<String, Integer>();
+        String code;
+        int value;
+        for(int i = 0; i < r.size(); i++) {
+            code = this.codeResponse(r.get(i), toSign, false, i);
+            if(codes.containsKey(code)) {
+                value = codes.get(code) + 1;
+                codes.replace(code, value);
+            }
+            else {
+                codes.put(code, 1);
+            }
+        }
+        return  codes;
+    }
+
 
 }
