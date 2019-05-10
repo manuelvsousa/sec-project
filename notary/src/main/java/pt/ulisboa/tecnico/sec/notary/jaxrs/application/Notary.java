@@ -73,7 +73,7 @@ public class Notary implements Serializable {
     }
 
     public PublicKey getPublicKey() {
-        return this.keys.getPublic();
+            return this.keys.getPublic();
     }
 
     public String sign(byte[] toSign, boolean withCC) throws Exception {
@@ -90,7 +90,7 @@ public class Notary implements Serializable {
         this.save();
     }
 
-    public void addTransaction(String goodID, String buyerID, String sellerID, String time) {
+    public void addTransaction(String goodID, String buyerID, String sellerID, String time, String signWrite) {
         for (Transaction t : this.transactions) {
             if (t.getGood().getID().equals(goodID) && t.getBuyer().getID().equals(buyerID) && t.getSeller().getID().equals(sellerID) && t.getTime().equals(time)) {
                 throw new TransactionAlreadyExistsException(goodID, buyerID, sellerID);
@@ -105,11 +105,17 @@ public class Notary implements Serializable {
         if (!g.onSale()) {
             throw new GoodNotOnSale(goodID);
         }
-        seller.removeGood(g);
-        g.setOnSale(false);
-        buyer.addGood(g);
-        transactions.add(new Transaction(this.getGood(goodID), this.getUser(sellerID), this.getUser(buyerID), time));
-        this.save();
+
+        if(Long.valueOf(time).longValue() > this.getGood(goodID).getTimestamp()) {
+            seller.removeGood(g);
+            g.setOnSale(false);
+            this.getGood(goodID).setTimestamp(Long.valueOf(time).longValue());
+            /**TODO Improve??**/
+            this.getGood(goodID).setSignWrite(signWrite);
+            buyer.addGood(g);
+            transactions.add(new Transaction(this.getGood(goodID), this.getUser(sellerID), this.getUser(buyerID), time));
+            this.save();
+        }
     }
 
     public void doIntegrityCheck(String goodID, String buyerID, String sellerID) {
@@ -127,11 +133,15 @@ public class Notary implements Serializable {
         }
     }
 
-    public void setIntentionToSell(String goodID, String sellerID) {
+    public void setIntentionToSell(String goodID, String sellerID, String nonce, String sigWrite) {
         if (!this.getUser(sellerID).getGoods().contains(this.getGood(goodID))) {
             throw new UserDoesNotOwnGood(sellerID, goodID);
         }
-        this.getGood(goodID).setOnSale(true);
+        if(Long.valueOf(nonce).longValue() > this.getGood(goodID).getTimestamp()) {
+            this.getGood(goodID).setOnSale(true);
+            this.getGood(goodID).setTimestamp(Long.valueOf(nonce).longValue());
+            this.getGood(goodID).setSignWrite(sigWrite);
+        }
     }
 
     private Good getGood(String goodID) {
@@ -159,7 +169,7 @@ public class Notary implements Serializable {
         for (User u : users) {
             for (Good g : u.getGoods()) {
                 if (g.getID().equals(goodID)) {
-                    return new State(u.getID(), g.onSale());
+                    return new State(u.getID(), g.onSale(), g.getTimestamp(), g.getSignWrite());
                 }
             }
         }

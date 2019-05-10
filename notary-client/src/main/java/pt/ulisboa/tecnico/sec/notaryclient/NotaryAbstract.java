@@ -21,6 +21,8 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 
 
 class NotaryAbstract {
@@ -64,15 +66,36 @@ class NotaryAbstract {
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-
-            Response r = client.target(REST_URI + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get();
-
-            State s = null;
-            if (r.getStatus() == 200) {
-                s = r.readEntity(State.class);
-                toSign = (type + "||" + id + "||" + userID + "||" + nonce + "||" + s.getOnSale() + "||" + s.getOwnerID()).getBytes();
+            String REST_URI_C;
+            int n = (int) Math.ceil((N+F)/2.0);
+            final CountDownLatch latch = new CountDownLatch(n);
+            ResponseCallback responseCallback = new ResponseCallback(latch);
+            HashMap<Integer, Response> r = new HashMap<>();
+            for(int i = 1; i <= N; i++) {
+                REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+                Future<Response> f = client.target(REST_URI_C + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
+                r.put(i, (Response) f.get());
             }
-            this.verifyResponse(r, toSign, false, 0);
+
+            latch.await();
+
+            long maxTimestamp = 0;
+            int faults = 0;
+            State s = null;
+            for(Integer i : r.keySet()) {
+                if(r.get(i).getStatus() == 200) {
+                    s = r.get(i).readEntity(State.class);
+                    toSign = (type + "||" + id + "||" + userID + "||" + nonce + "||" + s.getOnSale() + "||" + s.getOwnerID()).getBytes();
+                }
+                String code = codeResponse(r.get(i), toSign, withCC, i);
+                if(code.equals("200")) {
+                    //Long.valueOf(nonceS).longValue();
+                }
+                else {
+                    faults++; /**TODO Improve**/
+                }
+            }
+
             return s;
         } catch (NotFoundException e) {
             String cause = e.getResponse().readEntity(String.class);
@@ -108,6 +131,7 @@ class NotaryAbstract {
                 This verification is going ensure that the public key actually came from notary and not from another place
                 This is done this away to avoid unnecessary CC signatures everytime someone asks for the public key.
              */
+
             /**TODO fix this**/
                 if (this.withCC && !Crypto.getInstance().checkSignature(this.notaryCCPublicKey, publicKey.getEncoded(), publicKeySignature)) {
                     throw new InvalidSignature("Public Key sent from notary was forged. Signature made with CC is wrong");
@@ -138,13 +162,20 @@ class NotaryAbstract {
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            List<Response> r = new ArrayList<>();
+            byte[] toSW = (goodID + " || false || " +  nonce + " || " + sellerID).getBytes();
+            String sigWrite = Crypto.getInstance().sign(privateKey, toSW);
+            HashMap<Integer, Response> r = new HashMap<>();
             String REST_URI_C;
+            int n = (int) Math.ceil((N+F)/2.0);
+            final CountDownLatch latch = new CountDownLatch(n);
+            ResponseCallback responseCallback = new ResponseCallback(latch);
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
-                r.add(client.target(REST_URI_C + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("nonceBuyer", nonceBuyer).queryParam("sigBuyer", sigBuyer).request(MediaType.APPLICATION_JSON).get());
+                Future<Response> f = client.target(REST_URI_C + "/goods/transfer").queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("nonceBuyer", nonceBuyer).queryParam("sigBuyer", sigBuyer).queryParam("sigWrite", sigWrite).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
+                r.put(i, (Response) f.get());
             }
 
+            latch.await();
             HashMap<String, Integer> codes = this.processResponses(r, toSign);
 
             for(String code_aux : codes.keySet()) {
@@ -154,11 +185,11 @@ class NotaryAbstract {
                     checkCode(code_aux);
                     String notarySig = "";
                     String nonceS = "";
-                    for(Response resp : r) {
-                        if(resp.getStatus() == 200) {
-                            /**TODO Aleterar isto **/
-                            notarySig = resp.getHeaderString("Notary-Signature");
-                            nonceS = resp.getHeaderString("Notary-Nonce");
+                    for(Integer i : r.keySet()) {
+                        if(r.get(i).getStatus() == 200) {
+                            /**TODO Alterar isto **/
+                            notarySig = r.get(i).getHeaderString("Notary-Signature");
+                            nonceS = r.get(i).getHeaderString("Notary-Nonce");
                             break;
                         }
                     }
@@ -235,14 +266,21 @@ class NotaryAbstract {
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            List<Response> r = new ArrayList<>();
+            byte[] toSW = (goodID + " || false || " +  nonce + " || " + sellerID).getBytes();
+            String sigWrite = Crypto.getInstance().sign(privateKey, toSW);
+            HashMap<Integer, Response> r = new HashMap<>();
             String REST_URI_C;
+            int n = (int) Math.ceil((N+F)/2.0);
+            final CountDownLatch latch = new CountDownLatch(n);
+            ResponseCallback responseCallback = new ResponseCallback(latch);
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
-                r.add(client.target(REST_URI_C + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).get());
+                Future<Response> f = client.target(REST_URI_C + "/goods/intention").queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("sigWrite", sigWrite).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
+                r.put(i, (Response) f.get());
                 //this.verifyResponse(r, toSign, false);
             }
 
+            latch.await();
             HashMap<String, Integer> codes = this.processResponses(r, toSign);
 
             for(String code_aux : codes.keySet()) {
@@ -353,11 +391,11 @@ class NotaryAbstract {
         }
     }
 
-    private HashMap<String, Integer> processResponses(List<Response> r, byte[] toSign) {
+    private HashMap<String, Integer> processResponses(HashMap<Integer, Response> r, byte[] toSign) {
         HashMap<String, Integer> codes = new HashMap<String, Integer>();
         String code;
         int value;
-        for(int i = 0; i < r.size(); i++) {
+        for(Integer i : r.keySet()) {
             code = this.codeResponse(r.get(i), toSign, false, i);
             if(codes.containsKey(code)) {
                 value = codes.get(code) + 1;

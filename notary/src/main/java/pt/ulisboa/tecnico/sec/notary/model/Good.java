@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.sec.notary.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import pt.ulisboa.tecnico.sec.util.Crypto;
 
 import java.io.Serializable;
 
@@ -9,15 +10,23 @@ import java.io.Serializable;
 public class Good implements Serializable {
 
     private String goodID;
+    private long timestamp;
+    private String signWrite;
     private boolean onSale = false;
 
     public Good(@JsonProperty("goodID") String goodID, @JsonProperty("onSale") boolean onSale) {
         this.goodID = goodID;
         this.onSale = onSale;
+        this.timestamp = 0;
+        //TODO Improve??**/
+        this.signWrite = "";
     }
 
     public Good(String goodID) {
         this.goodID = goodID;
+        this.timestamp = 0;
+        /**TODO Put signatures right**/
+        this.signWrite = "";
     }
 
     public boolean onSale() {
@@ -33,5 +42,11 @@ public class Good implements Serializable {
         onSale = s;
     }
 
+    public long getTimestamp() { return timestamp; }
 
+    public String getSignWrite() { return signWrite; }
+
+    public void setTimestamp(long t) { timestamp = t; }
+
+    public void setSignWrite(String sw) { signWrite = sw; }
 }

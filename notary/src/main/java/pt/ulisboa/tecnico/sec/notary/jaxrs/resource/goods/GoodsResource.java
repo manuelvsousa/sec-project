@@ -10,12 +10,17 @@ import pt.ulisboa.tecnico.sec.notary.model.exception.*;
 import pt.ulisboa.tecnico.sec.notary.util.Checker;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Base64;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Path("/goods")
 public class GoodsResource {
+    private static ExecutorService executor = Executors.newFixedThreadPool(10); //max 10 threads
 
     @GET
     @Path("/getStatus")
@@ -59,7 +64,7 @@ public class GoodsResource {
 
     @GET
     @Path("/transfer")
-    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("nonceBuyer") String nonceBuyer, @QueryParam("sigBuyer") String sigBuyer) throws Exception {
+    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("nonceBuyer") String nonceBuyer, @QueryParam("sigBuyer") String sigBuyer, @QueryParam("sigWrite") String sigWrite, @Suspended AsyncResponse ar) throws Exception {
         System.out.println("\n\nReceived Paramenters:\n");
         System.out.println("goodID: " + goodID + "\nbuyerID: " + buyerID + "\nsellerID: " + sellerID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce + "\nnonce (from buyer): " + nonceBuyer + "\nsignature (from buyer): " + sigBuyer);
         if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null || nonceBuyer == null || sigBuyer == null) {
@@ -82,19 +87,25 @@ public class GoodsResource {
 
             Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceBuyer, nonceNotary, sigNotary); // Check integrity of message send by the buyer to the seller
 
-
-            /* Doing this might invalidate the transfer in case the buyer makes a request that arrives first then this one.
-             * But this verification wont allow a malicious seller to reuse a previously buyer transfer request in another
-             * future transfer for the same good (in case a certain seller sells the good, then gets it back, and tries to preform a transfer request again without the buyer knowing)
-             * */
-            Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary);
-
-            System.out.println("\n\n\nAbout to Send:\n");
-            System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
-            Response response = Response.ok().
+            Response response1 = Response.ok().
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
-            return response;
+            executor.execute( () -> {
+                /* Doing this might invalidate the transfer in case the buyer makes a request that arrives first then this one.
+                 * But this verification wont allow a malicious seller to reuse a previously buyer transfer request in another
+                 * future transfer for the same good (in case a certain seller sells the good, then gets it back, and tries to preform a transfer request again without the buyer knowing)
+                 * */
+                Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary, sigWrite);
+
+                System.out.println("\n\n\nAbout to Send:\n");
+                System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
+                Response response = Response.ok().
+                        header("Notary-Signature", sigNotary).
+                        header("Notary-Nonce", nonceNotary).build();
+                ar.resume(response);
+            });
+
+            return response1;
 
         } catch (GoodNotFoundException e1) {
             throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary);
@@ -115,7 +126,7 @@ public class GoodsResource {
 
     @GET
     @Path("/intention")
-    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce) throws Exception {
+    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("sigWrite") String sigWrite, @Suspended AsyncResponse ar) throws Exception {
         System.out.println("\n\nReceived Paramenters:\n");
         System.out.println("goodID: " + goodID + "\nsellerID: " + sellerID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce);
         if (goodID == null || sellerID == null || sig == null || nonce == null) {
@@ -132,15 +143,19 @@ public class GoodsResource {
 
             Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty
 
-            Notary.getInstance().setIntentionToSell(goodID, sellerID);
-
-
-            System.out.println("\n\n\nAbout to Send:\n");
-            System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
-            Response response = Response.ok().
-                    header("Notary-Signature", sigNotary).
+            /**TODO Tirar returns??**/
+            Response response1 = Response.ok().header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
-            return response;
+            executor.execute( () -> {
+                        Notary.getInstance().setIntentionToSell(goodID, sellerID, nonce, sigWrite);
+                        System.out.println("\n\n\nAbout to Send:\n");
+                        System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
+                        Response response = Response.ok().
+                        header("Notary-Signature", sigNotary).
+                        header("Notary-Nonce", nonceNotary).build();
+                        ar.resume(response);
+                    });
+            return response1;
         } catch (GoodNotFoundException e1) {
             throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary);
         } catch (UserNotFoundException e2) {
