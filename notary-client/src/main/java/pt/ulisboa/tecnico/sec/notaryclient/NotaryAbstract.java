@@ -7,6 +7,10 @@ import pt.ulisboa.tecnico.sec.notaryclient.exception.UserDoesNotOwnGoodException
 import pt.ulisboa.tecnico.sec.notaryclient.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
+
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 import java.util.concurrent.atomic.DoubleAdder;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
@@ -74,7 +78,8 @@ class NotaryAbstract {
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
                 Future<Response> f = client.target(REST_URI_C + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
-                r.put(i, (Response) f.get());
+                Response resp = (Response) f.get();
+                r.put(i, resp);
 
             }
 
@@ -87,7 +92,7 @@ class NotaryAbstract {
             State s = null;
             for(Integer i : r.keySet()) {
                 if(r.get(i).getStatus() == 200) {
-                    s = r.get(i).readEntity(State.class);
+                    s = (State) r.get(i).readEntity(State.class);
                     toSign = (type + "||" + id + "||" + userID + "||" + nonce + "||" + s.getOnSale() + "||" + s.getOwnerID()).getBytes();
                     String path = new File(System.getProperty("user.dir")).getParent();
                     PublicKey publicKey = KeyReader.getInstance().readPublicKey(s.getOwnerID(), path);
@@ -96,7 +101,7 @@ class NotaryAbstract {
                         continue;
                     }
                 }
-                String code = codeResponse(r.get(i), toSign, withCC, i);
+                String code = codeResponse(r.get(i), toSign, withCC, i-1);
                 if(code.equals("200")) {
                     s = r.get(i).readEntity(State.class);
                     if(Long.valueOf(s.getTimestamp()).longValue() > maxTimestamp) {

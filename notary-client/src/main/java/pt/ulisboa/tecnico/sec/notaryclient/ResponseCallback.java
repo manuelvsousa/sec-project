@@ -34,6 +34,7 @@ public class ResponseCallback implements InvocationCallback<Response> {
     public void completed(Response r) {
         if (read) {
             if(r.getStatus() == 200) {
+                r.bufferEntity();
                 State s = r.readEntity(State.class);
                 String path = new File(System.getProperty("user.dir")).getParent();
                 try {
