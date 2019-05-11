@@ -14,18 +14,17 @@ public class Good implements Serializable {
     private String signWrite;
     private boolean onSale = false;
 
-    public Good(@JsonProperty("goodID") String goodID, @JsonProperty("onSale") boolean onSale) {
+    public Good(@JsonProperty("goodID") String goodID, @JsonProperty("onSale") boolean onSale, @JsonProperty("owner") String owner) {
         this.goodID = goodID;
         this.onSale = onSale;
         this.timestamp = 0;
-        //TODO Improve??**/
-        this.signWrite = "";
+        this.signWrite = goodID + " || "+ onSale + " || " +  timestamp + " || " + owner;
     }
 
+    //It isn't used, otherwise fix signWrite
     public Good(String goodID) {
         this.goodID = goodID;
         this.timestamp = 0;
-        /**TODO Put signatures right**/
         this.signWrite = "";
     }
 

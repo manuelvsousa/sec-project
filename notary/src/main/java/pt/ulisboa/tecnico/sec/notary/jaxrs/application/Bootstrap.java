@@ -15,7 +15,8 @@ import java.security.PublicKey;
 
 
 public class Bootstrap implements ServletContextListener {
-    private String serializeFileName = "notary.ser";
+    private String serializeFileName = "notary";
+    private final static String SERIALIZE_FILE_EXTENSION = ".ser";
     private boolean CITIZEN_CARD_ACTIVATED = false;
 
     @Override
@@ -27,7 +28,8 @@ public class Bootstrap implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
 
         try {
-            File f = new File(serializeFileName);
+            String Filename = serializeFileName + System.getProperty("port") + SERIALIZE_FILE_EXTENSION;
+            File f = new File("notary.ser");
             if (f.exists()) {
                 ObjectInput in = new ObjectInputStream(new FileInputStream(serializeFileName));
                 Notary notary = (Notary) in.readObject();
@@ -43,13 +45,13 @@ public class Bootstrap implements ServletContextListener {
                 }
                 System.out.println("User 0 created");
                 User user1 = new User("user1", KeyReader.getInstance().readPublicKey("user1", path));
-                user1.addGood(new Good("good1", true));
-                user1.addGood(new Good("good2", false));
+                user1.addGood(new Good("good1", true, "user1"));
+                user1.addGood(new Good("good2", false, "user1"));
                 notary.addUser(user1);
                 System.out.println("User 1 created");
 
                 User user2 = new User("user2", KeyReader.getInstance().readPublicKey("user2", path));
-                user2.addGood(new Good("good3", true));
+                user2.addGood(new Good("good3", true, "user2"));
                 notary.addUser(user2);
                 System.out.println("User 2 created");
 

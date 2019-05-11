@@ -7,7 +7,7 @@ import pt.ulisboa.tecnico.sec.notaryclient.exception.UserDoesNotOwnGoodException
 import pt.ulisboa.tecnico.sec.notaryclient.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
-
+import java.util.concurrent.atomic.DoubleAdder;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -67,36 +67,54 @@ class NotaryAbstract {
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             String REST_URI_C;
-            int n = (int) Math.ceil((N+F)/2.0);
-            final CountDownLatch latch = new CountDownLatch(n);
-            ResponseCallback responseCallback = new ResponseCallback(latch);
+            int num = (int) Math.ceil((N+F)/2.0);
+            final CountDownLatch latch = new CountDownLatch(num);
+            ResponseCallback responseCallback = new ResponseCallback(latch, true, id);
             HashMap<Integer, Response> r = new HashMap<>();
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
                 Future<Response> f = client.target(REST_URI_C + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
                 r.put(i, (Response) f.get());
+
             }
 
             latch.await();
 
             long maxTimestamp = 0;
+            State correct = null;
+            String code_f = "";
             int faults = 0;
             State s = null;
             for(Integer i : r.keySet()) {
                 if(r.get(i).getStatus() == 200) {
                     s = r.get(i).readEntity(State.class);
                     toSign = (type + "||" + id + "||" + userID + "||" + nonce + "||" + s.getOnSale() + "||" + s.getOwnerID()).getBytes();
+                    String path = new File(System.getProperty("user.dir")).getParent();
+                    PublicKey publicKey = KeyReader.getInstance().readPublicKey(s.getOwnerID(), path);
+                    byte[] toSW = (id+ " || " + s.getOnSale() + " || " +  s.getTimestamp() + " || " + s.getOwnerID()).getBytes();
+                    if(!Crypto.getInstance().checkSignature(publicKey, toSW, s.getSignWrite())) {
+                        continue;
+                    }
                 }
                 String code = codeResponse(r.get(i), toSign, withCC, i);
                 if(code.equals("200")) {
-                    //Long.valueOf(nonceS).longValue();
+                    s = r.get(i).readEntity(State.class);
+                    if(Long.valueOf(s.getTimestamp()).longValue() > maxTimestamp) {
+                        correct = s;
+                        maxTimestamp = Long.valueOf(s.getTimestamp()).longValue();
+                    }
                 }
                 else {
                     faults++; /**TODO Improve**/
+                    code_f = code;
                 }
             }
 
-            return s;
+            if(faults > F) {
+                checkCode(code_f);
+            }
+
+            return correct;
         } catch (NotFoundException e) {
             String cause = e.getResponse().readEntity(String.class);
             if (cause == null) {
@@ -266,7 +284,8 @@ class NotaryAbstract {
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            byte[] toSW = (goodID + " || false || " +  nonce + " || " + sellerID).getBytes();
+            byte[] toSW = (goodID + " || " + true + " || " +  nonce + " || " + sellerID).getBytes();
+            System.out.println(goodID + " || " + true + " || " +  nonce + " || " + sellerID);
             String sigWrite = Crypto.getInstance().sign(privateKey, toSW);
             HashMap<Integer, Response> r = new HashMap<>();
             String REST_URI_C;
@@ -407,6 +426,7 @@ class NotaryAbstract {
         }
         return  codes;
     }
+
 
 
 }

@@ -90,7 +90,7 @@ public class Notary implements Serializable {
         this.save();
     }
 
-    public void addTransaction(String goodID, String buyerID, String sellerID, String time, String signWrite) {
+    public synchronized void addTransaction(String goodID, String buyerID, String sellerID, String time, String signWrite) {
         for (Transaction t : this.transactions) {
             if (t.getGood().getID().equals(goodID) && t.getBuyer().getID().equals(buyerID) && t.getSeller().getID().equals(sellerID) && t.getTime().equals(time)) {
                 throw new TransactionAlreadyExistsException(goodID, buyerID, sellerID);
@@ -110,7 +110,6 @@ public class Notary implements Serializable {
             seller.removeGood(g);
             g.setOnSale(false);
             g.setTimestamp(Long.valueOf(time).longValue());
-            /**TODO Improve??**/
             g.setSignWrite(signWrite);
             buyer.addGood(g);
             transactions.add(new Transaction(this.getGood(goodID), this.getUser(sellerID), this.getUser(buyerID), time));
@@ -133,7 +132,7 @@ public class Notary implements Serializable {
         }
     }
 
-    public void setIntentionToSell(String goodID, String sellerID, String nonce, String sigWrite) {
+    public synchronized void setIntentionToSell(String goodID, String sellerID, String nonce, String sigWrite) {
         if (!this.getUser(sellerID).getGoods().contains(this.getGood(goodID))) {
             throw new UserDoesNotOwnGood(sellerID, goodID);
         }
@@ -164,7 +163,7 @@ public class Notary implements Serializable {
         throw new UserNotFoundException(userID);
     }
 
-    public State getStateOfGood(String goodID) {
+    public synchronized State getStateOfGood(String goodID) {
 
         for (User u : users) {
             for (Good g : u.getGoods()) {
