@@ -1,13 +1,11 @@
 package pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods;
 
 import pt.ulisboa.tecnico.sec.notary.jaxrs.application.Notary;
-import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.GoodNotOnSaleResponse;
-import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.InvalidTransactionExceptionResponse;
-import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.NotFoundExceptionResponse;
-import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.UserDoesNotOwnResourceExceptionResponse;
+import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.*;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notary.model.exception.*;
 import pt.ulisboa.tecnico.sec.notary.util.Checker;
+import pt.ulisboa.tecnico.sec.util.HashCash;
 
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
@@ -25,12 +23,17 @@ public class GoodsResource {
     @GET
     @Path("/getStatus")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getStateOfGood(@QueryParam("id") String id, @QueryParam("userID") String userID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce) throws Exception {
+    public Response getStateOfGood(@QueryParam("id") String id, @QueryParam("userID") String userID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("pow") String pow) throws Exception {
         System.out.println("\n\nReceived Paramenters:\n");
         System.out.println("goodID: " + id + "\nuserID: " + userID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce);
-        if (id == null || userID == null || sig == null || nonce == null) {
+        if (id == null || userID == null || sig == null || nonce == null || pow == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("id and/or userID and/or sig and/or nonce  are null").build());
+                    .entity("id and/or userID and/or sig and/or nonce and/or pow are null").build());
+        }
+
+
+        if(!Notary.getInstance().verifyPOW(pow,userID,nonce)){
+            throw new InvalidProofOfWork();
         }
 
         String type =
@@ -43,6 +46,7 @@ public class GoodsResource {
             byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
 
             Checker.getInstance().checkResponse(toSign, userID, sig, nonce, nonceNotary, sigNotary);
+
 
             toSignToSend = (type + "||" + id + "||" + userID + "||" + nonce + "||" + s.getOnSale() + "||" + s.getOwnerID() + "||" + nonceNotary).getBytes();
             sigNotary = Notary.getInstance().sign(toSignToSend, false);

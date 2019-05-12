@@ -14,7 +14,9 @@ import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 public class Notary implements Serializable {
     private final static String SERIALIZE_FILE_NAME = "notary";
@@ -180,6 +182,36 @@ public class Notary implements Serializable {
         return getInstance();
     }
 
+
+    public  boolean verifyPOW(String hashCash, String userID, String nonce) {
+        String[] parts = hashCash.split(":");
+        String[] calculatedStringPow = parts[3].split("||");
+        if(calculatedStringPow[0] != nonce){
+            return false;
+        }
+        if(calculatedStringPow[1] != userID){
+            return false;
+        }
+        byte[] hashBytes = hashCash.getBytes();
+        String result = "";
+        for (int i=0; i < hashBytes.length; i++) {
+            result +=
+                    Integer.toString( ( hashBytes[i] & 0xff ) + 0x100, 16).substring( 1 );
+        }
+        if(!result.substring(0,5).equals("00000")){
+            return false;
+        }
+        Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        if(!now.toString().equals(parts[2])){
+            return false;
+        }
+        if(getUser(userID).inPows(result)){
+            return false;
+        } else {
+            getUser(userID).addPow(result);
+        }
+        return true;
+    }
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException, GeneralSecurityException {
         ois.defaultReadObject();
         uniqueInstance = this;

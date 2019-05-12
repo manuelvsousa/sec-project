@@ -6,6 +6,7 @@ import pt.ulisboa.tecnico.sec.notaryclient.exception.InvalidSignature;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.UserDoesNotOwnGoodException;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.UserNotFoundException;
 import pt.ulisboa.tecnico.sec.util.Crypto;
+import pt.ulisboa.tecnico.sec.util.HashCash;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
 
 import java.io.ByteArrayInputStream;
@@ -63,6 +64,10 @@ class NotaryAbstract {
         }
     }
 
+    private String calculateProofOfWork(String nonce) throws NoSuchAlgorithmException{
+        return HashCash.mintCash(nonce,20).toString();
+    }
+
     public State getStateOfGood(String id, String userID) throws Exception {
         try {
             String type =
@@ -77,7 +82,7 @@ class NotaryAbstract {
             HashMap<Integer, Response> r = new HashMap<>();
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
-                Future<Response> f = client.target(REST_URI_C + "/goods/getStatus").queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
+                Future<Response> f = client.target(REST_URI_C + "/goods/getStatus").queryParam("pow", calculateProofOfWork(nonce + "||" + userID)).queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
                 Response resp = (Response) f.get();
                 r.put(i, resp);
 
