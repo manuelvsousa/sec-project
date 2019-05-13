@@ -12,7 +12,9 @@ import pt.ulisboa.tecnico.sec.util.KeyGen;
 import java.io.*;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
+import java.security.MessageDigest;
 import java.security.PublicKey;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -184,32 +186,41 @@ public class Notary implements Serializable {
 
 
     public  boolean verifyPOW(String hashCash, String userID, String nonce) {
+        System.out.println("Received Proof of work: " + hashCash);
         String[] parts = hashCash.split(":");
-        String[] calculatedStringPow = parts[3].split("||");
-        if(calculatedStringPow[0] != nonce){
+        String[] calculatedStringPow = parts[3].split("\\|\\|");
+        if(!calculatedStringPow[0].equals(nonce)){
             return false;
         }
-        if(calculatedStringPow[1] != userID){
+        if(!calculatedStringPow[1].equals(userID)){
             return false;
         }
-        byte[] hashBytes = hashCash.getBytes();
-        String result = "";
-        for (int i=0; i < hashBytes.length; i++) {
-            result +=
-                    Integer.toString( ( hashBytes[i] & 0xff ) + 0x100, 16).substring( 1 );
+        String sha1 = new String();
+        try{
+            MessageDigest md = MessageDigest.getInstance("SHA1");
+            md.update(hashCash.getBytes());
+            sha1 = Crypto.getInstance().byteToHex(md.digest());
+            System.out.println("Received Proof of work SHA1: " + sha1);
+        }catch (Exception e){
+
         }
-        if(!result.substring(0,5).equals("00000")){
+
+        if(!sha1.substring(0,5).equals("00000")){
             return false;
         }
         Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        if(!now.toString().equals(parts[2])){
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMdd");
+
+        if(!dateFormat.format(now.getTime()).equals(parts[2])){
             return false;
         }
-        if(getUser(userID).inPows(result)){
+        if(getUser(userID).inPows(sha1)){
             return false;
         } else {
-            getUser(userID).addPow(result);
+            getUser(userID).addPow(sha1);
         }
+        System.out.println("Proof of work is Valid!");
         return true;
     }
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException, GeneralSecurityException {

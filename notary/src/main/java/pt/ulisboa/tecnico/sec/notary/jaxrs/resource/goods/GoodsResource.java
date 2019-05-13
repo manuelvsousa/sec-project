@@ -25,7 +25,7 @@ public class GoodsResource {
     @Produces({MediaType.APPLICATION_JSON})
     public Response getStateOfGood(@QueryParam("id") String id, @QueryParam("userID") String userID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("pow") String pow) throws Exception {
         System.out.println("\n\nReceived Paramenters:\n");
-        System.out.println("goodID: " + id + "\nuserID: " + userID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce);
+        System.out.println("goodID: " + id + "\nuserID: " + userID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce+ "\npow -> " + pow);
         if (id == null || userID == null || sig == null || nonce == null || pow == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
                     .entity("id and/or userID and/or sig and/or nonce and/or pow are null").build());
@@ -68,13 +68,19 @@ public class GoodsResource {
 
     @GET
     @Path("/transfer")
-    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("nonceBuyer") String nonceBuyer, @QueryParam("sigBuyer") String sigBuyer, @QueryParam("sigWrite") String sigWrite, @Suspended AsyncResponse ar) throws Exception {
+    public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("nonceBuyer") String nonceBuyer, @QueryParam("sigBuyer") String sigBuyer, @QueryParam("sigWrite") String sigWrite, @QueryParam("pow") String pow ,@Suspended AsyncResponse ar) throws Exception {
         System.out.println("\n\nReceived Paramenters:\n");
-        System.out.println("goodID: " + goodID + "\nbuyerID: " + buyerID + "\nsellerID: " + sellerID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce + "\nnonce (from buyer): " + nonceBuyer + "\nsignature (from buyer): " + sigBuyer);
-        if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null || nonceBuyer == null || sigBuyer == null) {
+        System.out.println("goodID: " + goodID + "\nbuyerID: " + buyerID + "\nsellerID: " + sellerID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce + "\nnonce (from buyer): " + nonceBuyer + "\nsignature (from buyer): " + sigBuyer+ "\npow -> " + pow);
+        if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null || nonceBuyer == null || sigBuyer == null || pow == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("goodID and/or goodID and/or sellerID and/or signature and/or nonce and/or nonceBuyer and/or sigBuyer null").build());
+                    .entity("goodID and/or goodID and/or sellerID and/or signature and/or nonce and/or nonceBuyer and/or sigBuyer and/or pow null").build());
         }
+
+        if(!Notary.getInstance().verifyPOW(pow,sellerID,nonce)){
+            throw new InvalidProofOfWork();
+        }
+
+
         String type =
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
         String nonceNotary = String.valueOf((System.currentTimeMillis()));
@@ -130,13 +136,18 @@ public class GoodsResource {
 
     @GET
     @Path("/intention")
-    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("sigWrite") String sigWrite, @Suspended AsyncResponse ar) throws Exception {
+    public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("sigWrite") String sigWrite,@QueryParam("pow") String pow, @Suspended AsyncResponse ar) throws Exception {
         System.out.println("\n\nReceived Paramenters:\n");
-        System.out.println("goodID: " + goodID + "\nsellerID: " + sellerID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce);
-        if (goodID == null || sellerID == null || sig == null || nonce == null) {
+        System.out.println("goodID: " + goodID + "\nsellerID: " + sellerID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce + "\npow -> " + pow);
+        if (goodID == null || sellerID == null || sig == null || nonce == null || pow == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("goodID and/or sellerID and/or signature and/or nonce are null").build());
+                    .entity("goodID and/or sellerID and/or signature and/or nonce and/or pow  are null").build());
         }
+
+        if(!Notary.getInstance().verifyPOW(pow,sellerID,nonce)){
+            throw new InvalidProofOfWork();
+        }
+
         String type =
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
         String nonceNotary = String.valueOf((System.currentTimeMillis()));
