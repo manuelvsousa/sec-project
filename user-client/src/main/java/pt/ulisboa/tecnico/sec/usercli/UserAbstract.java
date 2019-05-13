@@ -39,7 +39,12 @@ public class UserAbstract {
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonce).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            Response r = client.target(REST_URI).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signatureBuyer", sig).queryParam("nonceBuyer", nonce).request(MediaType.APPLICATION_JSON).get();
+            byte[] toSW = (goodID + " || " + false + " || " +  nonce + " || " + buyerID).getBytes();
+            String sigWrite = Crypto.getInstance().sign(privateKey, toSW);
+            Response r = client.target(REST_URI).queryParam("goodID", goodID).queryParam("buyerID", buyerID).
+                    queryParam("sellerID", sellerID).queryParam("signatureBuyer", sig).
+                    queryParam("nonceBuyer", nonce).queryParam("sigWrite", sigWrite)
+                    .request(MediaType.APPLICATION_JSON).get();
             if (r.getStatus() != 200) {
                 throw new Exception(r.readEntity(String.class));
             }

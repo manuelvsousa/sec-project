@@ -110,8 +110,7 @@ class NotaryAbstract {
                 }
                 String code = codeResponse(r.get(i), toSign, withCC, i-1);
                 if(code.equals("200")) {
-                    s = r.get(i).readEntity(State.class);
-                    if(Long.valueOf(s.getTimestamp()).longValue() > maxTimestamp) {
+                    if(Long.valueOf(s.getTimestamp()).longValue() >= maxTimestamp) {
                         correct = s;
                         maxTimestamp = Long.valueOf(s.getTimestamp()).longValue();
                     }
@@ -185,15 +184,13 @@ class NotaryAbstract {
     }
 
 
-    public Map<String, String> transferGood(String goodID, String buyerID, String sellerID, String nonceBuyer, String sigBuyer) throws Exception {
+    public Map<String, String> transferGood(String goodID, String buyerID, String sellerID, String nonceBuyer, String sigBuyer, String sigWrite) throws Exception {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            byte[] toSW = (goodID + " || false || " +  nonce + " || " + sellerID).getBytes();
-            String sigWrite = Crypto.getInstance().sign(privateKey, toSW);
             HashMap<Integer, Response> r = new HashMap<>();
             String REST_URI_C;
             int n = (int) Math.ceil((N+F)/2.0);

@@ -19,8 +19,8 @@ public class NotaryClient {
         return na.getStateOfGood(id, this.userID);
     }
 
-    public Map<String, String> transferGood(String goodID, String buyerID, String nonceBuyer, String sigBuyer) throws Exception {
-        return na.transferGood(goodID, buyerID, this.userID, nonceBuyer, sigBuyer);
+    public Map<String, String> transferGood(String goodID, String buyerID, String nonceBuyer, String sigBuyer, String sigWrite) throws Exception {
+        return na.transferGood(goodID, buyerID, this.userID, nonceBuyer, sigBuyer, sigWrite);
     }
 
     public boolean intentionToSell(String goodID) throws Exception {

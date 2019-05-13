@@ -1,10 +1,8 @@
 package pt.ulisboa.tecnico.sec.notary.jaxrs.application;
 
-import pt.ulisboa.tecnico.sec.notary.model.Good;
-import pt.ulisboa.tecnico.sec.notary.model.State;
-import pt.ulisboa.tecnico.sec.notary.model.Transaction;
-import pt.ulisboa.tecnico.sec.notary.model.User;
+import pt.ulisboa.tecnico.sec.notary.model.*;
 import pt.ulisboa.tecnico.sec.notary.model.exception.*;
+import pt.ulisboa.tecnico.sec.notary.util.Checker;
 import pt.ulisboa.tecnico.sec.notary.util.CitizenCard;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 import pt.ulisboa.tecnico.sec.util.KeyGen;
@@ -15,19 +13,19 @@ import java.security.KeyPair;
 import java.security.MessageDigest;
 import java.security.PublicKey;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 public class Notary implements Serializable {
     private final static String SERIALIZE_FILE_NAME = "notary";
     private final static String SERIALIZE_FILE_EXTENSION = ".ser";
+    private final static int F = 1;
+    private final static  int N = 4 * F;
 
     private static Notary uniqueInstance;
 
     private List<User> users = new ArrayList<>();
     private List<Transaction> transactions = new ArrayList<>();
+    private HashMap<String, Write> writeRegister = new HashMap<String, Write>();
     private transient KeyPair keys;
     private transient String publicKeySignature;
     private transient boolean withCC = false;
@@ -94,7 +92,7 @@ public class Notary implements Serializable {
         this.save();
     }
 
-    public synchronized void addTransaction(String goodID, String buyerID, String sellerID, String time, String signWrite) {
+    public synchronized void addTransaction(String goodID, String buyerID, String sellerID, String time, String signWrite, String nonceBuyer) {
         for (Transaction t : this.transactions) {
             if (t.getGood().getID().equals(goodID) && t.getBuyer().getID().equals(buyerID) && t.getSeller().getID().equals(sellerID) && t.getTime().equals(time)) {
                 throw new TransactionAlreadyExistsException(goodID, buyerID, sellerID);
@@ -110,10 +108,12 @@ public class Notary implements Serializable {
             throw new GoodNotOnSale(goodID);
         }
 
+        Checker.getInstance().checkSW(goodID, buyerID, nonceBuyer, false, signWrite);
+
         if(Long.valueOf(time).longValue() > this.getGood(goodID).getTimestamp()) {
             seller.removeGood(g);
             g.setOnSale(false);
-            g.setTimestamp(Long.valueOf(time).longValue());
+            g.setTimestamp(Long.valueOf(nonceBuyer).longValue());
             g.setSignWrite(signWrite);
             buyer.addGood(g);
             transactions.add(new Transaction(this.getGood(goodID), this.getUser(sellerID), this.getUser(buyerID), time));
@@ -140,6 +140,8 @@ public class Notary implements Serializable {
         if (!this.getUser(sellerID).getGoods().contains(this.getGood(goodID))) {
             throw new UserDoesNotOwnGood(sellerID, goodID);
         }
+        Checker.getInstance().checkSW(goodID, sellerID, nonce, true, sigWrite);
+
         if(Long.valueOf(nonce).longValue() > this.getGood(goodID).getTimestamp()) {
             this.getGood(goodID).setOnSale(true);
             this.getGood(goodID).setTimestamp(Long.valueOf(nonce).longValue());
@@ -221,6 +223,11 @@ public class Notary implements Serializable {
             getUser(userID).addPow(sha1);
         }
         System.out.println("Proof of work is Valid!");
+        return true;
+    }
+
+    public boolean checkWrite(String userID, String goodID, long timestamp, boolean onSale, String signWrite) {
+
         return true;
     }
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException, GeneralSecurityException {

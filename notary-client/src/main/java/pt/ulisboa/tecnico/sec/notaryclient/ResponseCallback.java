@@ -41,6 +41,7 @@ public class ResponseCallback implements InvocationCallback<Response> {
                     PublicKey publicKey = KeyReader.getInstance().readPublicKey(s.getOwnerID(), path);
                     byte[] toSW = (this.goodID + " || " + s.getOnSale() + " || " +  s.getTimestamp() + " || " + s.getOwnerID()).getBytes();
                     System.out.println(this.goodID + " || " + s.getOnSale() + " || " +  s.getTimestamp() + " || " + s.getOwnerID());
+                    System.out.println("Signature write" + s.getSignWrite());
                     if(Crypto.getInstance().checkSignature(publicKey, toSW, s.getSignWrite())) {
                         System.out.println(latch.getCount());
                         latch.countDown();

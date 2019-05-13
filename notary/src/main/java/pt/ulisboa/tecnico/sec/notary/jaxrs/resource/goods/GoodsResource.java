@@ -105,7 +105,7 @@ public class GoodsResource {
                  * But this verification wont allow a malicious seller to reuse a previously buyer transfer request in another
                  * future transfer for the same good (in case a certain seller sells the good, then gets it back, and tries to preform a transfer request again without the buyer knowing)
                  * */
-                Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary, sigWrite);
+                Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary, sigWrite, nonceBuyer);
 
                 System.out.println("\n\n\nAbout to Send:\n");
                 System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
@@ -153,10 +153,13 @@ public class GoodsResource {
         String nonceNotary = String.valueOf((System.currentTimeMillis()));
         byte[] toSignResponse = (type + "||" + goodID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
         String sigNotary = Notary.getInstance().sign(toSignResponse, false);
+
         try {
             byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
 
             Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty
+
+
 
             /**TODO Tirar returns??**/
             Response response1 = Response.ok().header("Notary-Signature", sigNotary).

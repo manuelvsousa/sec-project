@@ -22,7 +22,7 @@ public class TransferResource {
 
     @GET
     @Path("/buy")
-    public Response buyGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signatureBuyer") String signatureBuyer, @QueryParam("nonceBuyer") String nonceBuyer) throws Exception {
+    public Response buyGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signatureBuyer") String signatureBuyer, @QueryParam("nonceBuyer") String nonceBuyer, @QueryParam("sigWrite") String sigWrite) throws Exception {
         System.out.println(goodID + " " + buyerID + " " + sellerID + " " + signatureBuyer + " " + nonceBuyer);
         if (goodID == null || goodID == null || sellerID == null || signatureBuyer == null || nonceBuyer == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
@@ -45,7 +45,7 @@ public class TransferResource {
         try {
             PrivateKey privateKey = UserServ.getInstance().getPrivateKey();
             NotaryClient notaryClient = new NotaryClient(sellerID, privateKey);
-            Map<String, String> hm = notaryClient.transferGood(goodID, buyerID, nonceBuyer, signatureBuyer);
+            Map<String, String> hm = notaryClient.transferGood(goodID, buyerID, nonceBuyer, signatureBuyer, sigWrite);
 
             String sig = Crypto.getInstance().sign(privateKey, toSign);
             System.out.println("Signature: " + sig);
