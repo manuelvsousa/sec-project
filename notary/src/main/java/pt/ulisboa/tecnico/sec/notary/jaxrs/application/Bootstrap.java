@@ -45,15 +45,32 @@ public class Bootstrap implements ServletContextListener {
                 }
                 System.out.println("User 0 created");
                 User user1 = new User("user1", KeyReader.getInstance().readPublicKey("user1", path));
-                user1.addGood(new Good("good1", true, "user1"));
-                user1.addGood(new Good("good2", false, "user1"));
+                FileInputStream fis = new FileInputStream(path + "/keys/users/user1_good1_sw.txt");
+                byte[] encoded = new byte[fis.available()];
+                fis.read(encoded);
+                fis.close();
+                String good1SW = new String(encoded);
+                user1.addGood(new Good("good1", true, "user1", good1SW));
+                fis = new FileInputStream(path + "/keys/users/user1_good2_sw.txt");
+                encoded = new byte[fis.available()];
+                fis.read(encoded);
+                fis.close();
+                String good2SW = new String(encoded);
+                user1.addGood(new Good("good2", false, "user1", good2SW));
                 notary.addUser(user1);
                 System.out.println("User 1 created");
 
+
+                fis = new FileInputStream(path + "/keys/users/user2_good3_sw.txt");
+                encoded = new byte[fis.available()];
+                fis.read(encoded);
+                fis.close();
+                String good3SW = new String(encoded);
                 User user2 = new User("user2", KeyReader.getInstance().readPublicKey("user2", path));
-                user2.addGood(new Good("good3", true, "user2"));
+                user2.addGood(new Good("good3", true, "user2", good3SW));
                 notary.addUser(user2);
                 System.out.println("User 2 created");
+
 
                 notary.addUser(new User("user3", KeyReader.getInstance().readPublicKey("user3", path)));
                 System.out.println("User 3 created");

@@ -21,6 +21,13 @@ public class Good implements Serializable {
         this.signWrite = goodID + " || "+ onSale + " || " +  timestamp + " || " + owner;
     }
 
+    public Good(@JsonProperty("goodID") String goodID, @JsonProperty("onSale") boolean onSale, @JsonProperty("owner") String owner, @JsonProperty("signWrite") String signWrite) {
+        this.goodID = goodID;
+        this.onSale = onSale;
+        this.timestamp = 0;
+        this.signWrite = signWrite;
+    }
+
     //It isn't used, otherwise fix signWrite
     public Good(String goodID) {
         this.goodID = goodID;

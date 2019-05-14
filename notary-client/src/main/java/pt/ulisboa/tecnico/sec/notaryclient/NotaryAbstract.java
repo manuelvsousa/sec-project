@@ -79,18 +79,16 @@ class NotaryAbstract {
             int num = (int) Math.ceil((N+F)/2.0);
             final CountDownLatch latch = new CountDownLatch(num);
             ResponseCallback responseCallback = new ResponseCallback(latch, true, id);
-            HashMap<Integer, Response> r = new HashMap<>();
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
                 String pow = calculateProofOfWork(nonce + "||" + userID);
                 System.out.println("Generate Proof of Work -> " + pow);
                 Future<Response> f = client.target(REST_URI_C + "/goods/getStatus").queryParam("pow", pow).queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
-                Response resp = (Response) f.get();
-                r.put(i, resp);
-
             }
 
             latch.await();
+            HashMap<Integer, Response> r = responseCallback.getResponses();
+
 
             long maxTimestamp = 0;
             State correct = null;
@@ -110,8 +108,7 @@ class NotaryAbstract {
                 }
                 String code = codeResponse(r.get(i), toSign, withCC, i-1);
                 if(code.equals("200")) {
-                    s = r.get(i).readEntity(State.class);
-                    if(Long.valueOf(s.getTimestamp()).longValue() > maxTimestamp) {
+                    if(Long.valueOf(s.getTimestamp()).longValue() >= maxTimestamp) {
                         correct = s;
                         maxTimestamp = Long.valueOf(s.getTimestamp()).longValue();
                     }
@@ -196,16 +193,13 @@ class NotaryAbstract {
     }
 
 
-    public Map<String, String> transferGood(String goodID, String buyerID, String sellerID, String nonceBuyer, String sigBuyer) throws Exception {
+    public Map<String, String> transferGood(String goodID, String buyerID, String sellerID, String nonceBuyer, String sigBuyer, String sigWrite) throws Exception {
         try {
             String type =
                     Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
             String nonce = String.valueOf((System.currentTimeMillis()));
             byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
             String sig = Crypto.getInstance().sign(privateKey, toSign);
-            byte[] toSW = (goodID + " || false || " +  nonce + " || " + sellerID).getBytes();
-            String sigWrite = Crypto.getInstance().sign(privateKey, toSW);
-            HashMap<Integer, Response> r = new HashMap<>();
             String REST_URI_C;
             int n = (int) Math.ceil((N+F)/2.0);
             final CountDownLatch latch = new CountDownLatch(n);
@@ -215,10 +209,10 @@ class NotaryAbstract {
                 String pow = calculateProofOfWork(nonce + "||" + sellerID);
                 System.out.println("Generate Proof of Work -> " + pow);
                 Future<Response> f = client.target(REST_URI_C + "/goods/transfer").queryParam("pow", pow).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("nonceBuyer", nonceBuyer).queryParam("sigBuyer", sigBuyer).queryParam("sigWrite", sigWrite).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
-                r.put(i, (Response) f.get());
             }
 
             latch.await();
+            HashMap<Integer, Response> r = responseCallback.getResponses();
             HashMap<String, Integer> codes = this.processResponses(r, toSign);
 
             for(String code_aux : codes.keySet()) {
@@ -312,7 +306,6 @@ class NotaryAbstract {
             byte[] toSW = (goodID + " || " + true + " || " +  nonce + " || " + sellerID).getBytes();
             System.out.println(goodID + " || " + true + " || " +  nonce + " || " + sellerID);
             String sigWrite = Crypto.getInstance().sign(privateKey, toSW);
-            HashMap<Integer, Response> r = new HashMap<>();
             String REST_URI_C;
             int n = (int) Math.ceil((N+F)/2.0);
             final CountDownLatch latch = new CountDownLatch(n);
@@ -322,11 +315,11 @@ class NotaryAbstract {
                 String pow = calculateProofOfWork(nonce + "||" + sellerID);
                 System.out.println("Generate Proof of Work -> " + pow);
                 Future<Response> f = client.target(REST_URI_C + "/goods/intention").queryParam("pow", pow).queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("sigWrite", sigWrite).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
-                r.put(i, (Response) f.get());
                 //this.verifyResponse(r, toSign, false);
             }
 
             latch.await();
+            HashMap<Integer, Response> r = responseCallback.getResponses();
             HashMap<String, Integer> codes = this.processResponses(r, toSign);
 
             for(String code_aux : codes.keySet()) {
