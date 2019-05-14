@@ -31,6 +31,7 @@ public class Notary implements Serializable {
     private transient KeyPair keys;
     private transient String publicKeySignature;
     private transient boolean withCC = false;
+    private transient ArrayList<PublicKey> notarySignedPublicKeys = new ArrayList<PublicKey>();
 
     private Notary() {
         try {
@@ -147,6 +148,23 @@ public class Notary implements Serializable {
         }
     }
 
+    public synchronized void setStateOfGood(String goodID, String sellerID, Boolean onSale, String nonce, String sigWrite){
+        if(Long.valueOf(nonce) > this.getGood(goodID).getTimestamp()) {
+            if (!this.getUser(sellerID).getGoods().contains(this.getGood(goodID))) {
+                Good good = getGood(goodID);
+                User currentOwner = this.getOwner(goodID);
+
+                if(!currentOwner.getID().equals(sellerID)){
+                    this.getUser(sellerID).addGood(good);
+                    currentOwner.removeGood(good);
+                }
+                good.setOnSale(onSale);
+                good.setTimestamp(Long.valueOf(nonce));
+                good.setSignWrite(sigWrite);
+            }
+        }
+    }
+
     private Good getGood(String goodID) {
         for (User u : users) {
             for (Good g : u.getGoods()) {
@@ -165,6 +183,17 @@ public class Notary implements Serializable {
             }
         }
         throw new UserNotFoundException(userID);
+    }
+
+    private User getOwner(String goodID) {
+        for (User u : users) {
+            for (Good g : u.getGoods()) {
+                if (g.getID().equals(goodID)) {
+                    return u;
+                }
+            }
+        }
+        throw new GoodNotFoundException(goodID);
     }
 
     public synchronized State getStateOfGood(String goodID) {
@@ -229,5 +258,7 @@ public class Notary implements Serializable {
 //        this.keys = KeyGen.getInstance().generateRSAKey();
 //        setWithCC(true);
     }
+
+
 
 }

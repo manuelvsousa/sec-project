@@ -126,6 +126,17 @@ class NotaryAbstract {
                 checkCode(code_f);
             }
 
+            num = (int) Math.ceil((N+F)/2.0);
+            final CountDownLatch latchUpdate = new CountDownLatch(num);
+            ResponseCallback responseCallbackUpdate = new ResponseCallback(latchUpdate, false, id);
+            byte[] toSW = (id + " || " + correct.getOnSale() + " || " +  correct.getTimestamp() + " || " + correct.getOwnerID()).getBytes();
+            String sigWrite = Crypto.getInstance().sign(privateKey, toSW);
+            for(int i = 1; i <= N; i++) {
+                REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+                client.target(REST_URI_C + "/goods/update").queryParam("goodID", id).queryParam("sellerID", correct.getOwnerID()).queryParam("onSale",correct.getOnSale()).queryParam("goodNonce",correct.getTimestamp()).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("sigWrite", sigWrite).request(MediaType.APPLICATION_JSON).async().get(responseCallbackUpdate);
+            }
+            latchUpdate.await();
+
             return correct;
         } catch (NotFoundException e) {
             String cause = e.getResponse().readEntity(String.class);
@@ -157,9 +168,9 @@ class NotaryAbstract {
                 this.verifyResponse(r, toSign, false, i-1); // General request verification. Check integrity hole message
             /*  The check bellow is really important
                 Check if signature from CC actually matches the sent public key
-                An attacker may encript a simillar message with a equally generated key.
+                An attacker may encript a similar message with a equally generated key.
                 This verification is going ensure that the public key actually came from notary and not from another place
-                This is done this away to avoid unnecessary CC signatures everytime someone asks for the public key.
+                This is done this away to avoid unnecessary CC signatures every time someone asks for the public key.
              */
 
             /**TODO fix this**/
