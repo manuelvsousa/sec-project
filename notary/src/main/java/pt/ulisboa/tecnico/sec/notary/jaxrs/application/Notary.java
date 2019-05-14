@@ -110,6 +110,11 @@ public class Notary implements Serializable {
 
         Checker.getInstance().checkSW(goodID, buyerID, nonceBuyer, false, signWrite);
 
+        Write write = new Write(buyerID, goodID, Long.valueOf(nonceBuyer).longValue(), false, signWrite);
+
+        this.writeRegister.put(nonceBuyer, write);
+
+
         if(Long.valueOf(time).longValue() > this.getGood(goodID).getTimestamp()) {
             seller.removeGood(g);
             g.setOnSale(false);
@@ -226,10 +231,7 @@ public class Notary implements Serializable {
         return true;
     }
 
-    public boolean checkWrite(String userID, String goodID, long timestamp, boolean onSale, String signWrite) {
 
-        return true;
-    }
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException, GeneralSecurityException {
         ois.defaultReadObject();
         uniqueInstance = this;
@@ -237,4 +239,12 @@ public class Notary implements Serializable {
 //        setWithCC(true);
     }
 
+
+    public boolean validateWrite(Write write) {
+        //colocar thread em sleep???
+        //send write for everyone + signature
+
+        //check responses se >(N+f)/2 - 1, fazer write
+        return true;
+    }
 }

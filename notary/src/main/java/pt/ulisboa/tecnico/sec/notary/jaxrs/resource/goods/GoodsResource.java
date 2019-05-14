@@ -191,4 +191,19 @@ public class GoodsResource {
             throw e;
         }
     }
+
+
+    @GET
+    @Path("write")
+    public Response validateWrite(@QueryParam("userID") String userID, @QueryParam("goodID") String goodID, @QueryParam("timestamp") long timestamp, @QueryParam("onSale") boolean onSale,
+                                  @QueryParam("signWrite") String signWrite, @QueryParam("nonceNotary") String nonceNotary, @QueryParam("signature") String signature) {
+        //check the 2 signatures
+
+        //check the write no hashmap e verificar se os valores são iguais
+
+        //se for iguais, enviar ack. Caso contrário nACK
+
+        Response response1 = Response.ok().build();
+        return  response1;
+    }
 }
