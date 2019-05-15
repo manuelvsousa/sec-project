@@ -19,8 +19,6 @@ public class User implements Serializable {
 
     private long lastNonce;
 
-    private List<String> pows = new ArrayList<>();
-
     public User(@JsonProperty("userID") String userID, @JsonProperty("publicKey") PublicKey publicKey) {
         this.userID = userID;
         this.publicKey = publicKey;
@@ -46,14 +44,6 @@ public class User implements Serializable {
 
     public long getLastNonce() {
         return this.lastNonce;
-    }
-
-    public void addPow(String pow) {
-        this.pows.add(pow);
-    }
-
-    public boolean inPows(String pow) {
-        return this.pows.contains(pow);
     }
 
     public void setLastNonce(long lastNonce) {

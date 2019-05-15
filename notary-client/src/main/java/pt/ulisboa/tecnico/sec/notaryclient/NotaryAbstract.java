@@ -64,8 +64,8 @@ class NotaryAbstract {
         }
     }
 
-    private String calculateProofOfWork(String nonce) throws NoSuchAlgorithmException{
-        return HashCash.mintCash(nonce,20).toString();
+    private String calculateProofOfWork(byte[] string) throws NoSuchAlgorithmException{
+        return HashCash.mintCash(new String(string),20).toString();
     }
 
     public State getStateOfGood(String id, String userID) throws Exception {
@@ -81,7 +81,7 @@ class NotaryAbstract {
             ResponseCallback responseCallback = new ResponseCallback(latch, true, id);
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
-                String pow = calculateProofOfWork(nonce + "||" + userID);
+                String pow = calculateProofOfWork(toSign);
                 System.out.println("Generate Proof of Work -> " + pow);
                 Future<Response> f = client.target(REST_URI_C + "/goods/getStatus").queryParam("pow", pow).queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
             }
@@ -206,7 +206,7 @@ class NotaryAbstract {
             ResponseCallback responseCallback = new ResponseCallback(latch);
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
-                String pow = calculateProofOfWork(nonce + "||" + sellerID);
+                String pow = calculateProofOfWork(toSign);
                 System.out.println("Generate Proof of Work -> " + pow);
                 Future<Response> f = client.target(REST_URI_C + "/goods/transfer").queryParam("pow", pow).queryParam("goodID", goodID).queryParam("buyerID", buyerID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("nonceBuyer", nonceBuyer).queryParam("sigBuyer", sigBuyer).queryParam("sigWrite", sigWrite).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
             }
@@ -312,7 +312,7 @@ class NotaryAbstract {
             ResponseCallback responseCallback = new ResponseCallback(latch);
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
-                String pow = calculateProofOfWork(nonce + "||" + sellerID);
+                String pow = calculateProofOfWork(toSign);
                 System.out.println("Generate Proof of Work -> " + pow);
                 Future<Response> f = client.target(REST_URI_C + "/goods/intention").queryParam("pow", pow).queryParam("goodID", goodID).queryParam("sellerID", sellerID).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("sigWrite", sigWrite).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
                 //this.verifyResponse(r, toSign, false);

@@ -242,14 +242,10 @@ public class Notary implements Serializable {
     }
 
 
-    public  boolean verifyPOW(String hashCash, String userID, String nonce) {
+    public  boolean verifyPOW(String hashCash, String userID, byte[] byteArr) {
         System.out.println("Received Proof of work: " + hashCash);
         String[] parts = hashCash.split(":");
-        String[] calculatedStringPow = parts[3].split("\\|\\|");
-        if(!calculatedStringPow[0].equals(nonce)){
-            return false;
-        }
-        if(!calculatedStringPow[1].equals(userID)){
+        if(!parts[3].equals(new String(byteArr))){
             return false;
         }
         String sha1 = new String();
@@ -261,21 +257,8 @@ public class Notary implements Serializable {
         }catch (Exception e){
 
         }
-
         if(!sha1.substring(0,5).equals("00000")){
             return false;
-        }
-        Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMdd");
-
-        if(!dateFormat.format(now.getTime()).equals(parts[2])){
-            return false;
-        }
-        if(getUser(userID).inPows(sha1)){
-            return false;
-        } else {
-            getUser(userID).addPow(sha1);
         }
         System.out.println("Proof of work is Valid!");
         return true;
