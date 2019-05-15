@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.sec.notary.jaxrs.application;
 
+import org.apache.commons.io.FileUtils;
 import pt.ulisboa.tecnico.sec.notary.model.*;
 import pt.ulisboa.tecnico.sec.notary.model.exception.*;
 import pt.ulisboa.tecnico.sec.notary.util.Checker;
@@ -47,18 +48,43 @@ public class Notary implements Serializable {
     }
 
     public static void save() {
-
+        String saveFilename = SERIALIZE_FILE_NAME + System.getProperty("port") + SERIALIZE_FILE_EXTENSION;
+        String savebackupFileName = SERIALIZE_FILE_NAME + System.getProperty("port") + "BACKUP" + SERIALIZE_FILE_EXTENSION;
         try {
             Notary notary = Notary.getInstance();
             ObjectOutput out;
-            String saveFilename = SERIALIZE_FILE_NAME + System.getProperty("port") + SERIALIZE_FILE_EXTENSION;
             out = new ObjectOutputStream(new FileOutputStream(saveFilename));
             out.writeObject(notary);
             out.close();
 
             System.out.println("Object has been serialized");
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            File source = new File(saveFilename);
+            File backup = new File(savebackupFileName);
+            if(backup.exists() && !backup.isDirectory()) {
+                if(source.exists() && !source.isDirectory()) {
+                    source.delete();
+                }
+                try {
+                    FileUtils.copyFile(backup, source);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                throw new RuntimeException("Backup file was never generated");
+            }
+        } finally {
+            File backup = new File(savebackupFileName);
+            if(backup.exists() && !backup.isDirectory()) {
+                backup.delete();
+            }
+            File source = new File(saveFilename);
+            try {
+                FileUtils.copyFile(source, backup);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
