@@ -271,8 +271,7 @@ class NotaryAbstract {
                 }
             }
         }
-
-        /**TODO Fix this**/
+        //TODO Fix this
         if (nonce > this.lastNotaryNonce) {
             this.lastNotaryNonce = nonce;
         } else {

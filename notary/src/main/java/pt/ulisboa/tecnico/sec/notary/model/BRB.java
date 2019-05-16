@@ -8,14 +8,21 @@ public class BRB {
     private boolean sentecho = false;
     private boolean sentready = false;
     private boolean delivered = false;
+    private String userID;
+    private String timestamp;
     private Message myMessage;
     private HashMap<Integer, Message> echos = new HashMap<>();
     private HashMap<Integer, Message> readys = new HashMap<>();
 
-    public BRB() {}
+    public BRB(String userID, String timestamp) {
+        this.userID = userID;
+        this.timestamp = timestamp;
+    }
 
     public BRB(Message message) {
         this.myMessage = message;
+        this.userID = message.getBuyerID();
+        this.timestamp = message.getTimestamp();
     }
 
     public void addEchos(int notaryID, Message message) {
@@ -28,6 +35,14 @@ public class BRB {
         if(!readys.containsKey(notaryID)) {
             readys.put(notaryID, message);
         }
+    }
+
+    public String getUserID() {
+        return userID;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
     }
 
     public Message getMyMessage() {
@@ -66,23 +81,26 @@ public class BRB {
         this.sentready = sentready;
     }
 
-    public Message consensusEcho() {
+    public synchronized Message consensusEcho() {
+        System.out.println("Consensus Echo");
         HashMap<Message, Integer> responses = this.totalMessages(this.echos);
 
         int  N = Notary.getInstance().getN();
         int F = Notary.getInstance().getF();
         for(Message m : responses.keySet()) {
-            if(responses.get(m) > (N+F)/2) {
+            System.out.println(responses.get(m));
+            if(responses.get(m) > (int) Math.ceil((N+F)/2)) {
                 return m;
             }
         }
         return null;
     }
 
-    public Message consesusReady() {
+    public synchronized Message consesusReady() {
+        System.out.println("Consensus Ready");
+        System.out.println(this.readys.size());
         HashMap<Message, Integer> responses = this.totalMessages(this.readys);
 
-        int  N = Notary.getInstance().getN();
         int F = Notary.getInstance().getF();
         for(Message m : responses.keySet()) {
             if(responses.get(m) > F) {
@@ -92,10 +110,9 @@ public class BRB {
         return null;
     }
 
-    public Message consensusDeliver() {
+    public synchronized Message consensusDeliver() {
         HashMap<Message, Integer> responses = this.totalMessages(this.readys);
 
-        int  N = Notary.getInstance().getN();
         int F = Notary.getInstance().getF();
         for(Message m : responses.keySet()) {
             if(responses.get(m) > 2 * F) {
@@ -108,7 +125,7 @@ public class BRB {
     private HashMap<Message, Integer> totalMessages(HashMap<Integer,Message> hashMap) {
         int total;
         HashMap<Message, Integer> responses = new HashMap<>();
-        for(Message m : readys.values()){
+        for(Message m : hashMap.values()){
             if(responses.containsKey(m)) {
                 total = responses.get(m) + 1;
                 responses.replace(m, total);
@@ -119,4 +136,5 @@ public class BRB {
         }
         return responses;
     }
+
 }

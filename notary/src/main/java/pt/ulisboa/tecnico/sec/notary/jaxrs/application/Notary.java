@@ -20,13 +20,16 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Notary implements Serializable {
     private final static String SERIALIZE_FILE_NAME = "notary";
     private final static String SERIALIZE_FILE_EXTENSION = ".ser";
-    private final static long SESSION = TimeUnit.SECONDS.toMillis(TimeUnit.SECONDS.toMillis(5));
+    private final static long SESSION = TimeUnit.SECONDS.toMillis(5);
     private final static int F = 1;
     private final static  int N = 3 * F + 1;
+    private final Lock lock = new ReentrantLock();
 
     private static Notary uniqueInstance;
 
@@ -286,26 +289,19 @@ public class Notary implements Serializable {
 //        setWithCC(true);
     }
 
-    public Message validateWrite(String type, String goodID, String buyerID, String sellerID, String sigWrite, String nonceBuyer) {
+    public Message validateWrite(String type, String goodID, String buyerID, String sellerID, String sigWrite, String nonceBuyer, boolean onSale) {
+        System.out.println("Validate write");
+
         /**TODO fazer check se o timestamp está dentro de um intervalo determinado**/
-        Checker.getInstance().checkSW(goodID, buyerID, nonceBuyer, false, sigWrite);
+        Checker.getInstance().checkSW(goodID, buyerID, nonceBuyer, onSale, sigWrite);
+
+        BRB brb = this.addBRB(buyerID, nonceBuyer, type, goodID, sigWrite, sellerID, onSale);
         int indexBRBS = checksReceivedWriteFromOtherReplics(buyerID, nonceBuyer);
-        Message message = new Message(type, goodID, buyerID, sellerID, nonceBuyer, sigWrite);
-        BRB brb;
-        if(indexBRBS == -1) {
-            indexBRBS = this.brbs.size() + 1;
-            brb = new BRB(message);
-            brbs.put(indexBRBS, brb);
-        }
-        else {
-            brb = this.brbs.get(indexBRBS);
-            brb.setMyMessage(message);
-            this.brbs.replace(indexBRBS, brb);
-        }
 
         if(!brb.getSentecho()) {
             sendEcho(indexBRBS);
         }
+
 
         boolean flag = true;
         boolean valid = false;
@@ -314,7 +310,9 @@ public class Notary implements Serializable {
         long end = now + SESSION;
         Message message_aux;
         while(flag) {
-            message_aux = this.brbs.get(indexBRBS).consensusDeliver();
+            synchronized (this.brbs) {
+                message_aux = this.brbs.get(indexBRBS).consensusDeliver();
+            }
             if(message_aux!=null) {
                 valid = true;
                 flag = false;
@@ -322,17 +320,27 @@ public class Notary implements Serializable {
             if(System.currentTimeMillis() > end) {
                 flag = false;
             }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
         }
 
+
         if(valid) {
             //Waits for a possible valid write
-            if(this.lastValidWrite != indexBRBS - 1) {
+
+            System.out.println("INDEX" + indexBRBS);
+            if((this.lastValidWrite != (indexBRBS - 1)) && (this.lastValidWrite != indexBRBS)) {
                 now = System.currentTimeMillis();
                 end = now + SESSION;
+                System.out.println("Now" + now);
+                System.out.println("End" + end);
                 flag = true;
                 while (flag) {
-                    if(this.lastValidWrite == indexBRBS - 1) {
+                    if(this.lastValidWrite == indexBRBS - 1 || this.lastValidWrite != indexBRBS) {
                         flag = false;
                     }
                     if(System.currentTimeMillis() > end) {
@@ -342,9 +350,13 @@ public class Notary implements Serializable {
             }
 
 
+
             brb = this.brbs.get(indexBRBS);
             message_aux = brb.consensusDeliver();
-            if(message_aux!=null && !brb.isDelivered()) {
+            System.out.println("LAST VALID WRITE" + lastValidWrite);
+
+
+            if(message_aux!=null) {
                 brb.setDelivered(true);
                 this.brbs.replace(indexBRBS, brb);
                 this.lastValidWrite = indexBRBS;
@@ -357,15 +369,33 @@ public class Notary implements Serializable {
     }
 
     public BRB getBRB(int index) {
-        return this.getBRB(index);
+        return this.brbs.get(index);
     }
 
-    public int checksReceivedWriteFromOtherReplics(String buyerID, String timestamp) {
+    private synchronized BRB addBRB(String buyerID, String nonceBuyer, String type, String goodID, String sigWrite, String sellerID, boolean onSale) {
+        int indexBRBS = checksReceivedWriteFromOtherReplics(buyerID, nonceBuyer);
+        Message message = new Message(type, goodID, buyerID, sellerID, nonceBuyer, sigWrite, onSale);
+
+
+        BRB brb;
+        if(indexBRBS == -1) {
+            indexBRBS = this.brbs.size() + 1;
+            brb = new BRB(message);
+            brbs.put(indexBRBS, brb);
+        }
+        else {
+            brb = this.brbs.get(indexBRBS);
+            brb.setMyMessage(message);
+            this.brbs.replace(indexBRBS, brb);
+        }
+        return  brb;
+    }
+
+    public synchronized int checksReceivedWriteFromOtherReplics(String buyerID, String timestamp) {
         //TODO COLOCAR LOCKS OU OUTRA CENA
         for(int i : this.brbs.keySet()) {
             BRB brb = this.brbs.get(i);
-            Message message = brb.getMyMessage();
-            if(message.getBuyerID().equals(buyerID) && message.getTimestamp().equals(timestamp)) {
+            if(brb.getUserID().equals(buyerID) && brb.getTimestamp().equals(timestamp)) {
                 return i;
             }
         }
@@ -373,6 +403,7 @@ public class Notary implements Serializable {
     }
 
     private void sendEcho(int index) {
+        System.out.println("echo");
         BRB brb = this.brbs.get(index);
         brb.setSentecho(true);
         int notaryID = Integer.parseInt(System.getProperty("port"));
@@ -383,18 +414,19 @@ public class Notary implements Serializable {
                 Base64.getEncoder().withoutPadding().encodeToString("/write/sendEcho".getBytes());
         String nonce = String.valueOf((System.currentTimeMillis()));
         byte[] toSign = (type + "||" + m.getType() + "||" + m.getGoodID() + "||" + m.getBuyerID() +
-                "||" + m.getSellerID() + m.getTimestamp() + "||" + m.getSignWrite() +
-                "||" + m.isOnSale() + nonce + notaryID).getBytes();
+                "||" + m.getSellerID() + "||" +  m.getTimestamp() + "||" + m.getSignWrite() +
+                "||" + m.isOnSale() + "||" + nonce + "||" +  notaryID).getBytes();
+
         try {
             String sig = Crypto.getInstance().sign(this.keys.getPrivate(), toSign);
             String REST_URI_C;
-            for (int i = 0; i <= N; i++) {
+            for (int i = 1; i <= N; i++) {
                 if(i != notaryID) {
                     REST_URI_C = "http://localhost:919" + i + "/notary/notary";
-                    Future<Response> f = client.target(REST_URI_C + "/write/echo").queryParam("typeM", m.getType()).queryParam("goodID", m.getGoodID()).
-                            queryParam("sellerID", m.getSellerID()).queryParam("buyerID", m.getSellerID()).queryParam("nonceM", m.getTimestamp()).
+                    Response r = client.target(REST_URI_C + "/write/echo").queryParam("typeM", m.getType()).queryParam("goodID", m.getGoodID()).
+                            queryParam("sellerID", m.getSellerID()).queryParam("buyerID", m.getBuyerID()).queryParam("nonceM", m.getTimestamp()).
                             queryParam("signWrite" , m.getSignWrite()).queryParam("onSale", m.isOnSale()).queryParam("nonce", nonce).
-                            queryParam("sig", sig).queryParam("notaryID", Integer.toString(notaryID)).request(MediaType.APPLICATION_JSON).async().get();
+                            queryParam("sig", sig).queryParam("notaryID", Integer.toString(notaryID)).request(MediaType.APPLICATION_JSON).get();
                 }
             }
         } catch (Exception e) {
@@ -404,29 +436,39 @@ public class Notary implements Serializable {
 
     }
 
-    public void sendReady(int index) {
+    private synchronized BRB setReady(int index) {
         BRB brb = this.brbs.get(index);
         brb.setSentready(true);
         int notaryID = Integer.parseInt(System.getProperty("port"));
         brb.addReady(notaryID, brb.getMyMessage());
         this.brbs.replace(index, brb);
-        Message m = brb.getMyMessage();
+        return brb;
+    }
+
+    public void sendReady(int index) {
+        int notaryID = Integer.parseInt(System.getProperty("port"));
+        System.out.println("Ready");
+        BRB brb = this.setReady(index);
+        Message m = brb.consesusReady();
+        if(m==null || !brb.getSentecho()) {
+            m = brb.consensusEcho();
+        }
         String type =
-                Base64.getEncoder().withoutPadding().encodeToString("/write/sendEcho".getBytes());
+                Base64.getEncoder().withoutPadding().encodeToString("/write/sendReady".getBytes());
         String nonce = String.valueOf((System.currentTimeMillis()));
         byte[] toSign = (type + "||" + m.getType() + "||" + m.getGoodID() + "||" + m.getBuyerID() +
-                "||" + m.getSellerID() + m.getTimestamp() + "||" + m.getSignWrite() +
-                "||" + m.isOnSale() + nonce + notaryID).getBytes();
+                "||" + m.getSellerID() + "||" + m.getTimestamp() + "||" + m.getSignWrite() +
+                "||" + m.isOnSale() + "||" + nonce + "||" + notaryID).getBytes();
         try {
             String sig = Crypto.getInstance().sign(this.keys.getPrivate(), toSign);
             String REST_URI_C;
-            for (int i = 0; i <= N; i++) {
+            for (int i = 1; i <= N; i++) {
                 if(i != notaryID) {
                     REST_URI_C = "http://localhost:919" + i + "/notary/notary";
-                    Future<Response> f = client.target(REST_URI_C + "/write/ready").queryParam("typeM", m.getType()).queryParam("goodID", m.getGoodID()).
-                            queryParam("sellerID", m.getSellerID()).queryParam("buyerID", m.getSellerID()).queryParam("nonceM", m.getTimestamp()).
+                    Response r = client.target(REST_URI_C + "/write/ready").queryParam("typeM", m.getType()).queryParam("goodID", m.getGoodID()).
+                            queryParam("sellerID", m.getSellerID()).queryParam("buyerID", m.getBuyerID()).queryParam("nonceM", m.getTimestamp()).
                             queryParam("signWrite" , m.getSignWrite()).queryParam("onSale", m.isOnSale()).queryParam("nonce", nonce).
-                            queryParam("sig", sig).queryParam("notaryID", Integer.toString(notaryID)).request(MediaType.APPLICATION_JSON).async().get();
+                            queryParam("sig", sig).queryParam("notaryID", Integer.toString(notaryID)).request(MediaType.APPLICATION_JSON).get();
                 }
             }
         } catch (Exception e) {
@@ -488,30 +530,40 @@ public class Notary implements Serializable {
         }
     }
 
-    public void createBRBEcho(Message m, int notaryID) {
-        int indexBRBS = this.brbs.size() + 1;
-        BRB brb = new BRB();
-        brb.addEchos(notaryID, m);
-        brbs.put(indexBRBS, brb);
+
+
+    public synchronized BRB addBRBEcho(Message m, int notaryID) {
+        int index =  this.checksReceivedWriteFromOtherReplics(m.getBuyerID(), m.getTimestamp());
+        BRB brb;
+        if(index == -1) {
+            int indexBRBS = this.brbs.size() + 1;
+            brb = new BRB(m.getBuyerID(), m.getTimestamp());
+            brb.addEchos(notaryID, m);
+            brbs.put(indexBRBS, brb);
+        }
+        else{
+            brb = this.brbs.get(index);
+            brb.addEchos(notaryID, m);
+            this.brbs.replace(index, brb);
+        }
+        return  brb;
     }
 
-    public void createBRBReady(Message m, int notaryID) {
-        int indexBRBS = this.brbs.size() + 1;
-        BRB brb = new BRB();
-        brb.addReady(notaryID, m);
-        brbs.put(indexBRBS, brb);
-    }
-
-    public void addBRBEcho(Message m, int notaryID, int index) {
-        BRB brb = this.brbs.get(index);
-        brb.addReady(notaryID, m);
-        this.brbs.replace(index, brb);
-    }
-
-    public void addBRBReady(Message m, int notaryID, int index) {
-        BRB brb = this.brbs.get(index);
-        brb.addEchos(notaryID, m);
-        this.brbs.replace(index, brb);
+    public synchronized BRB addBRBReady(Message m, int notaryID) {
+        int index =  this.checksReceivedWriteFromOtherReplics(m.getBuyerID(), m.getTimestamp());
+        BRB brb;
+        if(index == -1) {
+            int indexBRBS = this.brbs.size() + 1;
+            brb = new BRB(m.getBuyerID(), m.getTimestamp());
+            brb.addReady(notaryID, m);
+            brbs.put(indexBRBS, brb);
+        }
+        else {
+            brb = this.brbs.get(index);
+            brb.addReady(notaryID, m);
+            this.brbs.replace(index, brb);
+        }
+        return brb;
     }
 
     public int getN() {
@@ -521,5 +573,6 @@ public class Notary implements Serializable {
     public int getF() {
         return this.F;
     }
+
 
 }

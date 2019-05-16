@@ -12,9 +12,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.security.PublicKey;
 import java.util.Base64;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Path("/write")
 public class WriteResource {
+    private final Lock lock = new ReentrantLock();
     @GET
     @Path("/echo")
     @Produces({MediaType.APPLICATION_JSON})
@@ -32,22 +35,20 @@ public class WriteResource {
         String type =
                 Base64.getEncoder().withoutPadding().encodeToString("/write/sendEcho".getBytes());
 
+
         Checker.getInstance().checkResponseWrite(type, typeM, goodID, buyerID, sellerID, nonceM, signWrite, onSale, nonce, notaryID, sig);
 
 
 
-        Message m = new Message(typeM, goodID, buyerID, sellerID, nonceM, signWrite);
-        int i = Notary.getInstance().checksReceivedWriteFromOtherReplics(buyerID, nonceM);
-        if(i == -1) {
-            Notary.getInstance().createBRBEcho(m, Integer.parseInt(notaryID));
-        }
-        else {
-            Notary.getInstance().addBRBEcho(m, Integer.parseInt(notaryID), i);
-            BRB brb = Notary.getInstance().getBRB(i);
-            m = brb.consensusEcho();
-            if(m != null && !brb.getSentready()) {
+        Message m = new Message(typeM, goodID, buyerID, sellerID, nonceM, signWrite, Boolean.valueOf(onSale));
+
+
+        BRB brb = Notary.getInstance().addBRBEcho(m, Integer.parseInt(notaryID));
+        m = brb.consensusEcho();
+        if(!brb.getSentready() && m!=null) {
+                int i = Notary.getInstance().checksReceivedWriteFromOtherReplics(m.getBuyerID(), m.getTimestamp());
+                System.out.println("I AM HERE");
                 Notary.getInstance().sendReady(i);
-            }
         }
 
         Response response = Response.ok().build();
@@ -62,7 +63,7 @@ public class WriteResource {
                              @QueryParam("sellerID") String sellerID, @QueryParam("buyerID") String buyerID, @QueryParam("nonceM") String nonceM,
                              @QueryParam("signWrite") String signWrite, @QueryParam("onSale") String onSale, @QueryParam("nonce") String nonce,
                              @QueryParam("sig") String sig,@QueryParam("notaryID") String notaryID) {
-        System.out.println("\n\nReceived Parameters Echo:\n");
+        System.out.println("\n\nReceived Parameters Ready:\n");
 
         if (typeM == null || goodID == null || sellerID == null || buyerID == null || nonceM == null || signWrite == null || onSale == null || nonce == null || sig == null || notaryID == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
@@ -74,21 +75,27 @@ public class WriteResource {
 
         Checker.getInstance().checkResponseWrite(type, typeM, goodID, buyerID, sellerID, nonceM, signWrite, onSale, nonce, notaryID, sig);
 
-        Message m = new Message(typeM, goodID, buyerID, sellerID, nonceM, signWrite);
+        Message m = new Message(typeM, goodID, buyerID, sellerID, nonceM, signWrite, Boolean.valueOf(onSale));
         int i = Notary.getInstance().checksReceivedWriteFromOtherReplics(buyerID, nonceM);
 
-        if(i == -1) {
-            Notary.getInstance().createBRBReady(m, Integer.parseInt(notaryID));
-        }
-        else {
-            Notary.getInstance().addBRBReady(m, Integer.parseInt(notaryID), i);
-            BRB brb = Notary.getInstance().getBRB(i);
-            m = brb.consesusReady();
-            if(m != null && !brb.getSentready()) {
-                Notary.getInstance().sendReady(i);
-            }
-        }
 
+         BRB brb =  Notary.getInstance().addBRBReady(m, Integer.parseInt(notaryID));
+         m = brb.consesusReady();
+        if(m != null && !brb.getSentready()) {
+            Notary.getInstance().sendReady(i);
+        }
+        /**
+        m = brb.consensusDeliver();
+        if(m != null && !brb.isDelivered()) {
+            if(m.getType().equals("intentionToSell")) {
+                Notary.getInstance().setIntentionToSell(m.getGoodID(), m.getBuyerID(), m.getTimestamp(), m.getSignWrite());
+            }
+            else{
+                Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonce, signWrite, nonceM);
+            }
+
+        }
+        **/
         Response response = Response.ok().build();
 
         return response;

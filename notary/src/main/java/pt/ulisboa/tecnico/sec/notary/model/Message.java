@@ -11,14 +11,14 @@ public class Message {
     private String signWrite;
     private boolean onSale;
 
-    public Message(String type, String goodID, String buyerID, String  sellerID, String timestamp, String signWrite) {
+    public Message(String type, String goodID, String buyerID, String  sellerID, String timestamp, String signWrite, boolean onSale) {
         this.type = type;
         this.goodID = goodID;
         this.buyerID = buyerID;
         this.sellerID = sellerID;
         this.timestamp = timestamp;
         this.signWrite = signWrite;
-        this.onSale = false;
+        this.onSale = onSale;
     }
 
     public Message(String type, String goodID, String buyerID, String timestamp, String signWrite) {
