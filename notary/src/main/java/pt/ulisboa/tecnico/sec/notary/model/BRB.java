@@ -66,18 +66,8 @@ public class BRB {
         this.sentready = sentready;
     }
 
-    public Message consensusEcho(int index) {
-        int total;
-        HashMap<Message, Integer> responses = new HashMap<>();
-        for(Message m : echos.values()){
-            if(responses.containsKey(m)) {
-                total = responses.get(m) + 1;
-                responses.replace(m, total);
-            }
-            else {
-                responses.put(m, 0);
-            }
-        }
+    public Message consensusEcho() {
+        HashMap<Message, Integer> responses = this.totalMessages(this.echos);
 
         int  N = Notary.getInstance().getN();
         int F = Notary.getInstance().getF();
@@ -87,5 +77,46 @@ public class BRB {
             }
         }
         return null;
+    }
+
+    public Message consesusReady() {
+        HashMap<Message, Integer> responses = this.totalMessages(this.readys);
+
+        int  N = Notary.getInstance().getN();
+        int F = Notary.getInstance().getF();
+        for(Message m : responses.keySet()) {
+            if(responses.get(m) > F) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    public Message consensusDeliver() {
+        HashMap<Message, Integer> responses = this.totalMessages(this.readys);
+
+        int  N = Notary.getInstance().getN();
+        int F = Notary.getInstance().getF();
+        for(Message m : responses.keySet()) {
+            if(responses.get(m) > 2 * F) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    private HashMap<Message, Integer> totalMessages(HashMap<Integer,Message> hashMap) {
+        int total;
+        HashMap<Message, Integer> responses = new HashMap<>();
+        for(Message m : readys.values()){
+            if(responses.containsKey(m)) {
+                total = responses.get(m) + 1;
+                responses.replace(m, total);
+            }
+            else {
+                responses.put(m, 0);
+            }
+        }
+        return responses;
     }
 }

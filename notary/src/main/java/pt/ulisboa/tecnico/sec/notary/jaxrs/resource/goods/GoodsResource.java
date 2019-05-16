@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods;
 
 import pt.ulisboa.tecnico.sec.notary.jaxrs.application.Notary;
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.*;
+import pt.ulisboa.tecnico.sec.notary.model.Message;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notary.model.exception.*;
 import pt.ulisboa.tecnico.sec.notary.util.Checker;
@@ -98,7 +99,8 @@ public class GoodsResource {
 
             Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceBuyer, nonceNotary, sigNotary); // Check integrity of message send by the buyer to the seller
 
-
+            //Message m = Notary.getInstance().validateWrite("transferGood", goodID, buyerID, sellerID, sigWrite, nonceBuyer);
+            //IF message isn't null
             //TODO TIRAR ISTO DAQUI
             Response response1 = Response.ok().
                     header("Notary-Signature", sigNotary).
@@ -165,8 +167,8 @@ public class GoodsResource {
 
             Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty
 
-
-
+            //Message m = Notary.getInstance().validateWrite("intentionToSell", goodID, sellerID, "", sigWrite, nonce);
+            //Ifs
             /**TODO Tirar returns??**/
             Response response1 = Response.ok().header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
@@ -175,8 +177,8 @@ public class GoodsResource {
                         System.out.println("\n\n\nAbout to Send:\n");
                         System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
                         Response response = Response.ok().
-                        header("Notary-Signature", sigNotary).
-                        header("Notary-Nonce", nonceNotary).
+                                header("Notary-Signature", sigNotary).
+                                header("Notary-Nonce", nonceNotary).
                                 header("Notary-id", notaryId).build();
                         ar.resume(response);
                     });
@@ -230,6 +232,9 @@ public class GoodsResource {
             Response response1 = Response.ok().
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
+
+            //Message m = Notary.getInstance().validateWrite("transferGood", goodID, sellerID, "", sigWrite, goodNonce);
+            //IFs
             executor.execute(() -> {
                 Notary.getInstance().setStateOfGood(goodID,sellerID,Boolean.valueOf(onSale),goodNonce,sigWrite);
 

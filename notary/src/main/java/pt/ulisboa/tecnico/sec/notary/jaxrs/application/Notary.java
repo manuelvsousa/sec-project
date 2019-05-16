@@ -70,7 +70,7 @@ public class Notary implements Serializable {
         } catch (IOException ioe) {
             File source = new File(saveFilename);
             File backup = new File(savebackupFileName);
-            if(backup.exists() && !backup.isDirectory()) {
+            /if(backup.exists() && !backup.isDirectory()) {
                 if(source.exists() && !source.isDirectory()) {
                     source.delete();
                 }
@@ -286,7 +286,7 @@ public class Notary implements Serializable {
 //        setWithCC(true);
     }
 
-    public boolean validateWrite(String type, String goodID, String buyerID, String sellerID, String sigWrite, String nonceBuyer) {
+    public Message validateWrite(String type, String goodID, String buyerID, String sellerID, String sigWrite, String nonceBuyer) {
         /**TODO fazer check se o timestamp está dentro de um intervalo determinado**/
         Checker.getInstance().checkSW(goodID, buyerID, nonceBuyer, false, sigWrite);
         int indexBRBS = checksReceivedWriteFromOtherReplics(buyerID, nonceBuyer);
@@ -312,8 +312,10 @@ public class Notary implements Serializable {
         /**TODO CHECK TIMER**/
         long now = System.currentTimeMillis();
         long end = now + SESSION;
+        Message message_aux;
         while(flag) {
-            if(this.brbs.get(indexBRBS).sizeReadys() > 2 * F) {
+            message_aux = this.brbs.get(indexBRBS).consensusDeliver();
+            if(message_aux!=null) {
                 valid = true;
                 flag = false;
             }
@@ -341,15 +343,17 @@ public class Notary implements Serializable {
 
 
             brb = this.brbs.get(indexBRBS);
-            if(brb.sizeReadys() > 2 *F && !brb.isDelivered()) {
+            message_aux = brb.consensusDeliver();
+            if(message_aux!=null && !brb.isDelivered()) {
                 brb.setDelivered(true);
                 this.brbs.replace(indexBRBS, brb);
                 this.lastValidWrite = indexBRBS;
-                return true;
+                Message m = this.getBRB(indexBRBS).getMyMessage();
+                return m;
             }
         }
 
-        return false;
+        return null;
     }
 
     public BRB getBRB(int index) {
@@ -373,6 +377,7 @@ public class Notary implements Serializable {
         brb.setSentecho(true);
         int notaryID = Integer.parseInt(System.getProperty("port"));
         brb.addEchos(notaryID, brb.getMyMessage());
+        this.brbs.replace(index, brb);
         Message m = brb.getMyMessage();
         String type =
                 Base64.getEncoder().withoutPadding().encodeToString("/write/sendEcho".getBytes());
@@ -382,12 +387,43 @@ public class Notary implements Serializable {
                 "||" + m.isOnSale() + nonce + notaryID).getBytes();
         try {
             String sig = Crypto.getInstance().sign(this.keys.getPrivate(), toSign);
-            PublicKey publicKey;
             String REST_URI_C;
             for (int i = 0; i <= N; i++) {
                 if(i != notaryID) {
                     REST_URI_C = "http://localhost:919" + i + "/notary/notary";
                     Future<Response> f = client.target(REST_URI_C + "/write/echo").queryParam("typeM", m.getType()).queryParam("goodID", m.getGoodID()).
+                            queryParam("sellerID", m.getSellerID()).queryParam("buyerID", m.getSellerID()).queryParam("nonceM", m.getTimestamp()).
+                            queryParam("signWrite" , m.getSignWrite()).queryParam("onSale", m.isOnSale()).queryParam("nonce", nonce).
+                            queryParam("sig", sig).queryParam("notaryID", Integer.toString(notaryID)).request(MediaType.APPLICATION_JSON).async().get();
+                }
+            }
+        } catch (Exception e) {
+            //TODO DEAL BETTER WITH EXCEPTIONS
+            e.printStackTrace();
+        }
+
+    }
+
+    public void sendReady(int index) {
+        BRB brb = this.brbs.get(index);
+        brb.setSentready(true);
+        int notaryID = Integer.parseInt(System.getProperty("port"));
+        brb.addReady(notaryID, brb.getMyMessage());
+        this.brbs.replace(index, brb);
+        Message m = brb.getMyMessage();
+        String type =
+                Base64.getEncoder().withoutPadding().encodeToString("/write/sendEcho".getBytes());
+        String nonce = String.valueOf((System.currentTimeMillis()));
+        byte[] toSign = (type + "||" + m.getType() + "||" + m.getGoodID() + "||" + m.getBuyerID() +
+                "||" + m.getSellerID() + m.getTimestamp() + "||" + m.getSignWrite() +
+                "||" + m.isOnSale() + nonce + notaryID).getBytes();
+        try {
+            String sig = Crypto.getInstance().sign(this.keys.getPrivate(), toSign);
+            String REST_URI_C;
+            for (int i = 0; i <= N; i++) {
+                if(i != notaryID) {
+                    REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+                    Future<Response> f = client.target(REST_URI_C + "/write/ready").queryParam("typeM", m.getType()).queryParam("goodID", m.getGoodID()).
                             queryParam("sellerID", m.getSellerID()).queryParam("buyerID", m.getSellerID()).queryParam("nonceM", m.getTimestamp()).
                             queryParam("signWrite" , m.getSignWrite()).queryParam("onSale", m.isOnSale()).queryParam("nonce", nonce).
                             queryParam("sig", sig).queryParam("notaryID", Integer.toString(notaryID)).request(MediaType.APPLICATION_JSON).async().get();
@@ -414,7 +450,7 @@ public class Notary implements Serializable {
             PublicKey publicKey = kf.generatePublic(publicKeySpec);
             this.notarySignedPublicKeys.put(i, publicKey);
             byte[] toSign = (type + "||" + publicKeySignature + "||" + Base64.getEncoder().encodeToString(publicKey.getEncoded())).getBytes();
-            this.verifyResponse(r, toSign, false, i - 1); // General request verification. Check integrity hole message
+            this.verifyResponse(r, toSign, false, i); // General request verification. Check integrity hole message
             /*  The check bellow is really important
                 Check if signature from CC actually matches the sent public key
                 An attacker may encript a similar message with a equally generated key.
@@ -459,7 +495,20 @@ public class Notary implements Serializable {
         brbs.put(indexBRBS, brb);
     }
 
+    public void createBRBReady(Message m, int notaryID) {
+        int indexBRBS = this.brbs.size() + 1;
+        BRB brb = new BRB();
+        brb.addReady(notaryID, m);
+        brbs.put(indexBRBS, brb);
+    }
+
     public void addBRBEcho(Message m, int notaryID, int index) {
+        BRB brb = this.brbs.get(index);
+        brb.addReady(notaryID, m);
+        this.brbs.replace(index, brb);
+    }
+
+    public void addBRBReady(Message m, int notaryID, int index) {
         BRB brb = this.brbs.get(index);
         brb.addEchos(notaryID, m);
         this.brbs.replace(index, brb);
