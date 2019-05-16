@@ -70,7 +70,7 @@ public class Notary implements Serializable {
         } catch (IOException ioe) {
             File source = new File(saveFilename);
             File backup = new File(savebackupFileName);
-            /if(backup.exists() && !backup.isDirectory()) {
+            if(backup.exists() && !backup.isDirectory()) {
                 if(source.exists() && !source.isDirectory()) {
                     source.delete();
                 }
