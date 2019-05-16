@@ -24,7 +24,7 @@ public class GoodsResource {
     @Path("/getStatus")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getStateOfGood(@QueryParam("id") String id, @QueryParam("userID") String userID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("pow") String pow) throws Exception {
-        System.out.println("\n\nReceived Paramenters:\n");
+        System.out.println("\n\nReceived Parameters:\n");
         System.out.println("goodID: " + id + "\nuserID: " + userID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce+ "\npow -> " + pow);
         if (id == null || userID == null || sig == null || nonce == null || pow == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
@@ -70,7 +70,7 @@ public class GoodsResource {
     @GET
     @Path("/transfer")
     public Response transferGood(@QueryParam("goodID") String goodID, @QueryParam("buyerID") String buyerID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("nonceBuyer") String nonceBuyer, @QueryParam("sigBuyer") String sigBuyer, @QueryParam("sigWrite") String sigWrite, @QueryParam("pow") String pow ,@Suspended AsyncResponse ar) throws Exception {
-        System.out.println("\n\nReceived Paramenters:\n");
+        System.out.println("\n\nReceived Parameters:\n");
         System.out.println("goodID: " + goodID + "\nbuyerID: " + buyerID + "\nsellerID: " + sellerID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce + "\nnonce (from buyer): " + nonceBuyer + "\nsignature (from buyer): " + sigBuyer+ "\npow -> " + pow);
         if (goodID == null || goodID == null || sellerID == null || sig == null || nonce == null || nonceBuyer == null || sigBuyer == null || pow == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
@@ -93,7 +93,7 @@ public class GoodsResource {
 
             Notary.getInstance().doIntegrityCheck(goodID, buyerID, sellerID); //check if all users exist, if goods exist, and if users are telling the truth i.e if they own the goods they claim to own
 
-            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty
+            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validity
 
             byte[] toSign2 = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonceBuyer).getBytes();
 
@@ -143,7 +143,7 @@ public class GoodsResource {
     @GET
     @Path("/intention")
     public Response intentionToSell(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce, @QueryParam("sigWrite") String sigWrite,@QueryParam("pow") String pow, @Suspended AsyncResponse ar) throws Exception {
-        System.out.println("\n\nReceived Paramenters:\n");
+        System.out.println("\n\nReceived Parameters:\n");
         System.out.println("goodID: " + goodID + "\nsellerID: " + sellerID + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce + "\npow -> " + pow);
         if (goodID == null || sellerID == null || sig == null || nonce == null || pow == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
@@ -193,6 +193,7 @@ public class GoodsResource {
     }
 
 
+
     @GET
     @Path("write")
     public Response validateWrite(@QueryParam("userID") String userID, @QueryParam("goodID") String goodID, @QueryParam("timestamp") long timestamp, @QueryParam("onSale") boolean onSale,
@@ -204,6 +205,43 @@ public class GoodsResource {
         //se for iguais, enviar ack. Caso contrário nACK
 
         Response response1 = Response.ok().build();
-        return  response1;
+        return response1;
+    }
+
+    @GET
+    @Path("/update")
+    public Response updateReplicas(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("onSale") String onSale,@QueryParam("goodNonce") String goodNonce, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce,@QueryParam("sigWrite") String sigWrite, @Suspended AsyncResponse ar) throws Exception{
+        System.out.println("\n\nReceived Parameters:\n");
+        System.out.println("goodID: " + goodID + "\nsellerID: " + sellerID + "\nonSale:" + onSale + "\ngoodNonce:" + goodNonce + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce);
+        if (goodID == null || sellerID == null || onSale == null || goodNonce ==null || sig == null || nonce == null) {
+            throw new WebApplicationException(Response.status(400) // 400 Bad Request
+                    .entity("goodID and/or sellerID and/or onSale and/or goodNonce and/or sig and/or nonce are null").build());
+        }
+
+        String type =
+                Base64.getEncoder().withoutPadding().encodeToString("/goods/update".getBytes());
+        String nonceNotary = String.valueOf((System.currentTimeMillis()));
+        byte[] toSignResponse = (type + "||" + goodID + "||" + sellerID + "||" + onSale + "||" + goodNonce + "||" + nonce + "||" + nonceNotary).getBytes();
+        String sigNotary = Notary.getInstance().sign(toSignResponse, false);
+        try {
+            Response response1 = Response.ok().
+                    header("Notary-Signature", sigNotary).
+                    header("Notary-Nonce", nonceNotary).build();
+            executor.execute(() -> {
+                Notary.getInstance().setStateOfGood(goodID,sellerID,Boolean.valueOf(onSale),goodNonce,sigWrite);
+
+                System.out.println("\n\n\nAbout to Send (updateReplicas):\n");
+                System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
+                Response response = Response.ok().
+                        header("Notary-Signature", sigNotary).
+                        header("Notary-Nonce", nonceNotary).build();
+                ar.resume(response);
+            });
+
+            return response1;
+        }catch (GoodNotFoundException e1) {
+            throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary);
+        }
+
     }
 }

@@ -25,6 +25,7 @@ public class UserClient {
         try {
             State state = this.notaryClient.getStateOfGood(goodID);
             String message = goodID + "->  Owner: " + state.getOwnerID() + "; On sale: ";
+            System.out.println(state);
             if (state.getOnSale()) {
                 message = message + "Yes;";
             } else {

@@ -68,8 +68,8 @@ public class ResponseCallback implements InvocationCallback<Response> {
 
     @Override
     public void failed(Throwable t) {
-        System.out.println("ola");
-        //t.printStackTrace();
+        //System.out.println("ola");
+        t.printStackTrace();
         throwable = t;
     }
 
