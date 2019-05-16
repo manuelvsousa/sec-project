@@ -177,6 +177,7 @@ public class Notary implements Serializable {
     }
 
     public synchronized void setStateOfGood(String goodID, String sellerID, Boolean onSale, String nonce, String sigWrite){
+        Checker.getInstance().checkSW(goodID, sellerID, nonce, onSale, sigWrite);
         if(Long.valueOf(nonce) > this.getGood(goodID).getTimestamp()) {
             if (!this.getUser(sellerID).getGoods().contains(this.getGood(goodID))) {
                 Good good = getGood(goodID);
