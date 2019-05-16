@@ -31,19 +31,19 @@ public class GoodsResource {
                     .entity("id and/or userID and/or sig and/or nonce and/or pow are null").build());
         }
 
+        String type =
+                Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
+        byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
 
-        if(!Notary.getInstance().verifyPOW(pow,userID,nonce)){
+        if(!Notary.getInstance().verifyPOW(pow,userID,toSign)){
             throw new InvalidProofOfWork();
         }
 
-        String type =
-                Base64.getEncoder().withoutPadding().encodeToString("/goods/getStatus".getBytes());
         String nonceNotary = String.valueOf(System.currentTimeMillis());
         byte[] toSignToSend = (type + "||" + id + "||" + userID + "||" + nonce + "||" + nonceNotary).getBytes();
         String sigNotary = Notary.getInstance().sign(toSignToSend, false);
         try {
             State s = Notary.getInstance().getStateOfGood(id);
-            byte[] toSign = (type + "||" + id + "||" + userID + "||" + nonce).getBytes();
 
             Checker.getInstance().checkResponse(toSign, userID, sig, nonce, nonceNotary, sigNotary);
 
@@ -76,20 +76,19 @@ public class GoodsResource {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
                     .entity("goodID and/or goodID and/or sellerID and/or signature and/or nonce and/or nonceBuyer and/or sigBuyer and/or pow null").build());
         }
+        String type =
+                Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
+        byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
 
-        if(!Notary.getInstance().verifyPOW(pow,sellerID,nonce)){
+        if(!Notary.getInstance().verifyPOW(pow,sellerID,toSign)){
             throw new InvalidProofOfWork();
         }
 
-
-        String type =
-                Base64.getEncoder().withoutPadding().encodeToString("/goods/transfer".getBytes());
         String nonceNotary = String.valueOf((System.currentTimeMillis()));
         byte[] toSignResponse = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer + "||" + nonceNotary).getBytes();
         String sigNotary = Notary.getInstance().sign(toSignResponse, true);
         String notaryId = System.getProperty("port");
         try {
-            byte[] toSign = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer).getBytes();
 
             Notary.getInstance().doIntegrityCheck(goodID, buyerID, sellerID); //check if all users exist, if goods exist, and if users are telling the truth i.e if they own the goods they claim to own
 
@@ -150,18 +149,19 @@ public class GoodsResource {
                     .entity("goodID and/or sellerID and/or signature and/or nonce and/or pow  are null").build());
         }
 
-        if(!Notary.getInstance().verifyPOW(pow,sellerID,nonce)){
+        String type =
+                Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
+        byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
+
+        if(!Notary.getInstance().verifyPOW(pow,sellerID,toSign)){
             throw new InvalidProofOfWork();
         }
 
-        String type =
-                Base64.getEncoder().withoutPadding().encodeToString("/goods/intention".getBytes());
         String nonceNotary = String.valueOf((System.currentTimeMillis()));
         byte[] toSignResponse = (type + "||" + goodID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes();
         String sigNotary = Notary.getInstance().sign(toSignResponse, false);
         String notaryId = System.getProperty("port");
         try {
-            byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + nonce).getBytes();
 
             Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty
 
@@ -210,20 +210,23 @@ public class GoodsResource {
 
     @GET
     @Path("/update")
-    public Response updateReplicas(@QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("onSale") String onSale,@QueryParam("goodNonce") String goodNonce, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce,@QueryParam("sigWrite") String sigWrite, @Suspended AsyncResponse ar) throws Exception{
+    public Response updateReplicas(@QueryParam("userID") String userID, @QueryParam("goodID") String goodID, @QueryParam("sellerID") String sellerID, @QueryParam("onSale") String onSale,@QueryParam("goodNonce") String goodNonce, @QueryParam("signature") String sig, @QueryParam("nonce") String nonce,@QueryParam("sigWrite") String sigWrite, @Suspended AsyncResponse ar) throws Exception{
         System.out.println("\n\nReceived Parameters:\n");
-        System.out.println("goodID: " + goodID + "\nsellerID: " + sellerID + "\nonSale:" + onSale + "\ngoodNonce:" + goodNonce + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce);
-        if (goodID == null || sellerID == null || onSale == null || goodNonce ==null || sig == null || nonce == null) {
+        System.out.println("userID: " + userID + "\ngoodID: " + goodID + "\nsellerID: " + sellerID + "\nonSale:" + onSale + "\ngoodNonce:" + goodNonce + "\nsignature: " + sig + "\nnonce (from notary-client): " + nonce);
+        if (userID == null || goodID == null || sellerID == null || onSale == null || goodNonce ==null || sig == null || nonce == null) {
             throw new WebApplicationException(Response.status(400) // 400 Bad Request
-                    .entity("goodID and/or sellerID and/or onSale and/or goodNonce and/or sig and/or nonce are null").build());
+                    .entity("userID and/or goodID and/or sellerID and/or onSale and/or goodNonce and/or sig and/or nonce are null").build());
         }
 
         String type =
                 Base64.getEncoder().withoutPadding().encodeToString("/goods/update".getBytes());
+        byte[] toSign = (type + "||" + goodID + "||" + sellerID + "||" + onSale + "||" + goodNonce).getBytes();
         String nonceNotary = String.valueOf((System.currentTimeMillis()));
         byte[] toSignResponse = (type + "||" + goodID + "||" + sellerID + "||" + onSale + "||" + goodNonce + "||" + nonce + "||" + nonceNotary).getBytes();
         String sigNotary = Notary.getInstance().sign(toSignResponse, false);
+        String notaryId = System.getProperty("port");
         try {
+            Checker.getInstance().checkResponse(toSign, userID, sig, nonce, nonceNotary, sigNotary);
             Response response1 = Response.ok().
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
@@ -234,7 +237,8 @@ public class GoodsResource {
                 System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
                 Response response = Response.ok().
                         header("Notary-Signature", sigNotary).
-                        header("Notary-Nonce", nonceNotary).build();
+                        header("Notary-Nonce", nonceNotary).
+                        header("Notary-id", notaryId).build();
                 ar.resume(response);
             });
 
