@@ -127,14 +127,12 @@ class NotaryAbstract {
             num = (int) Math.ceil((N+F)/2.0);
             final CountDownLatch latchUpdate = new CountDownLatch(num);
             ResponseCallback responseCallbackUpdate = new ResponseCallback(latchUpdate, false, id);
-            byte[] toSW = (id + " || " + correct.getOnSale() + " || " +  correct.getTimestamp() + " || " + correct.getOwnerID()).getBytes();
-            String sigWrite = Crypto.getInstance().sign(privateKey, toSW);
             toSign = (type + "||" + id + "||" + s.getOwnerID() + "||" + s.getOnSale() + "||" + s.getTimestamp()).getBytes();
             sig = Crypto.getInstance().sign(privateKey, toSign);
             nonce = String.valueOf((System.currentTimeMillis()));
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
-                client.target(REST_URI_C + "/goods/update").queryParam("userID", userID).queryParam("goodID", id).queryParam("sellerID", correct.getOwnerID()).queryParam("onSale",correct.getOnSale()).queryParam("goodNonce",correct.getTimestamp()).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("sigWrite", sigWrite).request(MediaType.APPLICATION_JSON).async().get(responseCallbackUpdate);
+                client.target(REST_URI_C + "/goods/update").queryParam("userID", userID).queryParam("goodID", id).queryParam("sellerID", correct.getOwnerID()).queryParam("onSale",correct.getOnSale()).queryParam("goodNonce",correct.getTimestamp()).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("sigWrite", s.getSignWrite()).request(MediaType.APPLICATION_JSON).async().get(responseCallbackUpdate);
             }
             latchUpdate.await();
             return correct;
