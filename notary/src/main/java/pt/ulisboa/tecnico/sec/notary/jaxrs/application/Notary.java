@@ -272,6 +272,7 @@ public class Notary implements Serializable {
         }catch (Exception e){
 
         }
+        System.out.println("SHA-1 of Proof of work: " + sha1);
         if(!sha1.substring(0,5).equals("00000")){
             return false;
         }
