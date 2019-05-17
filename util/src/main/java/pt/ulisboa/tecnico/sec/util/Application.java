@@ -24,8 +24,7 @@ public class Application {
         //System.out.print(sig);
         //Boolean correct = Crypto.getInstance().checkSignature(publicKey, ("L2dvb2RzL3RyYW5zZmVy||good1||user2||user1").getBytes(), sig);
         //System.out.println(correct);
-
-        /**TODO Melhorar isto**/
+        /*Generate Signatures*/
         PrivateKey privateKey = KeyReader.getInstance().readPrivateKey("user2", "password2");
         String sig = Crypto.getInstance().sign(privateKey, "good3 || true || 0 || user2".getBytes());
         FileOutputStream pubFos = new FileOutputStream("user2_good3_sw.txt");

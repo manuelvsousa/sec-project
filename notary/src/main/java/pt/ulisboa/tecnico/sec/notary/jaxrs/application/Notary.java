@@ -26,7 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Notary implements Serializable {
     private final static String SERIALIZE_FILE_NAME = "notary";
     private final static String SERIALIZE_FILE_EXTENSION = ".ser";
-    private final static long SESSION = TimeUnit.SECONDS.toMillis(5);
+    private final static long SESSION = TimeUnit.MILLISECONDS.toMillis(5000);
     private final static int F = 1;
     private final static  int N = 3 * F + 1;
     private final Lock lock = new ReentrantLock();
@@ -43,6 +43,7 @@ public class Notary implements Serializable {
     private transient String publicKeySignature;
     private transient boolean withCC = false;
     private transient HashMap<Integer, PublicKey> notarySignedPublicKeys = new HashMap<>();
+    private transient HashMap<Integer, PublicKey> notarySignedCCPublicKeys = new HashMap<>();
 
     private Notary() {
         try {
@@ -280,6 +281,9 @@ public class Notary implements Serializable {
 
 
     public PublicKey getPublicKeyNotarioID(int index) {
+        /**if(this.withCC) {
+         * return this.notaryCCKeys.get(index);
+         */
         return this.notarySignedPublicKeys.get(index);
     }
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException, GeneralSecurityException {
@@ -292,7 +296,6 @@ public class Notary implements Serializable {
     public Message validateWrite(String type, String goodID, String buyerID, String sellerID, String sigWrite, String nonceBuyer, boolean onSale) throws Exception{
         System.out.println("Validate write");
 
-        /**TODO fazer check se o timestamp está dentro de um intervalo determinado**/
         Checker.getInstance().checkSW(goodID, buyerID, nonceBuyer, onSale, sigWrite);
 
         BRB brb = this.addBRB(buyerID, nonceBuyer, type, goodID, sigWrite, sellerID, onSale);

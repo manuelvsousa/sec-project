@@ -36,22 +36,25 @@ class NotaryAbstract {
     private static final String REST_URI = "http://localhost:9191/notary/notary";
     private static  final int F = 1;
     private static  final int N = 3 * F + 1;
+    private ArrayList<String> lastNotaryNonce;
     private Client client = ClientBuilder.newClient();
     private PrivateKey privateKey;
-    private long lastNotaryNonce;
     private ArrayList<PublicKey> notarySignedPublicKey = new ArrayList<PublicKey>();
-    private PublicKey notaryCCPublicKey;
+    private HashMap<Integer,PublicKey>notaryCCPublicKey;
     private boolean withCC;
 
     public NotaryAbstract(PrivateKey privateKey) {
         this.privateKey = privateKey;
-        this.lastNotaryNonce = System.currentTimeMillis();
+        String[] data = new String[N];
+        String time = String.valueOf(System.currentTimeMillis());
+        Arrays.fill(data,time);
+        this.lastNotaryNonce = new ArrayList<>(Arrays.asList(data));
         this.withCC = false;
 
         try {
             String path = new File(System.getProperty("user.dir")).getParent();
             if (this.withCC) {
-                this.notaryCCPublicKey = KeyReader.getInstance().readPublicKey("notaryCC", path);
+                this.notaryCCPublicKey.put(1, KeyReader.getInstance().readPublicKey("notaryCC", path));
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not Load Notary CC public key");
@@ -68,6 +71,7 @@ class NotaryAbstract {
     private String calculateProofOfWork(byte[] string) throws NoSuchAlgorithmException{
         return HashCash.mintCash(new String(string),20).toString();
     }
+
 
     public State getStateOfGood(String id, String userID) throws Exception {
         try {
@@ -86,6 +90,7 @@ class NotaryAbstract {
                 System.out.println("Generate Proof of Work -> " + pow);
                 Future<Response> f = client.target(REST_URI_C + "/goods/getStatus").queryParam("pow", pow).queryParam("id", id).queryParam("userID", userID).queryParam("signature", sig).queryParam("nonce", nonce).request(MediaType.APPLICATION_JSON).async().get(responseCallback);
             }
+
 
             latch.await();
             HashMap<Integer, Response> r = responseCallback.getResponses();
@@ -125,8 +130,6 @@ class NotaryAbstract {
             if(faults > F) {
                 checkCode(code_f);
             }
-
-            System.out.println("hello");
 
 
             type = Base64.getEncoder().withoutPadding().encodeToString("/goods/update".getBytes());
@@ -203,8 +206,8 @@ class NotaryAbstract {
                 This is done this away to avoid unnecessary CC signatures every time someone asks for the public key.
              */
 
-        /**TODO fix this**/
-        if (this.withCC && !Crypto.getInstance().checkSignature(this.notaryCCPublicKey, publicKey.getEncoded(), publicKeySignature)) {
+
+        if (this.withCC && !Crypto.getInstance().checkSignature(this.notaryCCPublicKey.get(notaryID),  publicKey.getEncoded(), publicKeySignature)) {
             throw new InvalidSignature("Public Key sent from notary was forged. Signature made with CC is wrong");
         }
         return publicKey;
@@ -248,7 +251,6 @@ class NotaryAbstract {
                             break;
                         }
                     }
-                    //this.verifyResponse(r, toSign, true);
                     Map<String, String> map = new HashMap<>();
                     map.put("Notary-Signature", notarySig);
                     map.put("Original-Message", new String(toSign) + "||" + nonceS);
@@ -274,22 +276,21 @@ class NotaryAbstract {
             throw new InvalidSignature("Signature from notary was null");
         } else {
             toSign = (new String(toSign) + "||" + nonceS).getBytes();
-            if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
+            if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey.get(index+1) : this.notarySignedPublicKey.get(index), toSign, sig)) {
                 retrieveNotaryPK(index+1);
-                if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
+                if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey.get(index+1) : this.notarySignedPublicKey.get(index), toSign, sig)) {
                     throw new InvalidSignature("Signature from notary was forged");
                 } else {
                     throw new InvalidSignature("Notary has new Public Key. Please Redo Request"); //can be optimized, but might open a security hole
                 }
             }
         }
-        //TODO Fix this
-        /**
-        if (nonce > this.lastNotaryNonce) {
-            this.lastNotaryNonce = nonce;
+
+        if (nonce > Long.parseLong(this.lastNotaryNonce.get(index))) {
+            this.lastNotaryNonce.set(index, String.valueOf(nonce));
         } else {
             throw new InvalidSignature("Nonce from notary is invalid");
-        }**/
+        }
 
         if (r.getStatus() == 200) {
             return;
@@ -339,10 +340,17 @@ class NotaryAbstract {
             }
 
             latch.await();
+            System.out.println(responseCallback.getFails());
+
+            if(responseCallback.getFails() > (N+F)/2 ) {
+                System.out.println("ola");
+                throw new Exception(responseCallback.throwable);
+            }
             HashMap<Integer, Response> r = responseCallback.getResponses();
             HashMap<String, Integer> codes = this.processResponses(r, toSign);
 
             for(String code_aux : codes.keySet()) {
+                System.out.println(code_aux);
                 if(codes.get(code_aux) > (N + F)/2) {
                     System.out.println(code_aux);
                     checkCode(code_aux);
@@ -366,17 +374,17 @@ class NotaryAbstract {
             return "Signull";
         } else {
             toSign = (new String(toSign) + "||" + nonceS).getBytes();
-            if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
+            if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey.get(index+1) : this.notarySignedPublicKey.get(index), toSign, sig)) {
                 retrieveNotaryPK(index+1);
-                if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
+                if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey.get(index+1) : this.notarySignedPublicKey.get(index), toSign, sig)) {
                     return "Sigforged";
                 } else {
                     return "KeySync"; //can be optimized, but might open a security hole
                 }
             }
         }
-        if (nonce > this.lastNotaryNonce) {
-            this.lastNotaryNonce = nonce;
+        if (nonce > Long.parseLong(this.lastNotaryNonce.get(index))) {
+            this.lastNotaryNonce.set(index, String.valueOf(nonce));
         } else {
             return "Siginval";
         }

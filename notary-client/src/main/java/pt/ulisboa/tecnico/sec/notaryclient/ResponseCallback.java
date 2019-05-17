@@ -73,7 +73,6 @@ public class ResponseCallback implements InvocationCallback<Response> {
 
     @Override
     public void failed(Throwable t)  {
-        System.out.println("ola");
         throwable = t;
         fails++;
         int N = 3 * F +1;
@@ -91,6 +90,10 @@ public class ResponseCallback implements InvocationCallback<Response> {
 
     public HashMap<Integer, Response> getResponses() {
         return this.responses;
+    }
+
+    public int getFails() {
+        return this.fails;
     }
 
 }

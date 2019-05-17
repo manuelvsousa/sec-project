@@ -72,7 +72,7 @@ public class GoodsResource {
             });
             return response;
         } catch (GoodNotFoundException e) {
-            throw new NotFoundExceptionResponse(e.getMessage(), sigNotary, nonceNotary);
+            throw new NotFoundExceptionResponse(e.getMessage(), sigNotary, nonceNotary, notaryId);
         } catch (Exception e) {
             throw e;
         }
@@ -141,9 +141,9 @@ public class GoodsResource {
             return response1;
 
         } catch (GoodNotFoundException e1) {
-            throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary);
+            throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary, notaryId);
         } catch (UserNotFoundException e2) {
-            throw new NotFoundExceptionResponse(e2.getMessage(), sigNotary, nonceNotary);
+            throw new NotFoundExceptionResponse(e2.getMessage(), sigNotary, nonceNotary, notaryId);
         } catch (UserDoesNotOwnGood e3) {
             throw new UserDoesNotOwnResourceExceptionResponse(e3.getMessage(), sigNotary, nonceNotary);
         } catch (GoodNotOnSale gg) {
@@ -206,11 +206,13 @@ public class GoodsResource {
                             header("Notary-id", notaryId).build();
                     ar.resume(response);
                 } catch (GoodNotFoundException e1) {
-                    throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary);
+                    throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary, notaryId);
                 } catch (UserNotFoundException e2) {
-                    throw new NotFoundExceptionResponse(e2.getMessage(), sigNotary, nonceNotary);
+                    throw new NotFoundExceptionResponse(e2.getMessage(), sigNotary, nonceNotary, notaryId);
                 } catch (UserDoesNotOwnGood e3) {
-                    Response response = Response.serverError().header("Error", new UserDoesNotOwnResourceExceptionResponse(e3.getMessage(), sigNotary, nonceNotary)).build();
+                    Response response = Response.status(Response.Status.NOT_FOUND).
+                            header("Notary-Signature", sig).
+                            header("Notary-Nonce", nonce).header("Notary-id", notaryId).entity(e3.getMessage()).build();
                     ar.resume(response);
                 } catch (Exception e) {
                     Response response = Response.serverError().header("Error", new RuntimeException(e.getMessage())).build();
@@ -247,10 +249,14 @@ public class GoodsResource {
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
 
-            //Message m = Notary.getInstance().validateWrite("transferGood", goodID, sellerID, "", sigWrite, goodNonce);
-            //IFs
+            //TODO por isto bem
             executor.execute(() -> {
-                //Message m = Notary.getInstance().validateWrite("intentionToSell", goodID, sellerID, "", sigWrite, goodNonce, Boolean.valueOf(onSale));
+                try {
+                    Message m = Notary.getInstance().validateWrite("transferGood", goodID, sellerID, "", sigWrite, goodNonce, Boolean.valueOf(onSale));
+                } catch (Exception e) {
+                    throw new InvalidTransactionExceptionResponse(e.getMessage(), sigNotary, nonceNotary);
+                }
+
                 Notary.getInstance().setStateOfGood(goodID,sellerID,Boolean.valueOf(onSale),goodNonce,sigWrite);
 
                 System.out.println("\n\n\nAbout to Send (updateReplicas):\n");
@@ -264,7 +270,7 @@ public class GoodsResource {
 
             return response1;
         }catch (GoodNotFoundException e1) {
-            throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary);
+            throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary, notaryId);
         }
 
     }

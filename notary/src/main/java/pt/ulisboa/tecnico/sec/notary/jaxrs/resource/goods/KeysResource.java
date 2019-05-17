@@ -36,7 +36,7 @@ public class KeysResource {
 
             return response;
         } catch (GoodNotFoundException e) {
-            throw new NotFoundExceptionResponse(e.getMessage(), sigNotary, nonceNotary);
+            throw new NotFoundExceptionResponse(e.getMessage(), sigNotary, nonceNotary, String.valueOf(System.getProperty("port")));
         } catch (Exception e) {
             throw e;
         }
