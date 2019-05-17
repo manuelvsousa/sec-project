@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods;
 
 import pt.ulisboa.tecnico.sec.notary.jaxrs.application.Notary;
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.exception.*;
+import pt.ulisboa.tecnico.sec.notary.model.Message;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notary.model.exception.*;
 import pt.ulisboa.tecnico.sec.notary.util.Checker;
@@ -98,7 +99,7 @@ public class GoodsResource {
 
             Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceBuyer, nonceNotary, sigNotary); // Check integrity of message send by the buyer to the seller
 
-
+            //IF message isn't null
             //TODO TIRAR ISTO DAQUI
             Response response1 = Response.ok().
                     header("Notary-Signature", sigNotary).
@@ -109,6 +110,8 @@ public class GoodsResource {
                  * But this verification wont allow a malicious seller to reuse a previously buyer transfer request in another
                  * future transfer for the same good (in case a certain seller sells the good, then gets it back, and tries to preform a transfer request again without the buyer knowing)
                  * */
+                Message m = Notary.getInstance().validateWrite("transferGood", goodID, buyerID, sellerID, sigWrite, nonceBuyer, false);
+
                 Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary, sigWrite, nonceBuyer);
 
                 System.out.println("\n\n\nAbout to Send:\n");
@@ -165,22 +168,24 @@ public class GoodsResource {
 
             Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty
 
-
-
             /**TODO Tirar returns??**/
-            Response response1 = Response.ok().header("Notary-Signature", sigNotary).
-                    header("Notary-Nonce", nonceNotary).build();
-            executor.execute( () -> {
+                Response response1 = Response.ok().header("Notary-Signature", sigNotary).
+                        header("Notary-Nonce", nonceNotary).build();
+                executor.execute( () -> {
+                    Message m = Notary.getInstance().validateWrite("intentionToSell", goodID, sellerID, "", sigWrite, nonce, true);
+                    if (m != null) {
                         Notary.getInstance().setIntentionToSell(goodID, sellerID, nonce, sigWrite);
                         System.out.println("\n\n\nAbout to Send:\n");
                         System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
                         Response response = Response.ok().
-                        header("Notary-Signature", sigNotary).
-                        header("Notary-Nonce", nonceNotary).
+                                header("Notary-Signature", sigNotary).
+                                header("Notary-Nonce", nonceNotary).
                                 header("Notary-id", notaryId).build();
                         ar.resume(response);
-                    });
-            return response1;
+                    }
+                });
+                return response1;
+
         } catch (GoodNotFoundException e1) {
             throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary);
         } catch (UserNotFoundException e2) {
@@ -191,6 +196,9 @@ public class GoodsResource {
             throw e;
         }
     }
+
+
+
 
     @GET
     @Path("/update")
@@ -214,7 +222,11 @@ public class GoodsResource {
             Response response1 = Response.ok().
                     header("Notary-Signature", sigNotary).
                     header("Notary-Nonce", nonceNotary).build();
+
+            //Message m = Notary.getInstance().validateWrite("transferGood", goodID, sellerID, "", sigWrite, goodNonce);
+            //IFs
             executor.execute(() -> {
+                //Message m = Notary.getInstance().validateWrite("intentionToSell", goodID, sellerID, "", sigWrite, goodNonce, Boolean.valueOf(onSale));
                 Notary.getInstance().setStateOfGood(goodID,sellerID,Boolean.valueOf(onSale),goodNonce,sigWrite);
 
                 System.out.println("\n\n\nAbout to Send (updateReplicas):\n");
@@ -230,5 +242,6 @@ public class GoodsResource {
         }catch (GoodNotFoundException e1) {
             throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary);
         }
+
     }
 }

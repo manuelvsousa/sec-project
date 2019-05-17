@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.sec.notary.jaxrs.application;
 import pt.ulisboa.tecnico.sec.notary.jaxrs.provider.MyJacksonJsonProvider;
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.GoodsResource;
 import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.KeysResource;
+import pt.ulisboa.tecnico.sec.notary.jaxrs.resource.goods.WriteResource;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
@@ -32,6 +33,7 @@ public class ApplicationConfig extends Application {
         resources.add(MyJacksonJsonProvider.class);
         resources.add(GoodsResource.class);
         resources.add(KeysResource.class);
+        resources.add(WriteResource.class);
         //==> we could also choose packages, see below getProperties()
 
         System.out.println("REST configuration ended successfully.");

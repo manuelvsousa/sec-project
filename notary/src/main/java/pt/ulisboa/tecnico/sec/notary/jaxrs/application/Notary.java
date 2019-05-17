@@ -8,29 +8,41 @@ import pt.ulisboa.tecnico.sec.notary.util.CitizenCard;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 import pt.ulisboa.tecnico.sec.util.KeyGen;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.*;
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.MessageDigest;
-import java.security.PublicKey;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Notary implements Serializable {
     private final static String SERIALIZE_FILE_NAME = "notary";
     private final static String SERIALIZE_FILE_EXTENSION = ".ser";
+    private final static long SESSION = TimeUnit.SECONDS.toMillis(5);
     private final static int F = 1;
-    private final static  int N = 4 * F;
+    private final static  int N = 3 * F + 1;
+    private final Lock lock = new ReentrantLock();
 
     private static Notary uniqueInstance;
 
     private List<User> users = new ArrayList<>();
     private List<Transaction> transactions = new ArrayList<>();
-    private HashMap<String, Write> writeRegister = new HashMap<String, Write>();
+    private HashMap<Integer, BRB> brbs = new HashMap<>();
+    private int lastValidWrite = 0;
+    private Client client = ClientBuilder.newClient();
+
     private transient KeyPair keys;
     private transient String publicKeySignature;
     private transient boolean withCC = false;
-    private transient ArrayList<PublicKey> notarySignedPublicKeys = new ArrayList<PublicKey>();
+    private transient HashMap<Integer, PublicKey> notarySignedPublicKeys = new HashMap<>();
 
     private Notary() {
         try {
@@ -136,6 +148,7 @@ public class Notary implements Serializable {
         }
 
         Checker.getInstance().checkSW(goodID, buyerID, nonceBuyer, false, signWrite);
+
 
         if(Long.valueOf(time).longValue() > this.getGood(goodID).getTimestamp()) {
             seller.removeGood(g);
@@ -265,9 +278,9 @@ public class Notary implements Serializable {
         return true;
     }
 
-    public boolean checkWrite(String userID, String goodID, long timestamp, boolean onSale, String signWrite) {
 
-        return true;
+    public PublicKey getPublicKeyNotarioID(int index) {
+        return this.notarySignedPublicKeys.get(index);
     }
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException, GeneralSecurityException {
         ois.defaultReadObject();
@@ -276,6 +289,290 @@ public class Notary implements Serializable {
 //        setWithCC(true);
     }
 
+    public Message validateWrite(String type, String goodID, String buyerID, String sellerID, String sigWrite, String nonceBuyer, boolean onSale) {
+        System.out.println("Validate write");
+
+        /**TODO fazer check se o timestamp está dentro de um intervalo determinado**/
+        Checker.getInstance().checkSW(goodID, buyerID, nonceBuyer, onSale, sigWrite);
+
+        BRB brb = this.addBRB(buyerID, nonceBuyer, type, goodID, sigWrite, sellerID, onSale);
+        int indexBRBS = checksReceivedWriteFromOtherReplics(buyerID, nonceBuyer);
+
+        if(!brb.getSentecho()) {
+            sendEcho(indexBRBS);
+        }
+
+
+        boolean flag = true;
+        boolean valid = false;
+        /**TODO CHECK TIMER**/
+        long now = System.currentTimeMillis();
+        long end = now + SESSION;
+        Message message_aux;
+        while(flag) {
+            synchronized (this.brbs) {
+                message_aux = this.brbs.get(indexBRBS).consensusDeliver();
+            }
+            if(message_aux!=null) {
+                valid = true;
+                flag = false;
+            }
+            if(System.currentTimeMillis() > end) {
+                flag = false;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+
+        if(valid) {
+            //Waits for a possible valid write
+
+            System.out.println("INDEX" + indexBRBS);
+            if((this.lastValidWrite != (indexBRBS - 1)) && (this.lastValidWrite != indexBRBS)) {
+                now = System.currentTimeMillis();
+                end = now + SESSION;
+                System.out.println("Now" + now);
+                System.out.println("End" + end);
+                flag = true;
+                while (flag) {
+                    if(this.lastValidWrite == indexBRBS - 1 || this.lastValidWrite != indexBRBS) {
+                        flag = false;
+                    }
+                    if(System.currentTimeMillis() > end) {
+                        flag = false;
+                    }
+                }
+            }
+
+
+
+            brb = this.brbs.get(indexBRBS);
+            message_aux = brb.consensusDeliver();
+            System.out.println("LAST VALID WRITE" + lastValidWrite);
+
+
+            if(message_aux!=null) {
+                brb.setDelivered(true);
+                this.brbs.replace(indexBRBS, brb);
+                this.lastValidWrite = indexBRBS;
+                Message m = this.getBRB(indexBRBS).getMyMessage();
+                return m;
+            }
+        }
+
+        return null;
+    }
+
+    public BRB getBRB(int index) {
+        return this.brbs.get(index);
+    }
+
+    private synchronized BRB addBRB(String buyerID, String nonceBuyer, String type, String goodID, String sigWrite, String sellerID, boolean onSale) {
+        int indexBRBS = checksReceivedWriteFromOtherReplics(buyerID, nonceBuyer);
+        Message message = new Message(type, goodID, buyerID, sellerID, nonceBuyer, sigWrite, onSale);
+
+
+        BRB brb;
+        if(indexBRBS == -1) {
+            indexBRBS = this.brbs.size() + 1;
+            brb = new BRB(message);
+            brbs.put(indexBRBS, brb);
+        }
+        else {
+            brb = this.brbs.get(indexBRBS);
+            brb.setMyMessage(message);
+            this.brbs.replace(indexBRBS, brb);
+        }
+        return  brb;
+    }
+
+    public synchronized int checksReceivedWriteFromOtherReplics(String buyerID, String timestamp) {
+        //TODO COLOCAR LOCKS OU OUTRA CENA
+        for(int i : this.brbs.keySet()) {
+            BRB brb = this.brbs.get(i);
+            if(brb.getUserID().equals(buyerID) && brb.getTimestamp().equals(timestamp)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void sendEcho(int index) {
+        System.out.println("echo");
+        BRB brb = this.brbs.get(index);
+        brb.setSentecho(true);
+        int notaryID = Integer.parseInt(System.getProperty("port"));
+        brb.addEchos(notaryID, brb.getMyMessage());
+        this.brbs.replace(index, brb);
+        Message m = brb.getMyMessage();
+        String type =
+                Base64.getEncoder().withoutPadding().encodeToString("/write/sendEcho".getBytes());
+        String nonce = String.valueOf((System.currentTimeMillis()));
+        byte[] toSign = (type + "||" + m.getType() + "||" + m.getGoodID() + "||" + m.getBuyerID() +
+                "||" + m.getSellerID() + "||" +  m.getTimestamp() + "||" + m.getSignWrite() +
+                "||" + m.isOnSale() + "||" + nonce + "||" +  notaryID).getBytes();
+
+        try {
+            String sig = Crypto.getInstance().sign(this.keys.getPrivate(), toSign);
+            String REST_URI_C;
+            for (int i = 1; i <= N; i++) {
+                if(i != notaryID) {
+                    REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+                    Response r = client.target(REST_URI_C + "/write/echo").queryParam("typeM", m.getType()).queryParam("goodID", m.getGoodID()).
+                            queryParam("sellerID", m.getSellerID()).queryParam("buyerID", m.getBuyerID()).queryParam("nonceM", m.getTimestamp()).
+                            queryParam("signWrite" , m.getSignWrite()).queryParam("onSale", m.isOnSale()).queryParam("nonce", nonce).
+                            queryParam("sig", sig).queryParam("notaryID", Integer.toString(notaryID)).request(MediaType.APPLICATION_JSON).get();
+                }
+            }
+        } catch (Exception e) {
+            //TODO DEAL BETTER WITH EXCEPTIONS
+            e.printStackTrace();
+        }
+
+    }
+
+    private synchronized BRB setReady(int index) {
+        BRB brb = this.brbs.get(index);
+        brb.setSentready(true);
+        int notaryID = Integer.parseInt(System.getProperty("port"));
+        brb.addReady(notaryID, brb.getMyMessage());
+        this.brbs.replace(index, brb);
+        return brb;
+    }
+
+    public void sendReady(int index) {
+        int notaryID = Integer.parseInt(System.getProperty("port"));
+        System.out.println("Ready");
+        BRB brb = this.setReady(index);
+        Message m = brb.consesusReady();
+        if(m==null || !brb.getSentecho()) {
+            m = brb.consensusEcho();
+        }
+        String type =
+                Base64.getEncoder().withoutPadding().encodeToString("/write/sendReady".getBytes());
+        String nonce = String.valueOf((System.currentTimeMillis()));
+        byte[] toSign = (type + "||" + m.getType() + "||" + m.getGoodID() + "||" + m.getBuyerID() +
+                "||" + m.getSellerID() + "||" + m.getTimestamp() + "||" + m.getSignWrite() +
+                "||" + m.isOnSale() + "||" + nonce + "||" + notaryID).getBytes();
+        try {
+            String sig = Crypto.getInstance().sign(this.keys.getPrivate(), toSign);
+            String REST_URI_C;
+            for (int i = 1; i <= N; i++) {
+                if(i != notaryID) {
+                    REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+                    Response r = client.target(REST_URI_C + "/write/ready").queryParam("typeM", m.getType()).queryParam("goodID", m.getGoodID()).
+                            queryParam("sellerID", m.getSellerID()).queryParam("buyerID", m.getBuyerID()).queryParam("nonceM", m.getTimestamp()).
+                            queryParam("signWrite" , m.getSignWrite()).queryParam("onSale", m.isOnSale()).queryParam("nonce", nonce).
+                            queryParam("sig", sig).queryParam("notaryID", Integer.toString(notaryID)).request(MediaType.APPLICATION_JSON).get();
+                }
+            }
+        } catch (Exception e) {
+            //TODO DEAL BETTER WITH EXCEPTIONS
+            e.printStackTrace();
+        }
+
+    }
+
+    public void retrievePublicKey(int i) {
+        try {
+            String type =
+                    Base64.getEncoder().withoutPadding().encodeToString("/keys/getPublicKey".getBytes());
+            String REST_URI_C;
+            REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+            Response r = client.target(REST_URI_C + "/keys/getPublicKey").request(MediaType.APPLICATION_JSON).get();
+            String publicKeySignature = r.getHeaderString("PublicKey-Signature");
+            String publicKeybase64 = r.readEntity(String.class);
+            X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeybase64.getBytes()));
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            PublicKey publicKey = kf.generatePublic(publicKeySpec);
+            this.notarySignedPublicKeys.put(i, publicKey);
+            byte[] toSign = (type + "||" + publicKeySignature + "||" + Base64.getEncoder().encodeToString(publicKey.getEncoded())).getBytes();
+            this.verifyResponse(r, toSign, false, i); // General request verification. Check integrity hole message
+            /*  The check bellow is really important
+                Check if signature from CC actually matches the sent public key
+                An attacker may encript a similar message with a equally generated key.
+                This verification is going ensure that the public key actually came from notary and not from another place
+                This is done this away to avoid unnecessary CC signatures every time someone asks for the public key.
+             */
+
+
+            /**TODO fix this**/
+            /***
+            if (this.withCC && !Crypto.getInstance().checkSignature(this.notaryCCPublicKey, publicKey.getEncoded(), publicKeySignature)) {
+                throw new InvalidSignature("Public Key sent from notary was forged. Signature made with CC is wrong");
+            }***/
+            return;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void verifyResponse(Response r, byte[] toSign, boolean withCC, int index){
+        withCC = withCC && this.withCC;
+        String sig = r.getHeaderString("Notary-Signature");
+        String nonceS = r.getHeaderString("Notary-Nonce");
+        long nonce = Long.valueOf(nonceS).longValue();
+        if (sig == null) {
+            throw new InvalidSignature("Signature from notary was null");
+        } else {
+            //TODO Put this working with CC
+            toSign = (new String(toSign) + "||" + nonceS).getBytes();
+            if (!Crypto.getInstance().checkSignature(this.notarySignedPublicKeys.get(index), toSign, sig)) {
+                throw new InvalidSignature("Signature from notary was forged");
+            }
+        }
+    }
+
+
+
+    public synchronized BRB addBRBEcho(Message m, int notaryID) {
+        int index =  this.checksReceivedWriteFromOtherReplics(m.getBuyerID(), m.getTimestamp());
+        BRB brb;
+        if(index == -1) {
+            int indexBRBS = this.brbs.size() + 1;
+            brb = new BRB(m.getBuyerID(), m.getTimestamp());
+            brb.addEchos(notaryID, m);
+            brbs.put(indexBRBS, brb);
+        }
+        else{
+            brb = this.brbs.get(index);
+            brb.addEchos(notaryID, m);
+            this.brbs.replace(index, brb);
+        }
+        return  brb;
+    }
+
+    public synchronized BRB addBRBReady(Message m, int notaryID) {
+        int index =  this.checksReceivedWriteFromOtherReplics(m.getBuyerID(), m.getTimestamp());
+        BRB brb;
+        if(index == -1) {
+            int indexBRBS = this.brbs.size() + 1;
+            brb = new BRB(m.getBuyerID(), m.getTimestamp());
+            brb.addReady(notaryID, m);
+            brbs.put(indexBRBS, brb);
+        }
+        else {
+            brb = this.brbs.get(index);
+            brb.addReady(notaryID, m);
+            this.brbs.replace(index, brb);
+        }
+        return brb;
+    }
+
+    public int getN() {
+        return this.N;
+    }
+
+    public int getF() {
+        return this.F;
+    }
 
 
 }

@@ -34,7 +34,7 @@ class NotaryAbstract {
 
     private static final String REST_URI = "http://localhost:9191/notary/notary";
     private static  final int F = 1;
-    private static  final int N = 4 * F;
+    private static  final int N = 3 * F + 1;
     private Client client = ClientBuilder.newClient();
     private PrivateKey privateKey;
     private long lastNotaryNonce;
@@ -123,6 +123,7 @@ class NotaryAbstract {
                 checkCode(code_f);
             }
 
+
             type = Base64.getEncoder().withoutPadding().encodeToString("/goods/update".getBytes());
             num = (int) Math.ceil((N+F)/2.0);
             final CountDownLatch latchUpdate = new CountDownLatch(num);
@@ -135,6 +136,7 @@ class NotaryAbstract {
                 client.target(REST_URI_C + "/goods/update").queryParam("userID", userID).queryParam("goodID", id).queryParam("sellerID", correct.getOwnerID()).queryParam("onSale",correct.getOnSale()).queryParam("goodNonce",correct.getTimestamp()).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("sigWrite", s.getSignWrite()).request(MediaType.APPLICATION_JSON).async().get(responseCallbackUpdate);
             }
             latchUpdate.await();
+
             return correct;
 
         } catch (NotFoundException e) {
@@ -267,6 +269,7 @@ class NotaryAbstract {
                 }
             }
         }
+        //TODO Fix this
         if (nonce > this.lastNotaryNonce) {
             this.lastNotaryNonce = nonce;
         } else {
