@@ -100,61 +100,72 @@ public class GoodsResource {
         byte[] toSignResponse = (type + "||" + goodID + "||" + buyerID + "||" + sellerID + "||" + nonce + "||" + nonceBuyer + "||" + sigBuyer + "||" + nonceNotary).getBytes();
         String sigNotary = Notary.getInstance().sign(toSignResponse, true);
         String notaryId = System.getProperty("port");
-        try {
 
-            Notary.getInstance().doIntegrityCheck(goodID, buyerID, sellerID); //check if all users exist, if goods exist, and if users are telling the truth i.e if they own the goods they claim to own
+        Notary.getInstance().doIntegrityCheck(goodID, buyerID, sellerID); //check if all users exist, if goods exist, and if users are telling the truth i.e if they own the goods they claim to own
 
-            Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validity
+        Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validity
 
-            byte[] toSign2 = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonceBuyer).getBytes();
+        byte[] toSign2 = (goodID + "||" + buyerID + "||" + sellerID + "||" + nonceBuyer).getBytes();
 
-            Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceBuyer, nonceNotary, sigNotary); // Check integrity of message send by the buyer to the seller
+        Checker.getInstance().checkResponse(toSign2, buyerID, sigBuyer, nonceBuyer, nonceNotary, sigNotary); // Check integrity of message send by the buyer to the seller
 
-            //IF message isn't null
-            //TODO TIRAR ISTO DAQUI
-            Response response1 = Response.ok().
-                    header("Notary-Signature", sigNotary).
-                    header("Notary-Nonce", nonceNotary).
-                    header("Notary-id", notaryId).build();
-            executor.execute( () -> {
-                /* Doing this might invalidate the transfer in case the buyer makes a request that arrives first then this one.
-                 * But this verification wont allow a malicious seller to reuse a previously buyer transfer request in another
-                 * future transfer for the same good (in case a certain seller sells the good, then gets it back, and tries to preform a transfer request again without the buyer knowing)
-                 * */
+        Response response1 = Response.ok().
+                header("Notary-Signature", sigNotary).
+                header("Notary-Nonce", nonceNotary).
+                header("Notary-id", notaryId).build();
+        executor.execute( () -> {
+            /* Doing this might invalidate the transfer in case the buyer makes a request that arrives first then this one.
+             * But this verification wont allow a malicious seller to reuse a previously buyer transfer request in another
+             * future transfer for the same good (in case a certain seller sells the good, then gets it back, and tries to preform a transfer request again without the buyer knowing)
+             * */
+            Message m;
+            try {
+                m = Notary.getInstance().validateWrite("transferGood", goodID, buyerID, sellerID, sigWrite, nonceBuyer, false);
+            } catch (Exception e) {
+                throw new InvalidTransactionExceptionResponse(e.getMessage(), sigNotary, nonceNotary);
+            }
+            if(m!=null) {
                 try {
-                    Message m = Notary.getInstance().validateWrite("transferGood", goodID, buyerID, sellerID, sigWrite, nonceBuyer, false);
+                    Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary, sigWrite, nonceBuyer);
+
+                    System.out.println("\n\n\nAbout to Send:\n");
+                    System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
+                    Response response = Response.ok().
+                            header("Notary-Signature", sigNotary).
+                            header("Notary-Nonce", nonceNotary).
+                            header("Notary-id", notaryId).build();
+                    ar.resume(response);
+                } catch (GoodNotFoundException e1) {
+                    Response response = Response.status(Response.Status.NOT_FOUND).
+                            header("Notary-Signature", sig).
+                            header("Notary-Nonce", nonce).header("Notary-id", notaryId).entity(e1.getMessage()).build();
+                    ar.resume(response);
+                } catch (UserNotFoundException e2) {
+                    Response response = Response.status(Response.Status.NOT_FOUND).
+                            header("Notary-Signature", sig).
+                            header("Notary-Nonce", nonce).header("Notary-id", notaryId).entity(e2.getMessage()).build();
+                    ar.resume(response);
+                } catch (UserDoesNotOwnGood e3) {
+                    Response response = Response.status(Response.Status.EXPECTATION_FAILED).
+                            header("Notary-Signature", sig).
+                            header("Notary-Nonce", nonce).entity(e3.getMessage()).build();
+                    ar.resume(response);
+                } catch (GoodNotOnSale gg) {
+                    Response response = Response.status(Response.Status.NOT_ACCEPTABLE).
+                            header("Notary-Signature", sig).
+                            header("Notary-Nonce", nonce).entity(gg.getMessage()).build();
+                    ar.resume(response);
+                } catch (TransactionAlreadyExistsException e4) {
+                    throw new InvalidTransactionExceptionResponse(e4.getMessage(), sigNotary, nonceNotary);
+                } catch (InvalidTransactionException e5) {
+                    throw new InvalidTransactionExceptionResponse(e5.getMessage(), sigNotary, nonceNotary);
                 } catch (Exception e) {
-                    throw new InvalidTransactionExceptionResponse(e.getMessage(), sigNotary, nonceNotary);
+                    throw e;
                 }
-
-                Notary.getInstance().addTransaction(goodID, buyerID, sellerID, nonceNotary, sigWrite, nonceBuyer);
-
-                System.out.println("\n\n\nAbout to Send:\n");
-                System.out.println("Notary-Signature: " + sigNotary + "\nNotary-Nonce: " + nonceNotary + "\ncontent: " + new String(toSignResponse));
-                Response response = Response.ok().
-                        header("Notary-Signature", sigNotary).
-                        header("Notary-Nonce", nonceNotary).
-                        header("Notary-id", notaryId).build();
-                ar.resume(response);
-            });
+            }
+        });
 
             return response1;
-
-        } catch (GoodNotFoundException e1) {
-            throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary, notaryId);
-        } catch (UserNotFoundException e2) {
-            throw new NotFoundExceptionResponse(e2.getMessage(), sigNotary, nonceNotary, notaryId);
-        } catch (UserDoesNotOwnGood e3) {
-            throw new UserDoesNotOwnResourceExceptionResponse(e3.getMessage(), sigNotary, nonceNotary);
-        } catch (GoodNotOnSale gg) {
-            throw new GoodNotOnSaleResponse(gg.getMessage(), sigNotary, nonceNotary);
-        } catch (TransactionAlreadyExistsException e4) {
-            throw new InvalidTransactionExceptionResponse(e4.getMessage(), sigNotary, nonceNotary);
-        } catch (InvalidTransactionException e5) {
-            throw new InvalidTransactionExceptionResponse(e5.getMessage(), sigNotary, nonceNotary);
-        } catch (Exception e) {
-            throw e;
-        }
     }
 
     @GET
@@ -182,7 +193,6 @@ public class GoodsResource {
 
         Checker.getInstance().checkResponse(toSign, sellerID, sig, nonce, nonceNotary, sigNotary); // Check integrity of message and nonce validaty
 
-        /**TODO Tirar returns??**/
         Response response1 = Response.ok().header("Notary-Signature", sigNotary).
                 header("Notary-Nonce", nonceNotary).build();
         executor.execute(() -> {
@@ -190,12 +200,10 @@ public class GoodsResource {
             try {
                 m = Notary.getInstance().validateWrite("intentionToSell", goodID, sellerID, "", sigWrite, nonce, true);
             } catch (Exception e) {
-                System.out.println("ESTÁS A ENTRAR AQUI");
                 throw new RuntimeException(e);
             }
 
             if (m != null) {
-                System.out.println("I AM HERE   ");
                 try {
                     Notary.getInstance().setIntentionToSell(goodID, sellerID, nonce, sigWrite);
                     System.out.println("\n\n\nAbout to Send:\n");
@@ -206,9 +214,15 @@ public class GoodsResource {
                             header("Notary-id", notaryId).build();
                     ar.resume(response);
                 } catch (GoodNotFoundException e1) {
-                    throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary, notaryId);
+                    Response response = Response.status(Response.Status.NOT_FOUND).
+                            header("Notary-Signature", sig).
+                            header("Notary-Nonce", nonce).header("Notary-id", notaryId).entity(e1.getMessage()).build();
+                    ar.resume(response);
                 } catch (UserNotFoundException e2) {
-                    throw new NotFoundExceptionResponse(e2.getMessage(), sigNotary, nonceNotary, notaryId);
+                    Response response = Response.status(Response.Status.NOT_FOUND).
+                            header("Notary-Signature", sig).
+                            header("Notary-Nonce", nonce).header("Notary-id", notaryId).entity(e2.getMessage()).build();
+                    ar.resume(response);
                 } catch (UserDoesNotOwnGood e3) {
                     Response response = Response.status(Response.Status.NOT_FOUND).
                             header("Notary-Signature", sig).
@@ -243,20 +257,22 @@ public class GoodsResource {
         byte[] toSignResponse = (type + "||" + goodID + "||" + sellerID + "||" + onSale + "||" + goodNonce + "||" + nonce + "||" + nonceNotary).getBytes();
         String sigNotary = Notary.getInstance().sign(toSignResponse, false);
         String notaryId = System.getProperty("port");
-        try {
-            Checker.getInstance().checkResponse(toSign, userID, sig, nonce, nonceNotary, sigNotary);
-            Response response1 = Response.ok().
-                    header("Notary-Signature", sigNotary).
-                    header("Notary-Nonce", nonceNotary).build();
 
-            //TODO por isto bem
-            executor.execute(() -> {
-                try {
-                    Message m = Notary.getInstance().validateWrite("transferGood", goodID, sellerID, "", sigWrite, goodNonce, Boolean.valueOf(onSale));
-                } catch (Exception e) {
-                    throw new InvalidTransactionExceptionResponse(e.getMessage(), sigNotary, nonceNotary);
-                }
+        Checker.getInstance().checkResponse(toSign, userID, sig, nonce, nonceNotary, sigNotary);
+        Response response1 = Response.ok().
+                header("Notary-Signature", sigNotary).
+                header("Notary-Nonce", nonceNotary).build();
 
+
+        executor.execute(() -> {
+            Message m;
+            try {
+                m = Notary.getInstance().validateWrite("transferGood", goodID, sellerID, "", sigWrite, goodNonce, Boolean.valueOf(onSale));
+            } catch (Exception e) {
+                throw new InvalidTransactionExceptionResponse(e.getMessage(), sigNotary, nonceNotary);
+            }
+
+            try {
                 Notary.getInstance().setStateOfGood(goodID,sellerID,Boolean.valueOf(onSale),goodNonce,sigWrite);
 
                 System.out.println("\n\n\nAbout to Send (updateReplicas):\n");
@@ -266,12 +282,15 @@ public class GoodsResource {
                         header("Notary-Nonce", nonceNotary).
                         header("Notary-id", notaryId).build();
                 ar.resume(response);
-            });
+            } catch (GoodNotFoundException e1) {
+                Response.status(Response.Status.NOT_FOUND).
+                        header("Notary-Signature", sig).
+                        header("Notary-Nonce", nonce).header("Notary-id", notaryId).entity(e1.getMessage()).build();
+            }
+
+        });
 
             return response1;
-        }catch (GoodNotFoundException e1) {
-            throw new NotFoundExceptionResponse(e1.getMessage(), sigNotary, nonceNotary, notaryId);
-        }
 
     }
 }

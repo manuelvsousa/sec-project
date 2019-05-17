@@ -308,7 +308,6 @@ public class Notary implements Serializable {
 
         boolean flag = true;
         boolean valid = false;
-        /**TODO CHECK TIMER**/
         long now = System.currentTimeMillis();
         long end = now + SESSION;
         Message message_aux;
