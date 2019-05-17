@@ -62,3 +62,10 @@ mvn clean install tomcat7:run
 On the user client 1:
 Write: 2 good2 (twice -> first to synchronize, second to get the answer)
 
+
+## Simulate byzantine clients
+
+Replace line 190 in GoodsResource:
+if(notaryId == 1) {
+	byte[] toSignResponse = (type + "||byzantine" + goodID + "||" + sellerID + "||" + nonce + "||" + nonceNotary).getBytes(); 
+}
