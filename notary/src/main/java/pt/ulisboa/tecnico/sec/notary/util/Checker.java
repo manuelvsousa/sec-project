@@ -56,10 +56,14 @@ public class Checker {
         }
 
         if (!Crypto.getInstance().checkSignature(publicKey, toSign, sig)) {
-            throw new InvalidSignatureWrite();
+            Notary.getInstance().retrievePublicKey(Integer.parseInt(notaryID));
+            publicKey = Notary.getInstance().getPublicKeyNotarioID(Integer.parseInt(notaryID));
+            if(!Crypto.getInstance().checkSignature(publicKey, toSign, sig)) {
+                throw new InvalidSignatureWrite();
+            }
         }
 
-        //TODO POR AS KEYS A FUNCIONAR CASO VÁ ABAIXO
+
         byte[] toSW = (goodID+ " || " + onSale + " || " +  nonceM + " || " + buyerID).getBytes();
         System.out.println("RECEIVED");
         System.out.println(goodID+ " || " + onSale + " || " +  nonceM + " || " + buyerID);

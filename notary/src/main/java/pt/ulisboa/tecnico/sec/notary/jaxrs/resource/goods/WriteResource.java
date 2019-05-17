@@ -47,8 +47,11 @@ public class WriteResource {
         m = brb.consensusEcho();
         if(!brb.getSentready() && m!=null) {
                 int i = Notary.getInstance().checksReceivedWriteFromOtherReplics(m.getBuyerID(), m.getTimestamp());
-                System.out.println("I AM HERE");
-                Notary.getInstance().sendReady(i);
+                try {
+                    Notary.getInstance().sendReady(i);
+                } catch (Exception e) {
+                    System.out.println("Unable to send ready");
+                }
         }
 
         Response response = Response.ok().build();
@@ -82,7 +85,12 @@ public class WriteResource {
          BRB brb =  Notary.getInstance().addBRBReady(m, Integer.parseInt(notaryID));
          m = brb.consesusReady();
         if(m != null && !brb.getSentready()) {
-            Notary.getInstance().sendReady(i);
+            try {
+                Notary.getInstance().sendReady(i);
+            }
+            catch (Exception e) {
+                System.out.println("Unable to send ready");
+            }
         }
         /**
         m = brb.consensusDeliver();

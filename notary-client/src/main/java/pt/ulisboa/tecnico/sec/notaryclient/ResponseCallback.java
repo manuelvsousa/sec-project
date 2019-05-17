@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.sec.notaryclient;
 
+import org.glassfish.jersey.media.sse.internal.SseAutoDiscoverable;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.util.Crypto;
 import pt.ulisboa.tecnico.sec.util.KeyReader;
@@ -18,18 +19,22 @@ public class ResponseCallback implements InvocationCallback<Response> {
     private final CountDownLatch latch;
     private boolean read;
     private String goodID;
+    private int F;
+    private int fails = 0;
     private HashMap<Integer, Response> responses = new HashMap<>();
     Throwable throwable;
 
-    ResponseCallback(CountDownLatch latch, boolean read, String goodID) {
+    ResponseCallback(CountDownLatch latch, boolean read, String goodID, int F) {
         this.latch = latch;
         this.read = read;
         this.goodID = goodID;
+        this.F = F;
     }
 
-    ResponseCallback(CountDownLatch latch) {
+    ResponseCallback(CountDownLatch latch, int F) {
         this.latch = latch;
         this.read = false;
+        this.F = F;
     }
 
     @Override
@@ -50,9 +55,9 @@ public class ResponseCallback implements InvocationCallback<Response> {
                         latch.countDown();
                     }
                 } catch (GeneralSecurityException e) {
-                    e.printStackTrace();
+                    System.out.println(e.getMessage());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println(e.getMessage());
                 }
             }
             else {
@@ -67,10 +72,21 @@ public class ResponseCallback implements InvocationCallback<Response> {
     }
 
     @Override
-    public void failed(Throwable t) {
-        //System.out.println("ola");
-        t.printStackTrace();
+    public void failed(Throwable t)  {
+        System.out.println("ola");
         throwable = t;
+        fails++;
+        int N = 3 * F +1;
+        int num = (int) Math.ceil((N+F)/2.0);
+        if(fails == num) {
+            for(int i = 1; i <= num; i++) {
+                latch.countDown();
+            }
+        }
+    }
+
+    private void aux(Throwable t) throws Throwable{
+        throw throwable;
     }
 
     public HashMap<Integer, Response> getResponses() {

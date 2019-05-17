@@ -289,7 +289,7 @@ public class Notary implements Serializable {
 //        setWithCC(true);
     }
 
-    public Message validateWrite(String type, String goodID, String buyerID, String sellerID, String sigWrite, String nonceBuyer, boolean onSale) {
+    public Message validateWrite(String type, String goodID, String buyerID, String sellerID, String sigWrite, String nonceBuyer, boolean onSale) throws Exception{
         System.out.println("Validate write");
 
         /**TODO fazer check se o timestamp está dentro de um intervalo determinado**/
@@ -328,11 +328,8 @@ public class Notary implements Serializable {
 
         }
 
-
         if(valid) {
             //Waits for a possible valid write
-
-            System.out.println("INDEX" + indexBRBS);
             if((this.lastValidWrite != (indexBRBS - 1)) && (this.lastValidWrite != indexBRBS)) {
                 now = System.currentTimeMillis();
                 end = now + SESSION;
@@ -349,12 +346,8 @@ public class Notary implements Serializable {
                 }
             }
 
-
-
             brb = this.brbs.get(indexBRBS);
             message_aux = brb.consensusDeliver();
-            System.out.println("LAST VALID WRITE" + lastValidWrite);
-
 
             if(message_aux!=null) {
                 brb.setDelivered(true);
@@ -392,7 +385,6 @@ public class Notary implements Serializable {
     }
 
     public synchronized int checksReceivedWriteFromOtherReplics(String buyerID, String timestamp) {
-        //TODO COLOCAR LOCKS OU OUTRA CENA
         for(int i : this.brbs.keySet()) {
             BRB brb = this.brbs.get(i);
             if(brb.getUserID().equals(buyerID) && brb.getTimestamp().equals(timestamp)) {
@@ -402,7 +394,7 @@ public class Notary implements Serializable {
         return -1;
     }
 
-    private void sendEcho(int index) {
+    private void sendEcho(int index) throws Exception{
         System.out.println("echo");
         BRB brb = this.brbs.get(index);
         brb.setSentecho(true);
@@ -417,21 +409,21 @@ public class Notary implements Serializable {
                 "||" + m.getSellerID() + "||" +  m.getTimestamp() + "||" + m.getSignWrite() +
                 "||" + m.isOnSale() + "||" + nonce + "||" +  notaryID).getBytes();
 
-        try {
-            String sig = Crypto.getInstance().sign(this.keys.getPrivate(), toSign);
-            String REST_URI_C;
-            for (int i = 1; i <= N; i++) {
-                if(i != notaryID) {
-                    REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+        String sig = Crypto.getInstance().sign(this.keys.getPrivate(), toSign);
+        String REST_URI_C;
+        for (int i = 1; i <= N; i++) {
+            if(i != notaryID) {
+                REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+                try{
                     Response r = client.target(REST_URI_C + "/write/echo").queryParam("typeM", m.getType()).queryParam("goodID", m.getGoodID()).
                             queryParam("sellerID", m.getSellerID()).queryParam("buyerID", m.getBuyerID()).queryParam("nonceM", m.getTimestamp()).
                             queryParam("signWrite" , m.getSignWrite()).queryParam("onSale", m.isOnSale()).queryParam("nonce", nonce).
                             queryParam("sig", sig).queryParam("notaryID", Integer.toString(notaryID)).request(MediaType.APPLICATION_JSON).get();
                 }
+                catch (Exception e) {
+                    System.out.println("Error: Echo to notary with port " + i);
+                }
             }
-        } catch (Exception e) {
-            //TODO DEAL BETTER WITH EXCEPTIONS
-            e.printStackTrace();
         }
 
     }
@@ -445,7 +437,7 @@ public class Notary implements Serializable {
         return brb;
     }
 
-    public void sendReady(int index) {
+    public void sendReady(int index) throws Exception{
         int notaryID = Integer.parseInt(System.getProperty("port"));
         System.out.println("Ready");
         BRB brb = this.setReady(index);
@@ -459,21 +451,21 @@ public class Notary implements Serializable {
         byte[] toSign = (type + "||" + m.getType() + "||" + m.getGoodID() + "||" + m.getBuyerID() +
                 "||" + m.getSellerID() + "||" + m.getTimestamp() + "||" + m.getSignWrite() +
                 "||" + m.isOnSale() + "||" + nonce + "||" + notaryID).getBytes();
-        try {
-            String sig = Crypto.getInstance().sign(this.keys.getPrivate(), toSign);
-            String REST_URI_C;
-            for (int i = 1; i <= N; i++) {
-                if(i != notaryID) {
-                    REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+        String sig = Crypto.getInstance().sign(this.keys.getPrivate(), toSign);
+        String REST_URI_C;
+        for (int i = 1; i <= N; i++) {
+            if(i != notaryID) {
+                REST_URI_C = "http://localhost:919" + i + "/notary/notary";
+                try {
                     Response r = client.target(REST_URI_C + "/write/ready").queryParam("typeM", m.getType()).queryParam("goodID", m.getGoodID()).
                             queryParam("sellerID", m.getSellerID()).queryParam("buyerID", m.getBuyerID()).queryParam("nonceM", m.getTimestamp()).
                             queryParam("signWrite" , m.getSignWrite()).queryParam("onSale", m.isOnSale()).queryParam("nonce", nonce).
                             queryParam("sig", sig).queryParam("notaryID", Integer.toString(notaryID)).request(MediaType.APPLICATION_JSON).get();
                 }
+                catch (Exception e) {
+                    System.out.println("Error: Ready to notary with port " + i);
+                }
             }
-        } catch (Exception e) {
-            //TODO DEAL BETTER WITH EXCEPTIONS
-            e.printStackTrace();
         }
 
     }

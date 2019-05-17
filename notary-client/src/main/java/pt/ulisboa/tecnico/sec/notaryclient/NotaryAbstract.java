@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.sec.notaryclient;
 
+import pt.ulisboa.tecnico.sec.notary.jaxrs.application.Notary;
 import pt.ulisboa.tecnico.sec.notary.model.State;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.GoodNotFoundException;
 import pt.ulisboa.tecnico.sec.notaryclient.exception.InvalidSignature;
@@ -78,7 +79,7 @@ class NotaryAbstract {
             String REST_URI_C;
             int num = (int) Math.ceil((N+F)/2.0);
             final CountDownLatch latch = new CountDownLatch(num);
-            ResponseCallback responseCallback = new ResponseCallback(latch, true, id);
+            ResponseCallback responseCallback = new ResponseCallback(latch, true, id, F);
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
                 String pow = calculateProofOfWork(toSign);
@@ -108,13 +109,15 @@ class NotaryAbstract {
                 }
                 String code = codeResponse(r.get(i), toSign, withCC, i-1);
                 if(code.equals("200")) {
+                    System.out.println("Response");
                     if(Long.valueOf(s.getTimestamp()).longValue() >= maxTimestamp) {
                         correct = s;
                         maxTimestamp = Long.valueOf(s.getTimestamp()).longValue();
                     }
                 }
                 else {
-                    faults++; /**TODO Improve**/
+
+                    faults++;
                     code_f = code;
                 }
             }
@@ -123,21 +126,25 @@ class NotaryAbstract {
                 checkCode(code_f);
             }
 
+            System.out.println("hello");
+
 
             type = Base64.getEncoder().withoutPadding().encodeToString("/goods/update".getBytes());
             num = (int) Math.ceil((N+F)/2.0);
             final CountDownLatch latchUpdate = new CountDownLatch(num);
-            ResponseCallback responseCallbackUpdate = new ResponseCallback(latchUpdate, false, id);
+            ResponseCallback responseCallbackUpdate = new ResponseCallback(latchUpdate, false, id, F);
             byte[] toSW = (id + " || " + correct.getOnSale() + " || " +  correct.getTimestamp() + " || " + correct.getOwnerID()).getBytes();
             String sigWrite = Crypto.getInstance().sign(privateKey, toSW);
             toSign = (type + "||" + id + "||" + s.getOwnerID() + "||" + s.getOnSale() + "||" + s.getTimestamp()).getBytes();
             sig = Crypto.getInstance().sign(privateKey, toSign);
             nonce = String.valueOf((System.currentTimeMillis()));
             for(int i = 1; i <= N; i++) {
+                System.out.println("ola ");
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
                 client.target(REST_URI_C + "/goods/update").queryParam("userID", userID).queryParam("goodID", id).queryParam("sellerID", correct.getOwnerID()).queryParam("onSale",correct.getOnSale()).queryParam("goodNonce",correct.getTimestamp()).queryParam("signature", sig).queryParam("nonce", nonce).queryParam("sigWrite", sigWrite).request(MediaType.APPLICATION_JSON).async().get(responseCallbackUpdate);
             }
             latchUpdate.await();
+            System.out.println("the end");
 
             return correct;
 
@@ -154,21 +161,42 @@ class NotaryAbstract {
     }
 
     private void retrievePublicKey() {
+        for(int i = 1; i <= N; i++) {
+            this.retrieveNotaryPK(i);
+        }
+        return;
+
+    }
+
+    public PublicKey retrieveNotaryPK(int notaryID) {
+        String type =
+                Base64.getEncoder().withoutPadding().encodeToString("/keys/getPublicKey".getBytes());
+         String REST_URI_C = "http://localhost:919" + notaryID + "/notary/notary";
+        Response r = client.target(REST_URI_C + "/keys/getPublicKey").request(MediaType.APPLICATION_JSON).get();
+        String publicKeySignature = r.getHeaderString("PublicKey-Signature");
+        String publicKeybase64 = r.readEntity(String.class);
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeybase64.getBytes()));
+        KeyFactory kf = null;
         try {
-            String type =
-                    Base64.getEncoder().withoutPadding().encodeToString("/keys/getPublicKey".getBytes());
-            String REST_URI_C;
-            for(int i = 1; i <= N; i++) {
-                REST_URI_C = "http://localhost:919" + i + "/notary/notary";
-                Response r = client.target(REST_URI_C + "/keys/getPublicKey").request(MediaType.APPLICATION_JSON).get();
-                String publicKeySignature = r.getHeaderString("PublicKey-Signature");
-                String publicKeybase64 = r.readEntity(String.class);
-                X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeybase64.getBytes()));
-                KeyFactory kf = KeyFactory.getInstance("RSA");
-                PublicKey publicKey = kf.generatePublic(publicKeySpec);
-                this.notarySignedPublicKey.add(publicKey);
-                byte[] toSign = (type + "||" + publicKeySignature + "||" + Base64.getEncoder().encodeToString(publicKey.getEncoded())).getBytes();
-                this.verifyResponse(r, toSign, false, i-1); // General request verification. Check integrity hole message
+            kf = KeyFactory.getInstance("RSA");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        PublicKey publicKey = null;
+        try {
+            publicKey = kf.generatePublic(publicKeySpec);
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+
+        byte[] toSign = (type + "||" + publicKeySignature + "||" + Base64.getEncoder().encodeToString(publicKey.getEncoded())).getBytes();
+        if(this.notarySignedPublicKey.size() == N) {
+            this.notarySignedPublicKey.set(notaryID-1, publicKey);
+        }
+        else {
+            this.notarySignedPublicKey.add(publicKey);
+        }
+        this.verifyResponse(r, toSign, false, notaryID-1); // General request verification. Check integrity hole message
             /*  The check bellow is really important
                 Check if signature from CC actually matches the sent public key
                 An attacker may encript a similar message with a equally generated key.
@@ -176,26 +204,11 @@ class NotaryAbstract {
                 This is done this away to avoid unnecessary CC signatures every time someone asks for the public key.
              */
 
-            /**TODO fix this**/
-                if (this.withCC && !Crypto.getInstance().checkSignature(this.notaryCCPublicKey, publicKey.getEncoded(), publicKeySignature)) {
-                    throw new InvalidSignature("Public Key sent from notary was forged. Signature made with CC is wrong");
-                }
-            }
-            return;
-        } catch (NotFoundException e) {
-            String cause = e.getResponse().readEntity(String.class);
-            if (cause == null) {
-                throw new RuntimeException("Cause of error 404 is null");
-            }
-            if (cause.toLowerCase().contains("good".toLowerCase())) {
-                throw new GoodNotFoundException(cause);
-            }
-        } catch (InvalidKeySpecException asd) {
-            // TODO
-        } catch (NoSuchAlgorithmException asd) {
-            // TODO
+        /**TODO fix this**/
+        if (this.withCC && !Crypto.getInstance().checkSignature(this.notaryCCPublicKey, publicKey.getEncoded(), publicKeySignature)) {
+            throw new InvalidSignature("Public Key sent from notary was forged. Signature made with CC is wrong");
         }
-        throw new RuntimeException("Unknown Error");
+        return publicKey;
     }
 
 
@@ -209,7 +222,7 @@ class NotaryAbstract {
             String REST_URI_C;
             int n = (int) Math.ceil((N+F)/2.0);
             final CountDownLatch latch = new CountDownLatch(n);
-            ResponseCallback responseCallback = new ResponseCallback(latch);
+            ResponseCallback responseCallback = new ResponseCallback(latch, F);
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
                 String pow = calculateProofOfWork(toSign);
@@ -263,7 +276,7 @@ class NotaryAbstract {
         } else {
             toSign = (new String(toSign) + "||" + nonceS).getBytes();
             if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
-                retrievePublicKey();
+                retrieveNotaryPK(index+1);
                 if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
                     throw new InvalidSignature("Signature from notary was forged");
                 } else {
@@ -272,11 +285,12 @@ class NotaryAbstract {
             }
         }
         //TODO Fix this
+        /**
         if (nonce > this.lastNotaryNonce) {
             this.lastNotaryNonce = nonce;
         } else {
             throw new InvalidSignature("Nonce from notary is invalid");
-        }
+        }**/
 
         if (r.getStatus() == 200) {
             return;
@@ -316,7 +330,7 @@ class NotaryAbstract {
             String REST_URI_C;
             int n = (int) Math.ceil((N+F)/2.0);
             final CountDownLatch latch = new CountDownLatch(n);
-            ResponseCallback responseCallback = new ResponseCallback(latch);
+            ResponseCallback responseCallback = new ResponseCallback(latch, F);
             for(int i = 1; i <= N; i++) {
                 REST_URI_C = "http://localhost:919" + i + "/notary/notary";
                 String pow = calculateProofOfWork(toSign);
@@ -354,7 +368,7 @@ class NotaryAbstract {
         } else {
             toSign = (new String(toSign) + "||" + nonceS).getBytes();
             if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
-                retrievePublicKey();
+                retrieveNotaryPK(index+1);
                 if (!Crypto.getInstance().checkSignature(withCC ? this.notaryCCPublicKey : this.notarySignedPublicKey.get(index), toSign, sig)) {
                     return "Sigforged";
                 } else {
@@ -445,6 +459,7 @@ class NotaryAbstract {
             code = this.codeResponse(r.get(i), toSign, false, i-1);
             if(codes.containsKey(code)) {
                 value = codes.get(code) + 1;
+                System.out.println("Responses" + value);
                 codes.replace(code, value);
             }
             else {

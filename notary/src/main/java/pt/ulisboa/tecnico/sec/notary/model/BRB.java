@@ -84,6 +84,7 @@ public class BRB {
     public synchronized Message consensusEcho() {
         System.out.println("Consensus Echo");
         HashMap<Message, Integer> responses = this.totalMessages(this.echos);
+        System.out.println(this.echos.size());
 
         int  N = Notary.getInstance().getN();
         int F = Notary.getInstance().getF();
@@ -131,7 +132,7 @@ public class BRB {
                 responses.replace(m, total);
             }
             else {
-                responses.put(m, 0);
+                responses.put(m, 1);
             }
         }
         return responses;
