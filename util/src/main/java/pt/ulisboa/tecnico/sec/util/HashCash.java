@@ -8,14 +8,6 @@ import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.security.NoSuchAlgorithmException;
 
-/**
- * Class for generation and parsing of <a href="http://www.hashcash.org/">HashCash</a><br>
- * Copyright 2006 Gregory Rubin <a href="mailto:grrubin@gmail.com">grrubin@gmail.com</a><br>
- *  Permission is given to use, modify, and or distribute this code so long as this message remains attached<br>
- * Please see the spec at: <a href="http://www.hashcash.org/">http://www.hashcash.org/</a>
- * @author grrubin@gmail.com
- * @version 1.1
- */
 public class HashCash implements Comparable<HashCash> {
     public static final int DefaultVersion = 1;
     private static final int hashLength = 160;
@@ -30,11 +22,6 @@ public class HashCash implements Comparable<HashCash> {
     private String myResource;
 
 
-    /**
-     * Mints a version 1 HashCash using now as the date
-     * @param resource the string to be encoded in the HashCash
-     * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
-     */
     public static HashCash mintCash(String resource, int value) throws NoSuchAlgorithmException {
         Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         return mintCash(resource, null, now, value, DefaultVersion);
@@ -88,10 +75,6 @@ public class HashCash implements Comparable<HashCash> {
         return result;
     }
 
-    // Accessors
-    /**
-     * Two objects are considered equal if they are both of type HashCash and have an identical string representation
-     */
     public boolean equals(Object obj) {
         if(obj instanceof HashCash)
             return toString().equals(obj.toString());
@@ -172,11 +155,6 @@ public class HashCash implements Comparable<HashCash> {
         return temp;
     }
 
-    /**
-     * Converts a 4 byte array of unsigned bytes to an long
-     * @param b an array of 4 unsigned bytes
-     * @return a long representing the unsigned int
-     */
     private static long unsignedIntToLong(byte[] b) {
         long l = 0;
         l |= b[0] & 0xFF;
@@ -189,9 +167,6 @@ public class HashCash implements Comparable<HashCash> {
         return l;
     }
 
-    /**
-     * Serializes the extensions with (key, value) seperated by semi-colons and values seperated by commas
-     */
     private static String serializeExtensions(Map<String, List<String> > extensions) {
         if(null == extensions || extensions.isEmpty())
             return "";
@@ -223,9 +198,6 @@ public class HashCash implements Comparable<HashCash> {
         return result.toString();
     }
 
-    /**
-     * Inverse of {@link #serializeExtensions(Map)}
-     */
     private static Map<String, List<String> > deserializeExtensions(String extensions) {
         Map<String, List<String> > result = new HashMap<String, List<String> >();
         if(null == extensions || extensions.length() == 0)
@@ -288,10 +260,6 @@ public class HashCash implements Comparable<HashCash> {
             return 0;
     }
 
-    /**
-     * Seeds the estimates by determining how long it takes to calculate a 16bit collision on average.
-     * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
-     */
     private static void initEstimates() throws NoSuchAlgorithmException {
         if(milliFor16 == -1) {
             long duration;

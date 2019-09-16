@@ -49,14 +49,16 @@ class NotaryAbstract {
         String time = String.valueOf(System.currentTimeMillis());
         Arrays.fill(data,time);
         this.lastNotaryNonce = new ArrayList<>(Arrays.asList(data));
-        this.withCC = false;
+        this.withCC = true;
 
         try {
             String path = new File(System.getProperty("user.dir")).getParent();
             if (this.withCC) {
+                this.notaryCCPublicKey = new HashMap<>();
                 this.notaryCCPublicKey.put(1, KeyReader.getInstance().readPublicKey("notaryCC", path));
             }
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Could not Load Notary CC public key");
         }
 

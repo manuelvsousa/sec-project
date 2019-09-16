@@ -290,8 +290,8 @@ public class Notary implements Serializable {
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException, GeneralSecurityException {
         ois.defaultReadObject();
         uniqueInstance = this;
-//        this.keys = KeyGen.getInstance().generateRSAKey();
-//        setWithCC(true);
+        this.keys = KeyGen.getInstance().generateRSAKey();
+        setWithCC(true);
     }
 
     public Message validateWrite(String type, String goodID, String buyerID, String sellerID, String sigWrite, String nonceBuyer, boolean onSale) throws Exception{
@@ -496,11 +496,11 @@ public class Notary implements Serializable {
              */
 
 
-            /**TODO fix this**/
-            /***
-            if (this.withCC && !Crypto.getInstance().checkSignature(this.notaryCCPublicKey, publicKey.getEncoded(), publicKeySignature)) {
-                throw new InvalidSignature("Public Key sent from notary was forged. Signature made with CC is wrong");
-            }***/
+//            /**TODO fix this**/
+//
+//            if (this.withCC && !Crypto.getInstance().checkSignature(this.notaryCCPublicKey, publicKey.getEncoded(), publicKeySignature)) {
+//                throw new InvalidSignature("Public Key sent from notary was forged. Signature made with CC is wrong");
+//            }
             return;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
